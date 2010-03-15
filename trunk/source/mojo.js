@@ -138,26 +138,34 @@
 				
 			if(typeof child === "string"){
 				child = jo.trim(child);
-				for (i = 0, j = ems.length; i < j; i++){
+				for (i = 0; i < j; i++){
 					ems[i].innerHTML += child;
 				}
 			} else if(typeof child === "object") {
-				for (i = 0, j = ems.length; i < j; i++){
+				for (i = 0; i < j; i++){
 					ems[i].appendChild(child);
 				}
-			} else if(typeof child === "function"){
-				
-			}
+			} 
 			return this;
 		},
-		after : function(c,isTrue){//追加兄弟节点
-			var next,e,ems = this.ems;
-			if(typeof c === "string"){
-				c = jo.trim(c);
-				var f = jo.strToFragment(c);
-				for (var i = 0, j = ems.length; i < j; i++){
+		
+		/**
+		 * 追加兄弟节点
+		 * @param {String or HTMLElement} nextSibling
+		 */
+		after : function(nextSibling){//
+			var ems = this.ems,
+				joo = jo,
+				i,fragment,e,
+				j = ems.length;
+				
+			if(typeof nextSibling === "string"){
+				nextSibling = joo.trim(nextSibling);
+				fragment = joo.strToFragment(nextSibling);
+				
+				for (i = 0; i < j; i++){
 					e = ems[i];
-					next = jo.getNextNode(e);
+					next = joo.getNextNode(e);
 					if (next) {
 						e.parentNode.insertBefore(i === j - 1 ? f : f.cloneNode(true), next);
 					}else {
@@ -165,17 +173,7 @@
 					}
 				}					
 			}else{//对象
-				if (!isTrue) {
-					for (var i = 0, j = ems.length; i < j; i++){
-						e = ems[i];
-						next = jo.getNextNode(e);
-						if (next) {
-							e.parentNode.insertBefore(c, next);
-						}else {
-							e.parentNode.appendChild(c);
-						}
-					}
-				}else{
+				
 					var cc;
 					for (var i = 0, j = ems.length; i < j; i++){
 						e = ems[i];
@@ -190,7 +188,7 @@
 							e.parentNode.appendChild(cc);
 						}
 					}				
-				}
+				
 			}
 			return this;
 		},
@@ -734,15 +732,23 @@
 				return null;
 			}
 		},
-		strToFragment : function(s){//html字符串转换成documentFragment
-			var d = document.createElement("div"),
-				f = document.createDocumentFragment(),cns;
-				d.innerHTML = s;
-				cns = d.childNodes;
-				while (cns.length) {
-					f.appendChild(cns[0]);
-				}
-			return f;				
+		
+		/**
+		 * html字符串转换成documentFragment
+		 * @param {String} strHtml
+		 */
+		strToFragment : function(strHtml){
+			var doc = document,
+				div = doc.createElement("div"),
+				fragment = doc.createDocumentFragment(),
+				cns;
+				
+			div.innerHTML = strHtml;
+			cns = div.childNodes;
+			while (cns.length) {
+				fragment.appendChild(cns[0]);
+			}
+			return fragment;				
 		},
 		
 		/**
