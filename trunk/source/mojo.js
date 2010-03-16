@@ -721,16 +721,20 @@
 			return null;
 		},
 		
-		getNextNode : function(e){//获取下一个非空白字符节点
-			var next = e.nextSibling; 
-			if (next) {
-				if (next.nodeType === 3 && next.nodeValue.replace(/\s/g, "") === "") {//空白文本节点
-					return this.getNextNode(next);
+		/**
+		 * 返回下一个非空白HTMLElement元素
+		 * @param {HTMLELement} e
+		 */
+		getNext : function(e){
+			var next; 
+			while(next = e.nextSibling){
+				if (next.nodeType === 3 && next.nodeValue.replace(/\s/g, "") === "") {
+					continue;
 				}
 				return next;
-			} else {
-				return null;
 			}
+			
+			return null;
 		},
 		
 		/**
