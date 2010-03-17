@@ -41,7 +41,7 @@
 
 	 	/**
 	 	 * 执行jo对象的init方法返回的对象,就是mojo函数返回的对象
-	     * @param {String or HTMLElement} selector 选择器,字符串或者DOM元素类型
+	     * @param {String or Object} selector 选择器,字符串或者DOM元素类型
 	     * @param {Array} arr 选择器对应的DOM元素的数组
 	     */	
 		mo = function(selector,arr) {
@@ -59,7 +59,7 @@
 		
 		/**
 		 * mojo变量注册到window上,并赋值为构造mo对象的函数
-		 * @param {String or HTMLElement} selector
+		 * @param {String or Object} selector
 		 */
 	    mojo = window.mojo = function(selector){
 			return jo.init(selector);
@@ -129,7 +129,7 @@
 		
 		/**
 		 * 添加子节点
-		 * @param {String or HTMLElement} child
+		 * @param {String or Object} child
 		 */
 		append : function(child){
 			var ems = this.ems,
@@ -151,7 +151,7 @@
 		
 		/**
 		 * 追加兄弟节点
-		 * @param {String or HTMLElement} nextSibling
+		 * @param {String or Object} nextSibling
 		 */
 		after : function(nextSibling){//
 			var ems = this.ems,
@@ -165,31 +165,25 @@
 				
 				for (i = 0; i < j; i++){
 					e = ems[i];
-					next = joo.getNextNode(e);
-					if (next) {
-						e.parentNode.insertBefore(i === j - 1 ? f : f.cloneNode(true), next);
+					next = joo.getNext(e);
+					if (next !== null) {
+						e.parentNode.insertBefore(fragment.cloneNode(true), next);
 					}else {
-						e.parentNode.appendChild(i === j - 1 ? f : f.cloneNode(true));
+						e.parentNode.appendChild(fragment.cloneNode(true));
 					}
-				}					
-			}else{//对象
-				
-					var cc;
-					for (var i = 0, j = ems.length; i < j; i++){
-						e = ems[i];
-						next = jo.getNextNode(e);
-						cc = c.cloneNode(true);
-						if(cc.id){
-							cc.removeAttribute("id")
-						}
-						if (next) {
-							e.parentNode.insertBefore(cc, next);
-						}else {
-							e.parentNode.appendChild(cc);
-						}
-					}				
-				
+				}		
+			} else if(typeof nextSibling === "object") {
+				for (i = 0; i < j; i++) {
+					e = ems[i];
+					next = joo.getNext(e);
+					if (next !== null) {
+						e.parentNode.insertBefore(nextSibling, next);
+					} else {
+						e.parentNode.appendChild(nextSibling);
+					}
+				}				
 			}
+			
 			return this;
 		},
 		before : function(c,isTrue){//前插兄弟节点
@@ -700,7 +694,7 @@
 	jo = {
 		/**
 		 * 根据选择器初始化mo对象
-		 * @param {String or HTMLElement} selector
+		 * @param {String or Object} selector
 		 */
 		init : function(selector){
 			var i,j,str,obj,
@@ -723,12 +717,13 @@
 		
 		/**
 		 * 返回下一个非空白HTMLElement元素
-		 * @param {HTMLELement} e
+		 * @param {Object} e
 		 */
 		getNext : function(e){
 			var next; 
 			while(next = e.nextSibling){
 				if (next.nodeType === 3 && next.nodeValue.replace(/\s/g, "") === "") {
+					e = next;
 					continue;
 				}
 				return next;
