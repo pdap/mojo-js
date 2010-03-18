@@ -129,21 +129,21 @@
 		
 		/**
 		 * 添加子节点
-		 * @param {String or Object} child
+		 * @param {String or Object} elem
 		 */
-		append : function(child){
+		append : function(elem){
 			var ems = this.ems,
 				i,
 				j = ems.length;
 				
-			if(typeof child === "string"){
-				child = jo.trim(child);
+			if(typeof elem === "string"){
+				elem = jo.trim(elem);
 				for (i = 0; i < j; i++){
-					ems[i].innerHTML += child;
+					ems[i].innerHTML += elem;
 				}
-			} else if(typeof child === "object") {
+			} else if(typeof elem === "object") {
 				for (i = 0; i < j; i++){
-					ems[i].appendChild(child);
+					ems[i].appendChild(elem);
 				}
 			} 
 			return this;
@@ -151,17 +151,17 @@
 		
 		/**
 		 * 追加兄弟节点
-		 * @param {String or Object} nextSibling
+		 * @param {String or Object} elem
 		 */
-		after : function(nextSibling){//
+		after : function(elem){
 			var ems = this.ems,
 				joo = jo,
 				i,fragment,e,
 				j = ems.length;
 				
-			if(typeof nextSibling === "string"){
-				nextSibling = joo.trim(nextSibling);
-				fragment = joo.strToFragment(nextSibling);
+			if(typeof elem === "string"){
+				elem = joo.trim(elem);
+				fragment = joo.strToFragment(elem);
 				
 				for (i = 0; i < j; i++){
 					e = ems[i];
@@ -172,81 +172,80 @@
 						e.parentNode.appendChild(fragment.cloneNode(true));
 					}
 				}		
-			} else if(typeof nextSibling === "object") {
+			} else if(typeof elem === "object") {
 				for (i = 0; i < j; i++) {
 					e = ems[i];
 					next = joo.getNext(e);
 					if (next !== null) {
-						e.parentNode.insertBefore(nextSibling, next);
+						e.parentNode.insertBefore(elem, next);
 					} else {
-						e.parentNode.appendChild(nextSibling);
+						e.parentNode.appendChild(elem);
 					}
 				}				
 			}
 			
 			return this;
 		},
-		before : function(c,isTrue){//前插兄弟节点
-			var e,ems = this.ems;
-			if(typeof c === "string"){
-				c = jo.trim(c);
-				var f = jo.strToFragment(c); 
-				for (var i = 0, j = ems.length; i < j; i++){
+		
+		/**
+		 * 插入兄弟节点
+		 * @param {String or Object} preSibling
+		 */
+		before : function(elem){
+			var ems = this.ems,
+				joo = jo,
+				i,fragment,e,
+				j = ems.length;
+				
+			if (typeof elem === "string"){
+				elem = joo.trim(elem);
+				fragment = joo.strToFragment(elem); 
+				
+				for (i = 0; i < j; i++) {
 					e = ems[i];
-					e.parentNode.insertBefore(i === j - 1 ? f : f.cloneNode(true), e);
+					e.parentNode.insertBefore(fragment.cloneNode(true), e);
 				}					
-			}else{//对象
-				if (!isTrue) {
-					for (var i = 0, j = ems.length; i < j; i++){
-						e = ems[i];
-						e.parentNode.insertBefore(c, e);
-					}
-				}else{
-					var cc;
-					for (var i = 0, j = ems.length; i < j; i++){
-						e = ems[i];
-						cc = c.cloneNode(true);
-						if(cc.id){
-							cc.removeAttribute("id")
-						}
-						e.parentNode.insertBefore(cc, e);
-					}					
+			} else if (typeof elem === "object"){
+				for (i = 0; i < j; i++) {
+					e = ems[i];
+					e.parentNode.insertBefore(elem, e);
 				}
+				
 			}
+			
 			return this;			
 		},
-		wrap : function(c,isTrue){//包裹当前节点
-			var e,ems = this.ems;
-			if(typeof c === "string"){
-				c = jo.trim(c);
-				var f = jo.strToFragment(c);
-				for (var i = 0, j = ems.length; i < j; i++){
-						e = ems[i];
-						e.parentNode.insertBefore(i === j - 1 ? f : f.cloneNode(true), e);
-						e.previousSibling.appendChild(e);
-				}					
-			}else{
-				if (!isTrue) {
-					for (var i = 0, j = ems.length; i < j; i++){
-						e = ems[i];
-						e.parentNode.insertBefore(c, e);
-						c.appendChild(e);
-					}
-				}else{
-					var cc;
-					for (var i = 0, j = ems.length; i < j; i++){
-						e = ems[i];
-						cc = c.cloneNode(true);
-						if(cc.id){
-							cc.removeAttribute("id")
-						}
-						e.parentNode.insertBefore(cc, e);
-						cc.appendChild(e);
-					}				
+		
+		/**
+		 * 包裹节点
+		 * @param {Object} elem
+		 */
+		wrap : function(elem){
+			var ems = this.ems,
+				joo = jo,
+				i,fragment,e,
+				j = ems.length;
+				
+			if (typeof elem === "string") {
+				elem = joo.trim(elem);
+				fragment = joo.strToFragment(elem);
+				
+				for (i = 0; i < j; i++) {
+					e = ems[i];
+					e.parentNode.insertBefore(fragment.cloneNode(true), e);
+					e.previousSibling.appendChild(e);
+				}
+			} else if (typeof elem === "object"){
+				for (i = 0; i < j; i++) {
+					e = ems[i];
+					e.parentNode.insertBefore(elem, e);
+					elem.appendChild(e);
 				}
 			}
+			
 			return this;
 		},
+		
 		replace : function(c,isTrue){//替换节点
 			var e,ems = this.ems;
 			if(typeof c === "string"){
