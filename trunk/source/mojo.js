@@ -106,6 +106,7 @@
 					return this.datas[key];
 				}
 			}
+			
 			return this;
 		},
 		
@@ -124,6 +125,7 @@
 			} else {
 				this.datas = {};
 			}
+			
 			return this;
 		},
 		
@@ -133,19 +135,29 @@
 		 */
 		append : function(elem){
 			var ems = this.ems,
-				i,
-				j = ems.length;
+				i = 0,
+				j = ems.length,
+				returnVal;
 				
 			if(typeof elem === "string"){
-				elem = jo.trim(elem);
-				for (i = 0; i < j; i++){
+				for (; i < j; i++){
 					ems[i].innerHTML += elem;
 				}
 			} else if(typeof elem === "object") {
-				for (i = 0; i < j; i++){
+				for (; i < j; i++){
 					ems[i].appendChild(elem);
 				}
-			} 
+			} else if(typeof elem === "function") {
+				for (; i < j; i++){
+					returnVal = elem.call(this,ems[i],i);
+					if (typeof returnVal === "string") {
+						ems[i].innerHTML += returnVal;			
+					} else if(typeof returnVal === "object") {
+						ems[i].appendChild(returnVal);
+					}
+				}
+			}
+			
 			return this;
 		},
 		
@@ -155,31 +167,51 @@
 		 */
 		after : function(elem){
 			var ems = this.ems,
+				fragment,e,returnVal,
 				joo = jo,
-				i,fragment,e,
+				i = 0,
 				j = ems.length;
 				
 			if(typeof elem === "string"){
-				elem = joo.trim(elem);
 				fragment = joo.strToFragment(elem);
 				
 				for (i = 0; i < j; i++){
 					e = ems[i];
 					next = joo.getNext(e);
-					if (next !== null) {
+					if(next !== null) {
 						e.parentNode.insertBefore(fragment.cloneNode(true), next);
-					}else {
+					} else {
 						e.parentNode.appendChild(fragment.cloneNode(true));
 					}
 				}		
 			} else if(typeof elem === "object") {
-				for (i = 0; i < j; i++) {
+				for (; i < j; i++) {
 					e = ems[i];
 					next = joo.getNext(e);
 					if (next !== null) {
 						e.parentNode.insertBefore(elem, next);
 					} else {
 						e.parentNode.appendChild(elem);
+					}
+				}				
+			} else if(typeof elem === "function") {
+				for (; i < j; i++){
+					e = ems[i];
+					returnVal = elem.call(this,e,i);
+					next = joo.getNext(e);
+					if (typeof returnVal === "string") {
+						fragment = joo.strToFragment(returnVal);
+						if (next !== null) {
+							e.parentNode.insertBefore(fragment, next);
+						} else {
+							e.parentNode.appendChild(fragment);
+						}
+					} else if(typeof returnVal === "object") {
+						if (next !== null) {
+							e.parentNode.insertBefore(returnVal, next);
+						} else {
+							e.parentNode.appendChild(returnVal);
+						}						
 					}
 				}				
 			}
@@ -193,128 +225,213 @@
 		 */
 		before : function(elem){
 			var ems = this.ems,
+				fragment,e,
 				joo = jo,
-				i,fragment,e,
-				j = ems.length;
+				i = 0,
+				j = ems.length,
+				returnVal;
 				
 			if (typeof elem === "string"){
-				elem = joo.trim(elem);
 				fragment = joo.strToFragment(elem); 
 				
-				for (i = 0; i < j; i++) {
+				for (; i < j; i++) {
 					e = ems[i];
 					e.parentNode.insertBefore(fragment.cloneNode(true), e);
 				}					
 			} else if (typeof elem === "object"){
-				for (i = 0; i < j; i++) {
+				for (; i < j; i++) {
 					e = ems[i];
 					e.parentNode.insertBefore(elem, e);
 				}
 				
+			} else if (typeof elem === "function") {
+				for(;i < j; i++) {
+					e = ems[i];
+					returnVal = elem.call(this,e,i);
+					
+					if (typeof returnVal === "string") {
+						e.parentNode.insertBefore(joo.strToFragment(returnVal), e);
+					} else if (typeof returnVal === "object") {
+						e.parentNode.insertBefore(returnVal, e);
+					}
+				}
 			}
-			
+				
 			return this;			
 		},
 		
 		/**
 		 * 包裹节点
-		 * @param {Object} elem
+		 * @param {String or Object} elem
 		 */
 		wrap : function(elem){
 			var ems = this.ems,
+				fragment,e,
 				joo = jo,
-				i,fragment,e,
-				j = ems.length;
+				i = 0,
+				j = ems.length,
+				returnVal;
 				
 			if (typeof elem === "string") {
-				elem = joo.trim(elem);
 				fragment = joo.strToFragment(elem);
 				
-				for (i = 0; i < j; i++) {
+				for (; i < j; i++) {
 					e = ems[i];
 					e.parentNode.insertBefore(fragment.cloneNode(true), e);
 					e.previousSibling.appendChild(e);
 				}
 			} else if (typeof elem === "object"){
-				for (i = 0; i < j; i++) {
+				for (; i < j; i++) {
 					e = ems[i];
 					e.parentNode.insertBefore(elem, e);
 					elem.appendChild(e);
+				}
+			} else if (typeof elem === "function") {
+				for(; i < j; i++) {
+					e = ems[i];
+					returnVal = elem.call(this,e,i); 
+					
+					if (typeof returnVal === "string") {
+						e.parentNode.insertBefore(joo.strToFragment(returnVal), e);
+						e.previousSibling.appendChild(e);
+					} else if (typeof returnVal === "object") {
+						e.parentNode.insertBefore(returnVal, e);
+						returnVal.appendChild(e);						
+					}
 				}
 			}
 			
 			return this;
 		},
 		
-		replace : function(c,isTrue){//替换节点
-			var e,ems = this.ems;
-			if(typeof c === "string"){
-				c = jo.trim(c);
-				var f = jo.strToFragment(c);
-				for (var i = 0, j = ems.length; i < j; i++){
+		/**
+		 * 替换节点
+		 * @param {String or Object} elem
+		 * @param {Function} fn
+		 */
+		replace : function(elem,fn){
+			var ems = this.ems,
+				fragment,e,
+				joo = jo,
+				i = 0,
+				j = ems.length;
+				
+			if(typeof elem === "string"){
+				fragment = joo.strToFragment(elem);
+				
+				for (; i < j; i++) {
 					e = ems[i];
-					e.parentNode.replaceChild(i === j - 1 ? f : f.cloneNode(true), e);
-				}					
-			}else{
-				if (!isTrue) {
-					for (var i = 0, j = ems.length; i < j; i++){
-						e = ems[i];
-						e.parentNode.replaceChild(c, e);
+					e.parentNode.replaceChild(fragment.cloneNode(true), e);
+					if(typeof fn === "function") {
+						fn.call(this,e,i)
 					}
-				}else{
-					var cc;
-					for (var i = 0, j = ems.length; i < j; i++) {
-						e = ems[i];
-						cc = c.cloneNode(true);
-						if (cc.id) {
-							cc.removeAttribute("id")
-						}
-						e.parentNode.replaceChild(cc, e);
-					}			
-				}	
-			}
-			return this.clean();
-		},
-		html : function(h){
-			var ems = this.ems;
-			if (arguments.length === 1) {
-				for (var i = 0, j = ems.length; i < j; i++){
-					ems[i].innerHTML = jo.trim(h);
+				}					
+			} else if (typeof elem === "object"){
+				
+				for (; i < j; i++) {
+					e = ems[i];
+					e.parentNode.replaceChild(elem, e);
+					if(typeof fn === "function") {
+						fn.call(this,e,i)
+					}				
 				}
-				return this;
-			} else {//len = 0
-				var arr = [];
-				for (var i = 0, j = ems.length; i < j; i++){
-					arr[i] = jo.trim(ems[i].innerHTML);
-				}
-				return arr;
+				
 			}
+			
+			return this;
 		},
-		remove : function(){//删除节点
-			var e,ems = this.ems;
-			for (var i = 0, j = ems.length; i < j; i++){
+		
+		/**
+		 * 删除节点
+		 */
+		remove: function(){
+			var ems = this.ems,
+				i = 0,
+				j = ems.length,
+				e;
+			for (; i < j; i++) {
 				e = ems[i];
 				e.parentNode.removeChild(e);
 			}
-			return this.clean();
+			
+			return this;
 		},
-     	text : function(t){
-			var e,ems = this.ems;
-			if(arguments.length === 1){
-				for (var i = 0, j = ems.length; i < j; i++){
-					e = ems[i];
-					e.innerText ? e.innerText = t : e.textContent = t;
+		
+		/**
+		 * 设置匹配元素的html内容
+		 * @param {String} strHtml
+		 */	
+		html : function(strHtml){
+			var ems = this.ems,
+				arr = [],
+				i = 0,
+				j = ems.length;
+				
+			if (arguments.length === 1) {
+				if(typeof strHtml === "string") {
+					for (; i < j; i++) {
+						ems[i].innerHTML = strHtml;
+					}					
+				} else if (typeof strHtml === "function") {
+					for (; i < j; i++) {
+						ems[i].innerHTML = strHtml.call(this.ems[i],i);
+					}					
 				}
+				
 				return this;
-			}else{//len = 0
-				var arr = [];
-				for (var i = 0, j = ems.length; i < j; i++){
-					e = ems[i];
-					arr[i] = jo.trim(e.innerText || e.textContent);
+			} else {
+				for (; i < j; i++){
+					arr[i] = jo.trim(ems[i].innerHTML);
 				}
+				
 				return arr;
 			}
 		},
+		
+		/**
+		 * 清空节点子元素
+		 */
+		empty : function(){
+			var ems = this.ems,
+				i = 0,
+				j = ems.length;		
+				
+			for(; i < j; i++) {
+				ems[i].innerHTML = "";
+			}	
+			
+			return this;
+		},
+		
+		/**
+		 * 设置节点文本
+		 * @param {String or Funtion} txt
+		 */
+     	text : function(txt){
+			var ems = this.ems,
+				i = 0,
+				j = ems.length,
+				arr = [],
+				e;
+			
+			if (arguments.length === 1) {
+				for (; i < j; i++) {
+					e = ems[i];
+					typeof e.innerText === "string" ? e.innerText = txt : e.textContent = txt;
+				}
+				
+				return this;
+			} else {
+				for (; i < j; i++) {
+					e = ems[i];
+					arr[i] = e.innerText || e.textContent;
+				}
+				 
+				return arr;
+			}
+		},
+		
+		
 		val : function(v){
 			var ems = this.ems;
 			if(arguments.length === 1){
