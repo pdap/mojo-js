@@ -99,10 +99,10 @@
 		data : function(key,value){
 			if(arguments.length === 2){ 
 				this.datas[key] = value; 
-			} else {
+			} else if(arguments.length === 1){
 				if(typeof key === "function") {
 					key.call(this,this.datas)
-				} else {
+				} else if (typeof key === "string") {
 					return this.datas[key];
 				}
 			}
@@ -122,7 +122,7 @@
 				for(i = 0,j = keys.length;i < j; i++){
 					delete datas[keys[i]];
 				}
-			} else {
+			} else if (arguments.length === 0) {
 				this.datas = {};
 			}
 			
@@ -363,7 +363,7 @@
 		 */	
 		html : function(strHtml){
 			var ems = this.ems,
-				arr = [],
+				arr,
 				i = 0,
 				j = ems.length;
 				
@@ -379,9 +379,10 @@
 				}
 				
 				return this;
-			} else {
+			} else if(arguments.length === 0) {
+				arr = []
 				for (; i < j; i++){
-					arr[i] = jo.trim(ems[i].innerHTML);
+					arr[i] = ems[i].innerHTML;
 				}
 				
 				return arr;
@@ -411,17 +412,27 @@
 			var ems = this.ems,
 				i = 0,
 				j = ems.length,
-				arr = [],
+				arr,
 				e;
 			
 			if (arguments.length === 1) {
-				for (; i < j; i++) {
-					e = ems[i];
-					typeof e.innerText === "string" ? e.innerText = txt : e.textContent = txt;
+				if (typeof txt === "string") {
+					for (; i < j; i++) {
+						e = ems[i];
+						typeof e.innerText === "string" ? e.innerText = txt : e.textContent = txt;
+					}
+				} else if (typeof txt === "function") {
+					for (; i < j; i++) {
+						e = ems[i];
+						typeof e.innerText === "string" ? 
+							e.innerText = txt.call(this,e.innerText,i) : 
+								e.textContent = txt.call(this,e.textContent,i);
+					}					
 				}
 				
 				return this;
-			} else {
+			} else if(arguments.length === 0) {
+				arr = []
 				for (; i < j; i++) {
 					e = ems[i];
 					arr[i] = e.innerText || e.textContent;
@@ -431,56 +442,90 @@
 			}
 		},
 		
-		
-		val : function(v){
-			var ems = this.ems;
-			if(arguments.length === 1){
-				for (var i = 0, j = ems.length; i < j; i++){
-					ems[i].value = v;
+		/**
+		 * 设置节点value值
+		 * @param {String or Function} value
+		 */
+		val : function(value){
+			var ems = this.ems,
+				i = 0,
+				j = ems.length,
+				arr;
+			
+			if (arguments.length === 1){
+				if (typeof value === "string") {
+					for (; i < j; i++) {
+						ems[i].value = value;
+					}
+				} else if(typeof value === "function") {
+					for (; i < j; i++) {
+						ems[i].value = value.call(this, ems[i].value, i);
+					}					
 				}
+				
 				return this;
-			}else{//len = 0
-				var arr = [];
-				for (var i = 0, j = ems.length; i < j; i++){
+			} else if(arguments.length === 0) {
+				arr = [];
+				for (; i < j; i++){
 					arr[i] = ems[i].value;
 				}
+				
 				return arr;
 			}
 		},
-		attr : function(){
-			var args = arguments,ems = this.ems,attr = args[0];
-			if (args.length === 2) {//设置属性值k-v形式
-				if (typeof args[1] !== "function") {
-					for (var i = 0, j = ems.length; i < j; i++) {
-						ems[i][attr] = args[1];
+		
+		/**
+		 * @param {Object} attr
+		 * @param {Object} value
+		 */
+		attr : function(attr,value){
+			var ems = this.ems,
+				i = 0,
+				j = ems.length,
+				arr,e,p;
+				
+			if (arguments.length === 2) {
+				if (typeof value !== "function") {
+					for (; i < j; i++) {
+						ems[i][attr] = value;
 					}
-				} else{
-					for (var i = 0, j = ems.length; i < j; i++) {//函数返回值形式
-						ems[i][attr] = args[1].call(this,ems[i]);
+				} else {
+					for (; i < j; i++) {
+						e = ems[i];
+						e[attr] = value.call(this, e, i);
 					}					
 				}
-			}else {//len = 1
-				if (typeof attr === "string") {//获取属性值
-					var arr = [],e;
-					for (var i = 0, j = ems.length; i < j; i++) {
+			} else if(arguments.length === 1) {
+				if (typeof attr === "string") {
+					for (; i < j; i++) {
 						e = ems[i];
 						arr[i] = typeof e[attr] !== "undefined" ?  e[attr] : e.getAttribute(attr);
 					}
+					
 					return arr;
-				}else {//对象形式
-					for (var i = 0, j = ems.length, p; i < j; i++) {
-						for(p in arrt){
+				} else if(typeof attr === "object") {
+					for (; i < j; i++) {
+						for (p in arrt) {
 							ems[i][p] = arrt[p];
 						}
 					}
 				}
 			}
+			
 			return this;
 		},
-		removeAttr : function(attr){//删除属性
-			 var e,ems = this.ems;
+		
+		/**
+		 * @param {Object} attr
+		 */
+		removeAttr : function(attr){
+			 var ems = this.ems,
+			 	 i = 0,
+				 j = ems.length,
+				 e,n,m;
+				 
 			 attr = attr.split(",");
-			 for (var i = 0, j = ems.length, m = attr.length, n; i < j; i++) {
+			 for (m = attr.length; i < j; i++) {
 			 	e = ems[i];
 			 	for (n = 0; n < m; n++) {
 			 		e.removeAttribute(attr[n]);
@@ -489,18 +534,27 @@
 			 		}
 			 	}
 			 }
+			 
 			 return this;
 		},
-		css : function(){
-			var args = arguments,len = args.length,ems = this.ems;
-			if (len === 2) {//设置k-v形式
-				if (typeof args[1] !== "function") {
-					var v = args[1]; 			
-					if(v.indexOf("+=") !== -1){
-						v = v.match(/(\d+)(\D*)/);
-						for (var i = 0, j = ems.length; i < j; i++) {
-							jo.setStyle(args[0], ems[i], 
-										parseInt(jo.getStyle(args[0], ems[i])) + v[1] * 1 + v[2]);
+		
+		
+		css : function(key,value){
+			var ems = this.ems,
+				i = 0,
+				j = ems.length,
+				reg = /(\d+)(\D*)/,
+				joo = jo,
+				e;
+			
+			if (arguments.length === 2) {
+				if (typeof value !== "function") {
+					if(value.indexOf("+=") !== -1){
+						value = value.match(reg);
+						for (; i < j; i++) {
+							e = ems[i];
+							joo.setStyle(key, e, 
+										parseInt(joo.getStyle(key, e)) + value[1] * 1 + value[2]);
 						}
 					} else if(v.indexOf("-=") !== -1){
 						v = v.match(/(\d+)(\D*)/);
@@ -873,24 +927,48 @@
 		trim : function(str){
 			return str.replace(/^\s+|\s+$/g,"");
 		},
-		getStyle : function(sty,e){//获取style
+		
+		/**
+		 * 获取style
+		 * @param {Object} sty
+		 * @param {Object} e
+		 */
+		getStyle : function(sty,e){
 			var obj =  e.currentStyle || window.getComputedStyle(e, null);
 			switch (sty) {
-	       		case "float" : return  obj.styleFloat || obj.cssFloat;
-	 			case "opacity" : return e.filters ? (e.filters.alpha ? e.filters.alpha.opacity : 100) : obj.opacity * 100;
+	       		case "float" : return  typeof obj.styleFloat === "string" ?
+									   	 obj.styleFloat :
+											obj.cssFloat;
+	 			case "opacity" : return e.filters ? 
+											(e.filters.alpha ? e.filters.alpha.opacity : 100) : 
+												obj.opacity * 100;
 	  			default : return obj[sty];	 	 
 			}
 		},
-		setStyle : function(sty, e, val){
-			var obj = e.style;
+		
+		/**
+		 * 设置style
+		 * @param {Object} sty
+		 * @param {Object} e
+		 * @param {Object} value
+		 */
+		setStyle : function(sty, e, value){
+			var obj = e.style,
+				curObj = e.currentStyle || window.getComputedStyle(e, null);
+				
   			switch (sty) {
-		 		case "float" : obj.styleFloat ? obj.styleFloat = val : obj.cssFloat = val;
+		 		case "float" : typeof curObj.styleFloat === "string" ? 
+							     obj.styleFloat = value : 
+									obj.cssFloat = value;
 					break;
-		 		case "opacity" : e.filters ? obj.filter = (e.currentStyle.filter || "").replace(/alpha\([^)]*\)/, "") + "alpha(opacity=" + val + ")" : obj.opacity = val / 100;
+		 		case "opacity" : e.filters ? 
+								 	obj.filter = (curObj.filter || "").replace(/alpha\([^)]*\)/, "") + "alpha(opacity=" + value + ")" : 
+										obj.opacity = value / 100;
 					break;
-		  		default : obj[sty] = val;
+		  		default : obj[sty] = value;
 			}
 		},
+		
 		parseAnim : function(e,ops,dur,type,ease,fn,ths){//配置anim
 			var	len = ops.length,
 		    	step = [],//属性值数组
