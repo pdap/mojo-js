@@ -492,7 +492,8 @@
 				} else {
 					for (; i < j; i++) {
 						e = ems[i];
-						e[attr] = value.call(this, e, i);
+						p = typeof e[attr] !== "undefined" ?  e[attr] : e.getAttribute(attr);
+						e[attr] = value.call(this, p, e, i);
 					}					
 				}
 			} else if(arguments.length === 1) {
@@ -538,73 +539,83 @@
 			 return this;
 		},
 		
-		
+		/**
+		 * 
+		 * @param {Object or String} key
+		 * @param {String or Function} value
+		 */
 		css : function(key,value){
 			var ems = this.ems,
 				i = 0,
 				j = ems.length,
 				reg = /(\d+)(\D*)/,
 				joo = jo,
-				e;
+				pInt = parseInt,
+				e,arr,p;
 			
 			if (arguments.length === 2) {
-				if (typeof value !== "function") {
+				if (typeof value == "string") {
 					if(value.indexOf("+=") !== -1){
 						value = value.match(reg);
 						for (; i < j; i++) {
 							e = ems[i];
-							joo.setStyle(key, e, 
-										parseInt(joo.getStyle(key, e)) + value[1] * 1 + value[2]);
+							joo.setStyle(key, e, pInt(joo.getStyle(key, e)) + value[1] * 1 + value[2]);
 						}
-					} else if(v.indexOf("-=") !== -1){
-						v = v.match(/(\d+)(\D*)/);
-						for (var i = 0, j = ems.length; i < j; i++) {
-							jo.setStyle(args[0], ems[i], 
-										parseInt(jo.getStyle(args[0], ems[i])) - v[1] * 1 + v[2]);
+					} else if(value.indexOf("-=") !== -1){
+						value = value.match(reg);
+						for (; i < j; i++) {
+							e = ems[i];
+							joo.setStyle(key, e, pInt(joo.getStyle(key, e)) - value[1] * 1 + value[2]);
 						}
 					} else {
-						for (var i = 0, j = ems.length; i < j; i++) {
-							jo.setStyle(args[0], ems[i], v);
+						for (; i < j; i++) { 
+							joo.setStyle(key, ems[i], value);
 						}						
 					}
-				} else{
-					for (var i = 0, j = ems.length; i < j; i++) {
-						jo.setStyle(args[0], ems[i], args[1].call(this, ems[i]));
+				} else if(typeof value === "function") {
+					for (; i < j; i++) {
+						e = ems[i];
+						joo.setStyle(key, e, value.call(this, joo.getStyle(key, e), e, i));
 					}										
 				}
-			} else {//len = 1
-				if (typeof args[0] === "string") {//获取
-					var arr = [];
-					for (var i = 0, j = ems.length; i < j; i++) {
-						arr[i] = jo.getStyle(args[0], ems[i]);
+			} else if(arguments.length === 1){
+				if (typeof key === "string") {
+					arr = [];
+					for (; i < j; i++) {
+						arr[i] = joo.getStyle(key, ems[i]);
 					}
+					
 					return arr;
-				} else {//设置
-					for (var i = 0, j = ems.length, p, v; i < j; i++) {
-						for (p in args[0]) {
-							v = args[0][p];
-							if(v.indexOf("+=") !== -1){
-								v = v.match(/(\d+)(\D*)/);
-								for (var i = 0, j = ems.length; i < j; i++) {
-									jo.setStyle(p, ems[i], parseInt(jo.getStyle(p, ems[i])) + v[1] * 1 + v[2]);
-								}
-							} else if(v.indexOf("-=") !== -1){
-								v = v.match(/(\d+)(\D*)/);
-								for (var i = 0, j = ems.length; i < j; i++) {
-									jo.setStyle(p, ems[i], parseInt(jo.getStyle(p, ems[i])) - v[1] * 1 + v[2]);
-								}
-							} else {
-								for (var i = 0, j = ems.length; i < j; i++) {
-									jo.setStyle(p, ems[i], v);
-								}						
-						    }						
-						}
+				} else if (typeof key === "object") {
+					for (p in key) {
+						i = 0;
+						value = key[p];
+						if (value.indexOf("+=") !== -1) {
+							value = value.match(reg);
+							for (; i < j; i++) {
+								e = ems[i];
+								joo.setStyle(p, e, pInt(joo.getStyle(p, e)) + value[1] * 1 + value[2]);
+							}
+						} else if (value.indexOf("-=") !== -1) {
+							value = value.match(reg);
+							for (; i < j; i++) {
+								e = ems[i];
+								joo.setStyle(p, e, pInt(joo.getStyle(p, e)) - value[1] * 1 + value[2]);
+							}
+						} else {
+							for (; i < j; i++) {
+								joo.setStyle(p, ems[i], value);
+							}
+					 	}
 					}
 				}
 			}	
+			
 			return this;
 		},
-		addClass : function(c){//添加css样式
+		
+		
+		addClass : function(cls){//添加css样式
 			var e,ems = this.ems,
 				re = new RegExp("(^| )" + c + "( |$)");
 			for (var i = 0, j = ems.length; i < j; i++) {
