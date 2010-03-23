@@ -614,11 +614,18 @@
 			return this;
 		},
 		
-		
-		addClass : function(cls){//添加css样式
-			var e,ems = this.ems,
-				re = new RegExp("(^| )" + c + "( |$)");
-			for (var i = 0, j = ems.length; i < j; i++) {
+		/**
+		 * 添加css样式
+		 * @param {String} cls
+		 */
+		addClass : function(cls){
+			var ems = this.ems,
+				reg = new RegExp("(^| )" + c + "( |$)"),
+				i = 0,
+				j = ems.length,
+				e;
+			
+			for (; i < j; i++) {
 				e = ems[i];
 				if (e.className) {
 					if (!re.test(e.className)) {
