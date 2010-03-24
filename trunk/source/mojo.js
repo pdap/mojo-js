@@ -548,7 +548,7 @@
 			var ems = this.ems,
 				i = 0,
 				j = ems.length,
-				reg = /(\d+)(\D*)/,
+				re = /(\d+)(\D*)/,
 				joo = jo,
 				pInt = parseInt,
 				e,arr,p;
@@ -556,13 +556,13 @@
 			if (arguments.length === 2) {
 				if (typeof value == "string") {
 					if(value.indexOf("+=") !== -1){
-						value = value.match(reg);
+						value = value.match(re);
 						for (; i < j; i++) {
 							e = ems[i];
 							joo.setStyle(key, e, pInt(joo.getStyle(key, e)) + value[1] * 1 + value[2]);
 						}
 					} else if(value.indexOf("-=") !== -1){
-						value = value.match(reg);
+						value = value.match(re);
 						for (; i < j; i++) {
 							e = ems[i];
 							joo.setStyle(key, e, pInt(joo.getStyle(key, e)) - value[1] * 1 + value[2]);
@@ -591,13 +591,13 @@
 						i = 0;
 						value = key[p];
 						if (value.indexOf("+=") !== -1) {
-							value = value.match(reg);
+							value = value.match(re);
 							for (; i < j; i++) {
 								e = ems[i];
 								joo.setStyle(p, e, pInt(joo.getStyle(p, e)) + value[1] * 1 + value[2]);
 							}
 						} else if (value.indexOf("-=") !== -1) {
-							value = value.match(reg);
+							value = value.match(re);
 							for (; i < j; i++) {
 								e = ems[i];
 								joo.setStyle(p, e, pInt(joo.getStyle(p, e)) - value[1] * 1 + value[2]);
@@ -620,7 +620,7 @@
 		 */
 		addClass : function(cls){
 			var ems = this.ems,
-				reg = new RegExp("(^| )" + c + "( |$)"),
+				re = new RegExp("(^| )" + cls + "( |$)"),
 				i = 0,
 				j = ems.length,
 				e;
@@ -629,32 +629,45 @@
 				e = ems[i];
 				if (e.className) {
 					if (!re.test(e.className)) {
-						e.className += " " + c;
+						e.className += " " + cls;
 					}
 				} else {
-					e.className = c;
+					e.className = cls;
 				}
 			}
+			
 			return this;
 		},
-		removeClass : function(c){//删除Css样式
-			var e,ems = this.ems;
+		
+		/**
+		 * 删除Css样式
+		 * @param {Object} cls
+		 */
+		removeClass : function(cls){
+			var ems = this.ems,
+				re = new RegExp(cls.replace(",","|"),"g"),
+				i = 0,
+				j = ems.length,
+				e;
+				
 			if (arguments.length === 1) {
-				var cls,re = new RegExp(c.replace(",","|"),"g");
-				for (var i = 0, j = ems.length; i < j; i++) {
+				for (; i < j; i++) {
 					e = ems[i];
 					cls = e.className;
 					if (cls) {
-						e.className = jo.trim(cls.replace(re, ""));
+						e.className = cls.replace(re, "");
 					}
 				}
-			}else{//len = 0
-				for (var i = 0, j = ems.length; i < j; i++) {
+			} else if(arguments.length === 0) {
+				for (; i < j; i++) {
 					ems[i].className = "";
 				}
 			}
+			
 			return this;
 		},
+		
+		
 		style : function(sty){//添加style内嵌形式的字符串
 			var arr,ems = this.ems;
 			if (arguments.length === 1) {
