@@ -587,26 +587,34 @@
 					
 					return arr;
 				} else if (typeof key === "object") {
-					for (p in key) {
+					for (p in key) { 
 						i = 0;
-						value = key[p];
-						if (value.indexOf("+=") !== -1) {
-							value = value.match(re);
+						if (typeof key[p] === "function") {
 							for (; i < j; i++) {
 								e = ems[i];
-								joo.setStyle(p, e, pInt(joo.getStyle(p, e)) + value[1] * 1 + value[2]);
+								value = key[p].call(this, joo.getStyle(p, e), e, i);
+								joo.setStyle(p, e, value);
 							}
-						} else if (value.indexOf("-=") !== -1) {
-							value = value.match(re);
-							for (; i < j; i++) {
-								e = ems[i];
-								joo.setStyle(p, e, pInt(joo.getStyle(p, e)) - value[1] * 1 + value[2]);
+						} else if(typeof key[p] === "string") {
+							value = key[p];
+							if (value.indexOf("+=") !== -1) {
+								value = value.match(re);
+								for (; i < j; i++) {
+									e = ems[i];
+									joo.setStyle(p, e, pInt(joo.getStyle(p, e)) + value[1] * 1 + value[2]);
+								}
+							} else if (value.indexOf("-=") !== -1) {
+								value = value.match(re);
+								for (; i < j; i++) {
+									e = ems[i];
+									joo.setStyle(p, e, pInt(joo.getStyle(p, e)) - value[1] * 1 + value[2]);
+								}
+							} else {
+								for (; i < j; i++) {
+									joo.setStyle(p, ems[i], value);
+								}
 							}
-						} else {
-							for (; i < j; i++) {
-								joo.setStyle(p, ems[i], value);
-							}
-					 	}
+						}
 					}
 				}
 			}	
@@ -697,24 +705,31 @@
 		 * 删除style内嵌形式的字符串
 		 * @param {String} sty
 		 */
-		removeStyle : function(sty){
-			var e,ems = this.ems;
+		removeStyle: function(sty) {
+			var ems = this.ems, 
+				i = 0, 
+				j = ems.length, 
+				arr, e, m, n, str;
+			
 			if (arguments.length === 1) {
-				var arr = sty.split(",");
-				for (var i = 0, j = ems.length, m = arr.length, n; i < j; i++) {
+				arr = sty.split(",");
+				m = arr.length;
+				for (; i < j; i++) {
 					e = ems[i];
 					sty = e.style.cssText + ";";
+					str = "";
 					for (n = 0; n < m; n++) {
-						sty = sty.replace(new RegExp(arr[n] + "\.*:\.*;", "i"), "");
+						str += arr[n] + "[^;]*;|";
 					}
-					e.style.cssText = sty;
+					e.style.cssText = sty.replace(new RegExp(str,"gi"),"");
 				}
-			}else{
-				for (var i = 0, j = ems.length; i < j; i++){
+			} else {
+				for (; i < j; i++) {
 					ems[i].style.cssText = "";
 				}
 			}
-			return this;			
+			
+			return this;
 		},
 		
 		anim : function(){//自定义动画
@@ -791,6 +806,7 @@
 			}
 			return this;
 		},
+		
 		bind : function(type,fn){//绑定事件
 		    var e,ems = this.ems,ths = this,myfn,
 				args = Array.prototype.slice.call(arguments,2);
