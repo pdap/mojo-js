@@ -641,7 +641,7 @@
 		
 		/**
 		 * 删除Css样式
-		 * @param {Object} cls
+		 * @param {String} cls
 		 */
 		removeClass : function(cls){
 			var ems = this.ems,
@@ -667,35 +667,37 @@
 			return this;
 		},
 		
-		
-		style : function(sty){//添加style内嵌形式的字符串
-			var arr,ems = this.ems;
+		/**
+		 * 添加style内嵌形式的字符串
+		 * @param {Object} sty
+		 */
+		style : function(sty){
+			var ems = this.ems,
+				i = 0,
+				j = ems.length,
+				arr;
+				
 			if (arguments.length === 1) {
-				var str,e;
-					arr = sty.split(";");
-				for (var i = 0, j = ems.length, m = arr.length, n; i < j; i++) {
-					e = ems[i];
-					sty = e.style.cssText + ";";
-					for (n = 0; n < m; n++) {
-						str = arr[n].split(":");
-						if (str[0].indexOf(sty) !== -1) {
-							sty = sty.replace(new RegExp(str[0] + "\.*:\.*;", "i"), arr[n] + ";");
-						} else {
-							sty += arr[n] + ";";
-						}
-					}
-					e.style.cssText = sty;
+				for (; i < j; i++) {
+					ems[i].style.cssText += ";" + sty;
 				}
+				
 				return this;
-			}else{//len = 0
+			} else if(arguments.length === 0) {
 				arr = [];
-				for (var i = 0, j = ems.length; i < j; i++){
+				for (; i < j; i++){
 					arr[i] = ems[i].style.cssText;
 				}
+				
 				return arr;
 			}
 		},
-		removeStyle : function(sty){//删除style内嵌形式的字符串
+		
+		/**
+		 * 删除style内嵌形式的字符串
+		 * @param {String} sty
+		 */
+		removeStyle : function(sty){
 			var e,ems = this.ems;
 			if (arguments.length === 1) {
 				var arr = sty.split(",");
@@ -714,6 +716,7 @@
 			}
 			return this;			
 		},
+		
 		anim : function(){//自定义动画
 			var args = arguments,obj = args[0],
 				dur,fn,type,ease,
