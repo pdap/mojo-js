@@ -59,7 +59,7 @@
 		
 		/**
 		 * mojo变量注册到window上,并赋值为构造mo对象的函数
-		 * @param {String or Object} selector
+		 * @param {String/Object} selector
 		 */
 	    mojo = window.mojo = function(selector){
 			return jo.init(selector);
@@ -70,12 +70,13 @@
 	mojo.fn = mo.prototype = {
 		/**
 		 * 注册对应HTMLElement元素上的处理函数
-		 * @param {Function} callback
+		 * @param {Function} fn
 		 */
-		each : function(fn){
-			var ems = this.ems,
-				i = 0,
+		each: function(fn) {
+			var ems = this.ems, 
+				i = 0, 
 				j = ems.length;
+				
 			for (; i < j; i++) {
 				fn.call(this, ems[i], i);
 			}
@@ -92,16 +93,16 @@
 		},
 	
 		/**
-		 * 在mojo对象上缓存的数据,2个参数设置,1个参数读取
-		 * @param {String} key 名
-		 * @param {Object} value 值 
+		 * 在mojo对象上缓存的数据
+		 * @param {String} key 
+		 * @param {Object} value 
 		 */
-		data : function(key,value){
-			if(arguments.length === 2){ 
-				this.datas[key] = value; 
-			} else if(arguments.length === 1){
-				if(typeof key === "function") {
-					key.call(this,this.datas)
+		data: function(key, value) {
+			if (arguments.length === 2) {
+				this.datas[key] = value;
+			} else if (arguments.length === 1) {
+				if (typeof key === "function") {
+					key.call(this, this.datas);
 				} else if (typeof key === "string") {
 					return this.datas[key];
 				}
@@ -626,11 +627,11 @@
 		 * 添加css样式
 		 * @param {String} cls
 		 */
-		addClass : function(cls){
-			var ems = this.ems,
-				re = new RegExp("(^| )" + cls + "( |$)"),
-				i = 0,
-				j = ems.length,
+		addClass: function(cls) {
+			var ems = this.ems, 
+				re = new RegExp("(^| )" + cls + "( |$)"), 
+				i = 0, 
+				j = ems.length, 
 				e;
 			
 			for (; i < j; i++) {
