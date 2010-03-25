@@ -20,18 +20,18 @@
  	     * easeInOut：前半段从0开始加速,后半段减速到0的缓动
 	     */
 	    tween = {
-	    	swing : {
+			swing : {
 				/**
-				 * @param {Number} t current time 当前时间
-				 * @param {Number} b beginning value 初始值
-				 * @param {Number} c change in value 变化量
-				 * @param {Number} d duration 持续时间
-				 */
-	  	    	easeIn : function(t, b, c, d){
-	  		    	return ((-Math.cos(t / d * Math.PI) / 2) + 0.5) * c + b;
-	  	        }
-	        }	
-        }, 
+		 		 * @param {Number} t current time 当前时间
+		 		 * @param {Number} b beginning value 初始值
+		 		 * @param {Number} c change in value 变化量
+		   		 * @param {Number} d duration 持续时间
+		 		 */
+				easeIn : function(t, b, c, d) {
+					return ((-Math.cos(t / d * Math.PI) / 2) + 0.5) * c + b;
+				}
+			}
+		}, 
 		
 		//css选择器解析引擎
 		shimmer,
@@ -40,8 +40,8 @@
 		jo,
 
 	 	/**
-	 	 * 执行jo对象的init方法返回的对象,就是mojo函数返回的对象
-	     * @param {String or Object} selector 选择器,字符串或者DOM元素类型
+	 	 * 执行jo对象的init方法返回的对象,就是mojo(...)函数返回的对象
+	     * @param {String / HTMLElement} selector 选择器,字符串或者DOM元素类型
 	     * @param {Array} arr 选择器对应的DOM元素的数组
 	     */	
 		mo = function(selector,arr) {
@@ -59,7 +59,7 @@
 		
 		/**
 		 * mojo变量注册到window上,并赋值为构造mo对象的函数
-		 * @param {String/Object} selector
+		 * @param {String/HTMLElement} selector
 		 */
 	    mojo = window.mojo = function(selector){
 			return jo.init(selector);
@@ -74,12 +74,13 @@
 		 */
 		each: function(fn) {
 			var ems = this.ems, 
-				i = 0, 
-				j = ems.length;
-				
-			for (; i < j; i++) {
+				len = ems.length,
+				i = 0;
+			
+			for (; i < len; i++) {
 				fn.call(this, ems[i], i);
 			}
+			
 			return this;
 		},
 		
@@ -87,23 +88,24 @@
 		 * 注册对应HTMLElement元素数组上的处理函数
 		 * @param {Function} fn
 		 */
-		elems : function(fn){
-			fn.call(this,this.ems);
+		elems: function(fn) {
+			fn.call(this, this.ems);
+			
 			return this;
 		},
 	
 		/**
 		 * 在mojo对象上缓存的数据
 		 * @param {String} key 
-		 * @param {Object} value 
+		 * @param {Object} value (optional)
 		 */
 		data: function(key, value) {
 			if (arguments.length === 2) {
 				this.datas[key] = value;
-			} else if (arguments.length === 1) {
+			} else { // arguments.length === 1
 				if (typeof key === "function") {
 					key.call(this, this.datas);
-				} else if (typeof key === "string") {
+				} else { // typeof key === "string"
 					return this.datas[key];
 				}
 			}
@@ -112,18 +114,23 @@
 		},
 		
 		/**
-		 * 删除mojo对象上缓存的数据,无参数表示全部删除
-		 * @param {String} keys 逗号分隔多个值
+		 * 删除mojo对象上缓存的数据
+		 * @param {String} keys (optional)
 		 */
-		removeData : function(keys){
-			var i, j,
-				datas = this.datas;
-			if(arguments.length === 1){
+		removeData: function(keys) {
+			var datas = this.datas,
+				len, 
+				i = 0;
+			
+			if (arguments.length === 1) {
 				keys = keys.split(",");
-				for(i = 0,j = keys.length;i < j; i++){
+				len = keys.length;
+				
+				for (; i < len; i++) {
 					delete datas[keys[i]];
 				}
-			} else if (arguments.length === 0) {
+				
+			} else { // arguments.length === 0
 				this.datas = {};
 			}
 			
@@ -132,31 +139,37 @@
 		
 		/**
 		 * 添加子节点
-		 * @param {String or Object} elem
+		 * @param {String/HTMLElement} elem
 		 */
-		append : function(elem){
-			var ems = this.ems,
-				i = 0,
-				j = ems.length,
+		append: function(elem) {
+			var ems = this.ems, 
+				len = ems.length, 
+				i = 0, 
 				returnVal;
+			
+			if (typeof elem === "string") {
 				
-			if(typeof elem === "string"){
-				for (; i < j; i++){
+				for (; i < len; i++) {
 					ems[i].innerHTML += elem;
 				}
-			} else if(typeof elem === "object") {
-				for (; i < j; i++){
+				
+			} else if (typeof elem === "object") {
+				
+				for (; i < len; i++) {
 					ems[i].appendChild(elem);
 				}
-			} else if(typeof elem === "function") {
-				for (; i < j; i++){
-					returnVal = elem.call(this,ems[i],i);
+				
+			} else { // typeof elem === "function"
+			
+				for (; i < len; i++) {
+					returnVal = elem.call(this, ems[i], i);
 					if (typeof returnVal === "string") {
-						ems[i].innerHTML += returnVal;			
-					} else if(typeof returnVal === "object") {
+						ems[i].innerHTML += returnVal;
+					} else { // typeof returnVal === "object"
 						ems[i].appendChild(returnVal);
 					}
 				}
+				
 			}
 			
 			return this;
@@ -164,29 +177,31 @@
 		
 		/**
 		 * 追加兄弟节点
-		 * @param {String or Object} elem
+		 * @param {String/HTMLElement} elem
 		 */
-		after : function(elem){
-			var ems = this.ems,
-				fragment,e,returnVal,
-				joo = jo,
+		after: function(elem) {
+			var ems = this.ems, 
+				len = ems.length,
 				i = 0,
-				j = ems.length;
-				
-			if(typeof elem === "string"){
+				joo = jo,
+				fragment, returnVal, e;
+			
+			if (typeof elem === "string") {
 				fragment = joo.strToFragment(elem);
 				
-				for (i = 0; i < j; i++){
+				for (; i < len; i++) {
 					e = ems[i];
 					next = joo.getNext(e);
-					if(next !== null) {
+					if (next !== null) {
 						e.parentNode.insertBefore(fragment.cloneNode(true), next);
 					} else {
 						e.parentNode.appendChild(fragment.cloneNode(true));
 					}
-				}		
-			} else if(typeof elem === "object") {
-				for (; i < j; i++) {
+				}
+				
+			} else if (typeof elem === "object") {
+				
+				for (; i < len; i++) {
 					e = ems[i];
 					next = joo.getNext(e);
 					if (next !== null) {
@@ -194,11 +209,13 @@
 					} else {
 						e.parentNode.appendChild(elem);
 					}
-				}				
-			} else if(typeof elem === "function") {
-				for (; i < j; i++){
+				}
+				
+			} else { // typeof elem === "function"
+			
+				for (; i < len; i++) {
 					e = ems[i];
-					returnVal = elem.call(this,e,i);
+					returnVal = elem.call(this, e, i);
 					next = joo.getNext(e);
 					if (typeof returnVal === "string") {
 						fragment = joo.strToFragment(returnVal);
@@ -207,14 +224,15 @@
 						} else {
 							e.parentNode.appendChild(fragment);
 						}
-					} else if(typeof returnVal === "object") {
+					} else { // typeof returnVal === "object"
 						if (next !== null) {
 							e.parentNode.insertBefore(returnVal, next);
 						} else {
 							e.parentNode.appendChild(returnVal);
-						}						
+						}
 					}
-				}				
+				}
+				
 			}
 			
 			return this;
@@ -222,84 +240,91 @@
 		
 		/**
 		 * 插入兄弟节点
-		 * @param {String or Object} preSibling
+		 * @param {String/HTMLElement} elem
 		 */
-		before : function(elem){
-			var ems = this.ems,
-				fragment,e,
-				joo = jo,
+		before: function(elem) {
+			var ems = this.ems, 
+				len = ems.length,
 				i = 0,
-				j = ems.length,
-				returnVal;
+				joo = jo,
+				fragment, returnVal, e;
+			
+			if (typeof elem === "string") {
+				fragment = joo.strToFragment(elem);
 				
-			if (typeof elem === "string"){
-				fragment = joo.strToFragment(elem); 
-				
-				for (; i < j; i++) {
+				for (; i < len; i++) {
 					e = ems[i];
 					e.parentNode.insertBefore(fragment.cloneNode(true), e);
-				}					
-			} else if (typeof elem === "object"){
-				for (; i < j; i++) {
+				}
+				
+			} else if (typeof elem === "object") {
+				
+				for (; i < len; i++) {
 					e = ems[i];
 					e.parentNode.insertBefore(elem, e);
 				}
 				
-			} else if (typeof elem === "function") {
-				for(;i < j; i++) {
+			} else { // typeof elem === "function"
+			
+				for (; i < len; i++) {
 					e = ems[i];
-					returnVal = elem.call(this,e,i);
+					returnVal = elem.call(this, e, i);
 					
 					if (typeof returnVal === "string") {
 						e.parentNode.insertBefore(joo.strToFragment(returnVal), e);
-					} else if (typeof returnVal === "object") {
+					} else { // typeof returnVal === "object"
 						e.parentNode.insertBefore(returnVal, e);
 					}
 				}
-			}
 				
-			return this;			
+			}
+			
+			return this;
 		},
 		
 		/**
 		 * 包裹节点
-		 * @param {String or Object} elem
+		 * @param {String/HTMLElement} elem
 		 */
-		wrap : function(elem){
-			var ems = this.ems,
-				fragment,e,
-				joo = jo,
+		wrap: function(elem) {
+			var ems = this.ems, 
+				len = ems.length,
 				i = 0,
-				j = ems.length,
-				returnVal;
-				
+				joo = jo,
+				fragment, returnVal, e;
+			
 			if (typeof elem === "string") {
 				fragment = joo.strToFragment(elem);
 				
-				for (; i < j; i++) {
+				for (; i < len; i++) {
 					e = ems[i];
 					e.parentNode.insertBefore(fragment.cloneNode(true), e);
 					e.previousSibling.appendChild(e);
 				}
-			} else if (typeof elem === "object"){
-				for (; i < j; i++) {
+				
+			} else if (typeof elem === "object") {
+				
+				for (; i < len; i++) {
 					e = ems[i];
 					e.parentNode.insertBefore(elem, e);
 					elem.appendChild(e);
 				}
-			} else if (typeof elem === "function") {
-				for(; i < j; i++) {
+				
+			} else { // typeof elem === "function"
+			
+				for (; i < len; i++) {
 					e = ems[i];
-					returnVal = elem.call(this,e,i); 
+					returnVal = elem.call(this, e, i);
 					
 					if (typeof returnVal === "string") {
 						e.parentNode.insertBefore(joo.strToFragment(returnVal), e);
 						e.previousSibling.appendChild(e);
-					} else if (typeof returnVal === "object") {
+					} else { // typeof returnVal === "object"
 						e.parentNode.insertBefore(returnVal, e);
-						returnVal.appendChild(e);						
+						returnVal.appendChild(e);
 					}
 				}
+				
 			}
 			
 			return this;
@@ -307,34 +332,35 @@
 		
 		/**
 		 * 替换节点
-		 * @param {String or Object} elem
-		 * @param {Function} fn
+		 * @param {String/HTMLElement} elem
+		 * @param {Function} fn (optional)
 		 */
-		replace : function(elem,fn){
-			var ems = this.ems,
-				fragment,e,
-				joo = jo,
+		replace: function(elem, fn) {
+			var ems = this.ems, 
+				len = ems.length,
 				i = 0,
-				j = ems.length;
-				
-			if(typeof elem === "string"){
+				joo = jo,
+				fragment, e;
+			
+			if (typeof elem === "string") {
 				fragment = joo.strToFragment(elem);
 				
-				for (; i < j; i++) {
+				for (; i < len; i++) {
 					e = ems[i];
 					e.parentNode.replaceChild(fragment.cloneNode(true), e);
-					if(typeof fn === "function") {
-						fn.call(this,e,i)
+					if (fn) { // typeof fn === "function"
+						fn.call(this, e, i)
 					}
-				}					
-			} else if (typeof elem === "object"){
+				}
 				
-				for (; i < j; i++) {
+			} else if (typeof elem === "object") {
+			
+				for (; i < len; i++) {
 					e = ems[i];
 					e.parentNode.replaceChild(elem, e);
-					if(typeof fn === "function") {
-						fn.call(this,e,i)
-					}				
+					if (fn) { // typeof fn === "function"
+						fn.call(this, e, i)
+					}
 				}
 				
 			}
@@ -344,15 +370,20 @@
 		
 		/**
 		 * 删除节点
+		 * @param {Function} fn (optional)
 		 */
-		remove: function(){
+		remove: function(fn){
 			var ems = this.ems,
+				len = ems.length,
 				i = 0,
-				j = ems.length,
 				e;
-			for (; i < j; i++) {
+				
+			for (; len < len; i++) {
 				e = ems[i];
 				e.parentNode.removeChild(e);
+				if (fn) { // typeof fn === "function"
+					fn.call(this, e, i)
+				}
 			}
 			
 			return this;
@@ -362,27 +393,33 @@
 		 * 设置匹配元素的html内容
 		 * @param {String} strHtml
 		 */	
-		html : function(strHtml){
-			var ems = this.ems,
-				arr,
+		html: function(strHtml) {
+			var ems = this.ems, 
+				len = ems.length,
 				i = 0,
-				j = ems.length;
-				
+				arr;
+			
 			if (arguments.length === 1) {
-				if(typeof strHtml === "string") {
-					for (; i < j; i++) {
+				if (typeof strHtml === "string") {
+				
+					for (; i < len; i++) {
 						ems[i].innerHTML = strHtml;
-					}					
-				} else if (typeof strHtml === "function") {
-					for (; i < j; i++) {
-						ems[i].innerHTML = strHtml.call(this.ems[i],i);
-					}					
+					}
+					
+				} else { // typeof strHtml === "function"
+				
+					for (; i < len; i++) {
+						ems[i].innerHTML = strHtml.call(this.ems[i], i);
+					}
+					
 				}
 				
 				return this;
-			} else if(arguments.length === 0) {
-				arr = []
-				for (; i < j; i++){
+				
+			} else { // arguments.length === 0
+				arr = [];
+				
+				for (; i < len; i++) {
 					arr[i] = ems[i].innerHTML;
 				}
 				
@@ -393,14 +430,14 @@
 		/**
 		 * 清空节点子元素
 		 */
-		empty : function(){
-			var ems = this.ems,
-				i = 0,
-				j = ems.length;		
-				
-			for(; i < j; i++) {
+		empty: function() {
+			var ems = this.ems, 
+				len = ems.length,
+				i = 0;
+			
+			for (; i < len; i++) {
 				ems[i].innerHTML = "";
-			}	
+			}
 			
 			return this;
 		},
@@ -409,36 +446,41 @@
 		 * 设置节点文本
 		 * @param {String or Funtion} txt
 		 */
-     	text : function(txt){
-			var ems = this.ems,
-				i = 0,
-				j = ems.length,
-				arr,
-				e;
+     	text: function(txt) {
+			var ems = this.ems, 
+				len = ems.length,
+				i = 0, 
+				arr, e;
 			
 			if (arguments.length === 1) {
 				if (typeof txt === "string") {
-					for (; i < j; i++) {
+					
+					for (; i < len; i++) {
 						e = ems[i];
 						typeof e.innerText === "string" ? e.innerText = txt : e.textContent = txt;
 					}
-				} else if (typeof txt === "function") {
-					for (; i < j; i++) {
+					
+				} else { // typeof txt === "function"
+				
+					for (; i < len; i++) {
 						e = ems[i];
 						typeof e.innerText === "string" ? 
-							e.innerText = txt.call(this,e.innerText,i) : 
-								e.textContent = txt.call(this,e.textContent,i);
-					}					
+							e.innerText = txt.call(this, e.innerText, e, i) : 
+								e.textContent = txt.call(this, e.textContent, e, i);
+					}
+					
 				}
 				
 				return this;
-			} else if(arguments.length === 0) {
-				arr = []
-				for (; i < j; i++) {
+				
+			} else { // arguments.length === 0
+				arr = [];
+				
+				for (; i < len; i++) {
 					e = ems[i];
 					arr[i] = e.innerText || e.textContent;
 				}
-				 
+				
 				return arr;
 			}
 		},
@@ -447,27 +489,31 @@
 		 * 设置节点value值
 		 * @param {String or Function} value
 		 */
-		val : function(value){
-			var ems = this.ems,
-				i = 0,
-				j = ems.length,
+		val: function(value) {
+			var ems = this.ems, 
+				len = ems.length,
+				i = 0, 
 				arr;
 			
-			if (arguments.length === 1){
+			if (arguments.length === 1) {
 				if (typeof value === "string") {
-					for (; i < j; i++) {
+				
+					for (; i < len; i++) {
 						ems[i].value = value;
 					}
-				} else if(typeof value === "function") {
-					for (; i < j; i++) {
+					
+				} else { // typeof value === "function"
+					for (; i < len; i++) {
 						ems[i].value = value.call(this, ems[i].value, i);
-					}					
+					}
+					
 				}
 				
 				return this;
-			} else if(arguments.length === 0) {
+			} else { // arguments.length === 0
 				arr = [];
-				for (; i < j; i++){
+				
+				for (; i < len; i++) {
 					arr[i] = ems[i].value;
 				}
 				
@@ -479,37 +525,70 @@
 		 * @param {Object} attr
 		 * @param {Object} value
 		 */
-		attr : function(attr,value){
-			var ems = this.ems,
-				i = 0,
-				j = ems.length,
-				arr,e,p;
-				
+		attr: function(attr, value) {
+			var ems = this.ems, 
+				len = ems.length, 
+				i = 0, 
+				arr, e, p;
+			
 			if (arguments.length === 2) {
 				if (typeof value !== "function") {
-					for (; i < j; i++) {
+				
+					for (; i < len; i++) {
 						ems[i][attr] = value;
 					}
+					
 				} else {
-					for (; i < j; i++) {
+				
+					for (; i < len; i++) {
 						e = ems[i];
-						p = typeof e[attr] !== "undefined" ?  e[attr] : e.getAttribute(attr);
+						p = typeof e[attr] !== "undefined" ? e[attr] : e.getAttribute(attr);
 						e[attr] = value.call(this, p, e, i);
-					}					
+					}
+					
 				}
-			} else if(arguments.length === 1) {
+			} else { // arguments.length === 1
 				if (typeof attr === "string") {
-					for (; i < j; i++) {
+				
+					for (; i < len; i++) {
 						e = ems[i];
-						arr[i] = typeof e[attr] !== "undefined" ?  e[attr] : e.getAttribute(attr);
+						arr[i] = typeof e[attr] !== "undefined" ? e[attr] : e.getAttribute(attr);
 					}
 					
 					return arr;
-				} else if(typeof attr === "object") {
-					for (; i < j; i++) {
-						for (p in arrt) {
-							ems[i][p] = arrt[p];
+					
+				} else { // typeof attr === "object"
+				
+					for (; i < len; i++) {
+						for (p in attr) {
+							ems[i][p] = attr[p];
 						}
+					}
+					
+				}
+			}
+			
+			return this;
+		},
+		
+		/**
+		 * @param {String} attr
+		 */
+		removeAttr: function(attrs) {
+			var ems = this.ems, 
+				len = ems.length, 
+				i = 0, 
+				e, n, m;
+			
+			attrs = attrs.split(",");
+			m = attrs.length
+			
+			for (; i < len; i++) {
+				e = ems[i];
+				for (n = 0; n < m; n++) {
+					e.removeAttribute(attrs[n]);
+					if (typeof e[attrs[n]] !== "undefined") {
+						delete e[attrs[n]];
 					}
 				}
 			}
@@ -518,107 +597,84 @@
 		},
 		
 		/**
-		 * @param {Object} attr
-		 */
-		removeAttr : function(attr){
-			 var ems = this.ems,
-			 	 i = 0,
-				 j = ems.length,
-				 e,n,m;
-				 
-			 attr = attr.split(",");
-			 for (m = attr.length; i < j; i++) {
-			 	e = ems[i];
-			 	for (n = 0; n < m; n++) {
-			 		e.removeAttribute(attr[n]);
-			 		if (typeof e[attr[n]] !== "undefined") {
-			 			delete e[attr[n]];
-			 		}
-			 	}
-			 }
-			 
-			 return this;
-		},
-		
-		/**
 		 * 
 		 * @param {Object or String} key
 		 * @param {String or Function} value
 		 */
-		css : function(key,value){
-			var ems = this.ems,
-				i = 0,
-				j = ems.length,
-				re = /(\d+)(\D*)/,
-				joo = jo,
-				pInt = parseInt,
-				e,arr,p;
+		css: function(key, value) {
+			var ems = this.ems, 
+				len = ems.length,
+				i = 0, 
+				re = /(\d+)(\D*)/, 
+				joo = jo, 
+				pInt = parseInt, 
+				e, arr, p;
 			
 			if (arguments.length === 2) {
 				if (typeof value == "string") {
-					if(value.indexOf("+=") !== -1){
+					if (value.indexOf("+=") !== -1) {
 						value = value.match(re);
-						for (; i < j; i++) {
+						for (; i < len; i++) {
 							e = ems[i];
 							joo.setStyle(key, e, pInt(joo.getStyle(key, e)) + value[1] * 1 + value[2]);
 						}
-					} else if(value.indexOf("-=") !== -1){
+					} else if (value.indexOf("-=") !== -1) {
 						value = value.match(re);
-						for (; i < j; i++) {
+						for (; i < len; i++) {
 							e = ems[i];
 							joo.setStyle(key, e, pInt(joo.getStyle(key, e)) - value[1] * 1 + value[2]);
 						}
 					} else {
-						for (; i < j; i++) { 
+						for (; i < len; i++) {
 							joo.setStyle(key, ems[i], value);
-						}						
+						}
 					}
-				} else if(typeof value === "function") {
-					for (; i < j; i++) {
+				} else { // typeof value === "function"
+					for (; i < len; i++) {
 						e = ems[i];
 						joo.setStyle(key, e, value.call(this, joo.getStyle(key, e), e, i));
-					}										
+					}
 				}
-			} else if(arguments.length === 1){
+			} else { // arguments.length === 1
 				if (typeof key === "string") {
 					arr = [];
-					for (; i < j; i++) {
+					for (; i < len; i++) {
 						arr[i] = joo.getStyle(key, ems[i]);
 					}
 					
 					return arr;
-				} else if (typeof key === "object") {
-					for (p in key) { 
+				} else { // typeof key === "object"
+					for (p in key) {
 						i = 0;
 						if (typeof key[p] === "function") {
-							for (; i < j; i++) {
+							for (; i < len; i++) {
 								e = ems[i];
 								value = key[p].call(this, joo.getStyle(p, e), e, i);
 								joo.setStyle(p, e, value);
 							}
-						} else if(typeof key[p] === "string") {
+						} else { // typeof key[p] === "string"
 							value = key[p];
 							if (value.indexOf("+=") !== -1) {
 								value = value.match(re);
-								for (; i < j; i++) {
+								for (; i < len; i++) {
 									e = ems[i];
 									joo.setStyle(p, e, pInt(joo.getStyle(p, e)) + value[1] * 1 + value[2]);
 								}
 							} else if (value.indexOf("-=") !== -1) {
 								value = value.match(re);
-								for (; i < j; i++) {
+								for (; i < len; i++) {
 									e = ems[i];
 									joo.setStyle(p, e, pInt(joo.getStyle(p, e)) - value[1] * 1 + value[2]);
 								}
 							} else {
-								for (; i < j; i++) {
+								for (; i < len; i++) {
 									joo.setStyle(p, ems[i], value);
 								}
 							}
 						}
 					}
 				}
-			}	
+			}
 			
 			return this;
 		},
@@ -629,12 +685,12 @@
 		 */
 		addClass: function(cls) {
 			var ems = this.ems, 
-				re = new RegExp("(^| )" + cls + "( |$)"), 
+				len = ems.length, 
 				i = 0, 
-				j = ems.length, 
+				re = new RegExp("(^| )" + cls + "( |$)"),
 				e;
 			
-			for (; i < j; i++) {
+			for (; i < len; i++) {
 				e = ems[i];
 				if (e.className) {
 					if (!re.test(e.className)) {
@@ -652,23 +708,23 @@
 		 * 删除Css样式
 		 * @param {String} cls
 		 */
-		removeClass : function(cls){
-			var ems = this.ems,
-				re = new RegExp(cls.replace(",","|"),"g"),
-				i = 0,
-				j = ems.length,
+		removeClass: function(cls) {
+			var ems = this.ems, 
+				len = ems.length, 
+				i = 0, 
+				re = new RegExp(cls.replace(",", "|"), "g"), 
 				e;
-				
+			
 			if (arguments.length === 1) {
-				for (; i < j; i++) {
+				for (; i < len; i++) {
 					e = ems[i];
 					cls = e.className;
 					if (cls) {
 						e.className = cls.replace(re, "");
 					}
 				}
-			} else if(arguments.length === 0) {
-				for (; i < j; i++) {
+			} else { // arguments.length === 0
+				for (; i < len; i++) {
 					ems[i].className = "";
 				}
 			}
@@ -680,21 +736,23 @@
 		 * 添加style内嵌形式的字符串
 		 * @param {Object} sty
 		 */
-		style : function(sty){
-			var ems = this.ems,
-				i = 0,
-				j = ems.length,
+		style: function(sty) {
+			var ems = this.ems, 
+				len = ems.length,
+				i = 0, 
 				arr;
-				
+			
 			if (arguments.length === 1) {
-				for (; i < j; i++) {
+				
+				for (; i < len; i++) {
 					ems[i].style.cssText += ";" + sty;
 				}
 				
 				return this;
-			} else if(arguments.length === 0) {
+			} else { // arguments.length === 0
 				arr = [];
-				for (; i < j; i++){
+				
+				for (; i < len; i++) {
 					arr[i] = ems[i].style.cssText;
 				}
 				
@@ -708,24 +766,24 @@
 		 */
 		removeStyle: function(sty) {
 			var ems = this.ems, 
+				len = ems.length, 
 				i = 0, 
-				j = ems.length, 
 				arr, e, m, n, str;
 			
 			if (arguments.length === 1) {
 				arr = sty.split(",");
 				m = arr.length;
-				for (; i < j; i++) {
+				for (; i < len; i++) {
 					e = ems[i];
 					sty = e.style.cssText + ";";
 					str = "";
 					for (n = 0; n < m; n++) {
 						str += arr[n] + "[^;]*;|";
 					}
-					e.style.cssText = sty.replace(new RegExp(str,"gi"),"");
+					e.style.cssText = sty.replace(new RegExp(str, "gi"), "");
 				}
 			} else {
-				for (; i < j; i++) {
+				for (; i < len; i++) {
 					ems[i].style.cssText = "";
 				}
 			}
