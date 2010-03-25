@@ -90,7 +90,6 @@
 		 */
 		elems: function(fn) {
 			fn.call(this, this.ems);
-			
 			return this;
 		},
 	
@@ -102,10 +101,14 @@
 		data: function(key, value) {
 			if (arguments.length === 2) {
 				this.datas[key] = value;
-			} else { // arguments.length === 1
+			
+			// arguments.length === 1
+			} else { 
 				if (typeof key === "function") {
 					key.call(this, this.datas);
-				} else { // typeof key === "string"
+				
+				// typeof key === "string"
+				} else { 
 					return this.datas[key];
 				}
 			}
@@ -130,7 +133,8 @@
 					delete datas[keys[i]];
 				}
 				
-			} else { // arguments.length === 0
+			// arguments.length === 0
+			} else { 
 				this.datas = {};
 			}
 			
@@ -148,24 +152,23 @@
 				returnVal;
 			
 			if (typeof elem === "string") {
-				
 				for (; i < len; i++) {
 					ems[i].innerHTML += elem;
 				}
-				
 			} else if (typeof elem === "object") {
-				
 				for (; i < len; i++) {
 					ems[i].appendChild(elem);
 				}
 				
-			} else { // typeof elem === "function"
-			
+			// typeof elem === "function"
+			} else { 
 				for (; i < len; i++) {
 					returnVal = elem.call(this, ems[i], i);
 					if (typeof returnVal === "string") {
 						ems[i].innerHTML += returnVal;
-					} else { // typeof returnVal === "object"
+					
+					// typeof returnVal === "object"
+					} else { 
 						ems[i].appendChild(returnVal);
 					}
 				}
@@ -200,7 +203,6 @@
 				}
 				
 			} else if (typeof elem === "object") {
-				
 				for (; i < len; i++) {
 					e = ems[i];
 					next = joo.getNext(e);
@@ -210,9 +212,9 @@
 						e.parentNode.appendChild(elem);
 					}
 				}
-				
-			} else { // typeof elem === "function"
 			
+			// typeof elem === "function"	
+			} else { 
 				for (; i < len; i++) {
 					e = ems[i];
 					returnVal = elem.call(this, e, i);
@@ -224,7 +226,9 @@
 						} else {
 							e.parentNode.appendChild(fragment);
 						}
-					} else { // typeof returnVal === "object"
+					
+					// typeof returnVal === "object"
+					} else { 
 						if (next !== null) {
 							e.parentNode.insertBefore(returnVal, next);
 						} else {
@@ -258,21 +262,22 @@
 				}
 				
 			} else if (typeof elem === "object") {
-				
 				for (; i < len; i++) {
 					e = ems[i];
 					e.parentNode.insertBefore(elem, e);
 				}
 				
-			} else { // typeof elem === "function"
-			
+			// typeof elem === "function"	
+			} else { 
 				for (; i < len; i++) {
 					e = ems[i];
 					returnVal = elem.call(this, e, i);
 					
 					if (typeof returnVal === "string") {
 						e.parentNode.insertBefore(joo.strToFragment(returnVal), e);
-					} else { // typeof returnVal === "object"
+					
+					// typeof returnVal === "object"
+					} else { 
 						e.parentNode.insertBefore(returnVal, e);
 					}
 				}
@@ -303,15 +308,14 @@
 				}
 				
 			} else if (typeof elem === "object") {
-				
 				for (; i < len; i++) {
 					e = ems[i];
 					e.parentNode.insertBefore(elem, e);
 					elem.appendChild(e);
 				}
-				
-			} else { // typeof elem === "function"
 			
+			// typeof elem === "function"	
+			} else {
 				for (; i < len; i++) {
 					e = ems[i];
 					returnVal = elem.call(this, e, i);
@@ -319,7 +323,9 @@
 					if (typeof returnVal === "string") {
 						e.parentNode.insertBefore(joo.strToFragment(returnVal), e);
 						e.previousSibling.appendChild(e);
-					} else { // typeof returnVal === "object"
+					
+					// typeof returnVal === "object"
+					} else { 
 						e.parentNode.insertBefore(returnVal, e);
 						returnVal.appendChild(e);
 					}
@@ -354,11 +360,12 @@
 				}
 				
 			} else if (typeof elem === "object") {
-			
 				for (; i < len; i++) {
 					e = ems[i];
 					e.parentNode.replaceChild(elem, e);
-					if (fn) { // typeof fn === "function"
+					
+					// typeof fn === "function"
+					if (fn) { 
 						fn.call(this, e, i)
 					}
 				}
@@ -381,7 +388,9 @@
 			for (; len < len; i++) {
 				e = ems[i];
 				e.parentNode.removeChild(e);
-				if (fn) { // typeof fn === "function"
+				
+				// typeof fn === "function"
+				if (fn) { 
 					fn.call(this, e, i)
 				}
 			}
@@ -405,9 +414,9 @@
 					for (; i < len; i++) {
 						ems[i].innerHTML = strHtml;
 					}
-					
-				} else { // typeof strHtml === "function"
 				
+				// typeof strHtml === "function"	
+				} else { 
 					for (; i < len; i++) {
 						ems[i].innerHTML = strHtml.call(this.ems[i], i);
 					}
@@ -415,8 +424,9 @@
 				}
 				
 				return this;
-				
-			} else { // arguments.length === 0
+			
+			// arguments.length === 0	
+			} else { 
 				arr = [];
 				
 				for (; i < len; i++) {
@@ -459,21 +469,21 @@
 						e = ems[i];
 						typeof e.innerText === "string" ? e.innerText = txt : e.textContent = txt;
 					}
-					
-				} else { // typeof txt === "function"
 				
+				// typeof txt === "function"	
+				} else { 
 					for (; i < len; i++) {
 						e = ems[i];
 						typeof e.innerText === "string" ? 
 							e.innerText = txt.call(this, e.innerText, e, i) : 
 								e.textContent = txt.call(this, e.textContent, e, i);
 					}
-					
 				}
 				
 				return this;
 				
-			} else { // arguments.length === 0
+			// arguments.length === 0	
+			} else { 
 				arr = [];
 				
 				for (; i < len; i++) {
@@ -502,15 +512,17 @@
 						ems[i].value = value;
 					}
 					
-				} else { // typeof value === "function"
+				// typeof value === "function"	
+				} else { 
 					for (; i < len; i++) {
 						ems[i].value = value.call(this, ems[i].value, i);
 					}
-					
 				}
 				
 				return this;
-			} else { // arguments.length === 0
+				
+			// arguments.length === 0	
+			} else { 
 				arr = [];
 				
 				for (; i < len; i++) {
@@ -533,38 +545,34 @@
 			
 			if (arguments.length === 2) {
 				if (typeof value !== "function") {
-				
 					for (; i < len; i++) {
 						ems[i][attr] = value;
 					}
-					
 				} else {
-				
 					for (; i < len; i++) {
 						e = ems[i];
 						p = typeof e[attr] !== "undefined" ? e[attr] : e.getAttribute(attr);
 						e[attr] = value.call(this, p, e, i);
 					}
-					
 				}
-			} else { // arguments.length === 1
+			
+			// arguments.length === 1	
+			} else { 
 				if (typeof attr === "string") {
-				
 					for (; i < len; i++) {
 						e = ems[i];
 						arr[i] = typeof e[attr] !== "undefined" ? e[attr] : e.getAttribute(attr);
 					}
 					
 					return arr;
-					
-				} else { // typeof attr === "object"
 				
+				// typeof attr === "object"	
+				} else {
 					for (; i < len; i++) {
 						for (p in attr) {
 							ems[i][p] = attr[p];
 						}
 					}
-					
 				}
 			}
 			
@@ -614,12 +622,14 @@
 				if (typeof value == "string") {
 					if (value.indexOf("+=") !== -1) {
 						value = value.match(re);
+						
 						for (; i < len; i++) {
 							e = ems[i];
 							joo.setStyle(key, e, pInt(joo.getStyle(key, e)) + value[1] * 1 + value[2]);
 						}
 					} else if (value.indexOf("-=") !== -1) {
 						value = value.match(re);
+						
 						for (; i < len; i++) {
 							e = ems[i];
 							joo.setStyle(key, e, pInt(joo.getStyle(key, e)) - value[1] * 1 + value[2]);
@@ -629,21 +639,28 @@
 							joo.setStyle(key, ems[i], value);
 						}
 					}
-				} else { // typeof value === "function"
+				
+				// typeof value === "function"	
+				} else { 
 					for (; i < len; i++) {
 						e = ems[i];
 						joo.setStyle(key, e, value.call(this, joo.getStyle(key, e), e, i));
 					}
 				}
-			} else { // arguments.length === 1
+				
+			// arguments.length === 1	
+			} else { 
 				if (typeof key === "string") {
 					arr = [];
+					
 					for (; i < len; i++) {
 						arr[i] = joo.getStyle(key, ems[i]);
 					}
 					
 					return arr;
-				} else { // typeof key === "object"
+					
+				// typeof key === "object"	
+				} else { 
 					for (p in key) {
 						i = 0;
 						if (typeof key[p] === "function") {
@@ -652,16 +669,21 @@
 								value = key[p].call(this, joo.getStyle(p, e), e, i);
 								joo.setStyle(p, e, value);
 							}
-						} else { // typeof key[p] === "string"
+						
+						// typeof key[p] === "string"
+						} else { 
 							value = key[p];
+							
 							if (value.indexOf("+=") !== -1) {
 								value = value.match(re);
+								
 								for (; i < len; i++) {
 									e = ems[i];
 									joo.setStyle(p, e, pInt(joo.getStyle(p, e)) + value[1] * 1 + value[2]);
 								}
 							} else if (value.indexOf("-=") !== -1) {
 								value = value.match(re);
+								
 								for (; i < len; i++) {
 									e = ems[i];
 									joo.setStyle(p, e, pInt(joo.getStyle(p, e)) - value[1] * 1 + value[2]);
@@ -692,6 +714,7 @@
 			
 			for (; i < len; i++) {
 				e = ems[i];
+				
 				if (e.className) {
 					if (!re.test(e.className)) {
 						e.className += " " + cls;
@@ -719,11 +742,14 @@
 				for (; i < len; i++) {
 					e = ems[i];
 					cls = e.className;
+					
 					if (cls) {
 						e.className = cls.replace(re, "");
 					}
 				}
-			} else { // arguments.length === 0
+			
+			// arguments.length === 0	
+			} else { 
 				for (; i < len; i++) {
 					ems[i].className = "";
 				}
@@ -743,13 +769,14 @@
 				arr;
 			
 			if (arguments.length === 1) {
-				
 				for (; i < len; i++) {
 					ems[i].style.cssText += ";" + sty;
 				}
 				
 				return this;
-			} else { // arguments.length === 0
+			
+			// arguments.length === 0	
+			} else { 
 				arr = [];
 				
 				for (; i < len; i++) {
@@ -773,6 +800,7 @@
 			if (arguments.length === 1) {
 				arr = sty.split(",");
 				m = arr.length;
+				
 				for (; i < len; i++) {
 					e = ems[i];
 					sty = e.style.cssText + ";";
