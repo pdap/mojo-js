@@ -964,6 +964,8 @@
 			}
 			return this;
 		},
+		
+		
 		on : function(type,fn){//触发和绑定标签上的事件
 			var ems = this.ems,ths = this,e;
 			if(arguments.length > 1){
