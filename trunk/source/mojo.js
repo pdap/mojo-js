@@ -11,6 +11,7 @@
 		//函数域中的文档对象引用
 		document = window.document,
 		
+		slice = Array.prototype.slice,
 		
 	    /**
  	 	 * 动画缓冲算法
@@ -965,36 +966,35 @@
 			return this;
 		},
 		
-		
-		on : function(type,fn){//触发和绑定标签上的事件
-			var ems = this.ems,ths = this,e;
-			if(arguments.length > 1){
-				if (typeof fn === "function") {
-					var args = Array.prototype.slice.call(arguments,2);
-					for (var i = 0, j = ems.length; i < j; i++) {
-						ems[i]["on" + type] = function(event){
-							fn.apply(ths, [this, window.event || event].concat(args));
-						};
-					}
-				} else {
-					for (var i = 0, j = ems.length; i < j; i++) {
-						ems[i]["on" + type] = fn;
+		/**
+		 * 
+		 * on(String,Function)
+		 * on({String,Function})
+		 */
+		on: function(type, fn) {
+			var ems = this.ems, 
+				len = ems.length, 
+				i = 0, 
+				ths = this, 
+				args = slice.call(arguments, 2),
+				p;
+			
+			if (arguments.length === 2) {
+				for (; i < len; i++) {
+					ems[i]["on" + type] = function(event) {
+						fn.apply(ths, [this, window.event || event].concat(args));
 					}
 				}
-			}else{// len = 1
-				for (var i = 0, j = ems.length; i < j; i++) {
-					e = ems[i];
-					if (e["on" + type]) {
-						e["on" + type]();
-					}
-					if (e.mojoEventHandler && e.mojoEventHandler[type]) {
-						var fns = e.mojoEventHandler[type];
-						for (var n = 0, m = fns.length; n < m; n++) {
-							fns[n]();
+			} else { //  arguments.length === 1
+				for (p in type) {
+					for (; i < len; i++) {
+						ems[i]["on" + p] = function(event) {
+							type[p].apply(ths, [this, window.event || event].concat(args));
 						}
 					}
 				}
 			}
+			
 			return this;
 		}
 	};
