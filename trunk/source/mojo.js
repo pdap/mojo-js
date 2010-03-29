@@ -988,14 +988,8 @@
 					e.mojoIndex = i;
 				}
 			} else { //  arguments.length === 1
-				for (; i < len; i++) {
-					e = ems[i];
-					for (p in type) {
-						e["on" + p] = function(event) {
-							type[p].apply(ths, [this, this.mojoIndex, window.event || event].concat(args));
-						}
-						e.mojoIndex = i;
-					}
+				for (p in type) {
+					this.on(p,type[p]);
 				}
 			}
 			
