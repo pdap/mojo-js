@@ -976,21 +976,25 @@
 				len = ems.length, 
 				i = 0, 
 				ths = this, 
-				args = slice.call(arguments, 2),
-				p;
+				args = slice.call(arguments, 2), 
+				p, e;
 			
 			if (arguments.length === 2) {
 				for (; i < len; i++) {
-					ems[i]["on" + type] = function(event) {
-						fn.apply(ths, [this, window.event || event].concat(args));
+					e = ems[i];
+					e["on" + type] = function(event) {
+						fn.apply(ths, [this, this.mojoIndex, window.event || event].concat(args));
 					}
+					e.mojoIndex = i;
 				}
 			} else { //  arguments.length === 1
-				for (p in type) {
-					for (; i < len; i++) {
-						ems[i]["on" + p] = function(event) {
-							type[p].apply(ths, [this, window.event || event].concat(args));
+				for (; i < len; i++) {
+					e = ems[i];
+					for (p in type) {
+						e["on" + p] = function(event) {
+							type[p].apply(ths, [this, this.mojoIndex, window.event || event].concat(args));
 						}
+						e.mojoIndex = i;
 					}
 				}
 			}
