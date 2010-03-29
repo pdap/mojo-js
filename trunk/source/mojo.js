@@ -967,7 +967,7 @@
 		/**
 		 * 
 		 * on(String,Function,[args])
-		 * on({String,Function})
+		 * on({String,Function},[args])
 		 */
 		on: function(type, fn) {
 			var ems = this.ems, 
@@ -996,7 +996,9 @@
 		},
 		
 		fire: function(type){
-			
+			var ems = this.ems,
+				len = ems.length,
+				i = 0;
 		}
 	};
 	
