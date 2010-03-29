@@ -11,8 +11,6 @@
 		//函数域中的文档对象引用
 		document = window.document,
 		
-		slice = Array.prototype.slice,
-		
 	    /**
  	 	 * 动画缓冲算法
 	     * 每个效果都分三个缓动方式:
@@ -968,7 +966,7 @@
 		
 		/**
 		 * 
-		 * on(String,Function)
+		 * on(String,Function,[args])
 		 * on({String,Function})
 		 */
 		on: function(type, fn) {
@@ -976,10 +974,10 @@
 				len = ems.length, 
 				i = 0, 
 				ths = this, 
-				args = slice.call(arguments, 2), 
-				p, e;
+				args, p, e;
 			
-			if (arguments.length === 2) {
+			if (typeof type === "string") {
+				args = arguments[2] || [];
 				for (; i < len; i++) {
 					e = ems[i];
 					e["on" + type] = function(event) {
@@ -987,13 +985,18 @@
 					}
 					e.mojoIndex = i;
 				}
-			} else { //  arguments.length === 1
+			} else { //  typeof type === "object"
+				args = arguments[1] || [];
 				for (p in type) {
-					this.on(p,type[p]);
+					this.on(p, type[p], args);
 				}
 			}
 			
 			return this;
+		},
+		
+		fire: function(type){
+			
 		}
 	};
 	
