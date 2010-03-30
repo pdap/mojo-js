@@ -995,10 +995,37 @@
 			return this;
 		},
 		
-		fire: function(type){
-			var ems = this.ems,
-				len = ems.length,
-				i = 0;
+		fire: function(type,event) {
+			var ems = this.ems, 
+				len = ems.length, 
+				i = 0,
+				arr = [],
+				evt, p;
+			
+			if(document.createEventObject) {
+				evt = document.createEventObject();
+				if (event) { // typeof event === "object"
+				  for(p in event){
+				  	evt[p] = event[p];	
+				  }
+				}
+				for(; i < len; i++){
+					arr[i] = ems[i].fireEvent('on' + type , evt);
+				}
+			} else {
+				evt = document.createEvent("HTMLEvents");
+				if (event) { // typeof event === "object"
+				  for(p in event){
+				  	evt[p] = event[p];	
+				  }
+				}
+				evt.initEvent(type, true, true);
+				for(; i < len; i++){
+					arr[i] = ems[i].dispatchEvent(evt);
+				}				
+			}
+			
+			return arr;
 		}
 	};
 	
