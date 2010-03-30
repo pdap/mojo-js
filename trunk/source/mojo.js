@@ -995,6 +995,9 @@
 			return this;
 		},
 		
+		/**
+		 * fire(String,Object)
+		 */
 		fire: function(type,event) {
 			var ems = this.ems, 
 				len = ems.length, 
