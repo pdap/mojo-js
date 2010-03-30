@@ -999,7 +999,6 @@
 			var ems = this.ems, 
 				len = ems.length, 
 				i = 0,
-				arr = [],
 				evt, p;
 			
 			if(document.createEventObject) {
@@ -1010,7 +1009,7 @@
 				  }
 				}
 				for(; i < len; i++){
-					arr[i] = ems[i].fireEvent('on' + type , evt);
+					ems[i].fireEvent('on' + type , evt);
 				}
 			} else {
 				evt = document.createEvent("HTMLEvents");
@@ -1021,11 +1020,11 @@
 				}
 				evt.initEvent(type, true, true);
 				for(; i < len; i++){
-					arr[i] = ems[i].dispatchEvent(evt);
+					ems[i].dispatchEvent(evt);
 				}				
 			}
 			
-			return arr;
+			return this;
 		}
 	};
 	
