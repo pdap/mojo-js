@@ -995,6 +995,9 @@
 			return this;
 		},
 		
+		removeOn: function(type) {
+			
+		},
 		/**
 		 * fire(String,Object)
 		 */
