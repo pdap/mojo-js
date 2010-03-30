@@ -894,9 +894,15 @@
 		},
 		
 		bind : function(type,fn){//绑定事件
-		    var e,ems = this.ems,ths = this,myfn,
-				args = Array.prototype.slice.call(arguments,2);
-			for (var i = 0, j = ems.length; i < j; i++){
+		    var ems = this.ems,
+				len = ems.length,
+				i = 0,
+				ths = this,
+				joo = jo,
+				args, e, myfn;
+				
+			args = arguments[2] || [];
+			for (; i < j; i++){
 				e = ems[i];
 				myfn = function(event){
 					fn.apply(ths,[e, window.event || event].concat(args));
@@ -995,9 +1001,27 @@
 			return this;
 		},
 		
-		removeOn: function(type) {
+		/**
+		 * removeOn(String)
+		 */
+		removeOn: function(types) {
+			var ems = this.ems,
+				len = ems.length,
+				i = 0,
+				e, n, m;
 			
+			types = types.split(",");
+			m = types.length;
+			for(; i < len; i++) {
+				e = ems[i];
+				for(n = 0; n < m; n++) { 
+					e["on" + types[n]] = "";
+				}
+			}	
+			
+			return this;
 		},
+		
 		/**
 		 * fire(String,Object)
 		 */
