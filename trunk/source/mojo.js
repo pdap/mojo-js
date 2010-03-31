@@ -892,33 +892,55 @@
 			}
 			return this;
 		},
-		
-		bind : function(type,fn){//绑定事件
+		/**
+		 * 
+		 * bind(String,Function,[args])
+		 * bind(Object,[args])
+		 */
+		bind : function(type,fn){
 		    var ems = this.ems,
 				len = ems.length,
 				i = 0,
 				ths = this,
-				joo = jo,
-				args, e, myfn;
-				
-			args = arguments[2] || [];
-			for (; i < j; i++){
-				e = ems[i];
-				myfn = function(event){
-					fn.apply(ths,[e, window.event || event].concat(args));
+				args, e, p, bindFn;
+			
+			if (typeof type === "string") {
+				args = arguments[2] || [];
+				for (; i < len; i++) {
+					e = ems[i];
+					bindFn = function(event) {
+						var evt = window.event || event, target = evt.srcElement || evt.target;
+						fn.apply(ths, [evt, target, target.mojoIndex].concat(args));
+					}
+					
+					e.mojoIndex = i;
+					
+					if (e.attachEvent) {
+						e.attachEvent("on" + type, bindFn);
+					} else {
+						e.addEventListener(type, bindFn, false);
+					}
+					
+					if (!e.mojoEventHandler) {
+						e.mojoEventHandler = {};
+					}
+					
+					if (!e.mojoEventHandler[type]) {
+						e.mojoEventHandler[type] = [];
+					}
+					
+					e.mojoEventHandler[type].push(bindFn);
 				}
-				jo.addEventHandler(e,type,myfn);
-				//缓存事件类型和函数
-				if (!e.mojoEventHandler) {
-					e.mojoEventHandler = {};
-				}
-				if (!e.mojoEventHandler[type]) {
-					e.mojoEventHandler[type] = [];
-				}
-				e.mojoEventHandler[type].push(myfn);
+			} else { // typeof type === "object"
+				args = arguments[1] || [];
+				for (p in type) {
+					this.bind(p, type[p], args);
+				}				
 			}
+			
 			return this;	
 		},
+		
 		unbind : function(){//移除事件
 			var args = arguments,len = args.length,type,
 				mh,e,ems = this.ems;
@@ -987,7 +1009,7 @@
 				for (; i < len; i++) {
 					e = ems[i];
 					e["on" + type] = function(event) {
-						fn.apply(ths, [this, this.mojoIndex, window.event || event].concat(args));
+						fn.apply(ths, [window.event || event, this, this.mojoIndex].concat(args));
 					}
 					e.mojoIndex = i;
 				}
@@ -1289,11 +1311,7 @@
 			return rgb;
 		},		
 		addEventHandler : function(e,type,fn){//添加事件函数
-			if (e.attachEvent) {
-				e.attachEvent("on" + type, fn);
-			}else {
-				e.addEventListener(type, fn, false);
-			}
+
 			
 		},
 		removeEventHandler : function(e,type,fn){//删除事件函数
