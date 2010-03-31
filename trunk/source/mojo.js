@@ -58,7 +58,8 @@
 		
 		/**
 		 * mojo变量注册到window上,并赋值为构造mo对象的函数
-		 * @param {String/HTMLElement} selector
+		 * mojo(String)
+		 * mojo(HTMLElement)
 		 */
 	    mojo = window.mojo = function(selector){
 			return jo.init(selector);
@@ -69,9 +70,9 @@
 	mojo.fn = mo.prototype = {
 		/**
 		 * 注册对应HTMLElement元素上的处理函数
-		 * @param {Function} fn
+		 * each(Function)
 		 */
-		each: function(fn) {
+		each : function(fn) {
 			var ems = this.ems, 
 				len = ems.length,
 				i = 0;
@@ -85,19 +86,20 @@
 		
 		/**
 		 * 注册对应HTMLElement元素数组上的处理函数
-		 * @param {Function} fn
+		 * elems(Function)
 		 */
-		elems: function(fn) {
+		elems : function(fn) {
 			fn.call(this, this.ems);
 			return this;
 		},
 	
 		/**
 		 * 在mojo对象上缓存的数据
-		 * @param {String} key 
-		 * @param {Object} value (optional)
+		 * data(String,Value)
+		 * data(Function)
+		 * data(String)
 		 */
-		data: function(key, value) {
+		data : function(key, value) {
 			if (arguments.length === 2) {
 				this.datas[key] = value;
 			
@@ -117,9 +119,10 @@
 		
 		/**
 		 * 删除mojo对象上缓存的数据
-		 * @param {String} keys (optional)
+		 * removeData(String)
+		 * removeData()
 		 */
-		removeData: function(keys) {
+		removeData : function(keys) {
 			var datas = this.datas,
 				len, 
 				i = 0;
@@ -127,11 +130,9 @@
 			if (arguments.length === 1) {
 				keys = keys.split(",");
 				len = keys.length;
-				
 				for (; i < len; i++) {
 					delete datas[keys[i]];
 				}
-				
 			// arguments.length === 0
 			} else { 
 				this.datas = {};
@@ -142,9 +143,10 @@
 		
 		/**
 		 * 添加子节点
-		 * @param {String/HTMLElement} elem
+		 * append(String)
+		 * append(HTMLElement)
 		 */
-		append: function(elem) {
+		append : function(elem) {
 			var ems = this.ems, 
 				len = ems.length, 
 				i = 0, 
@@ -179,9 +181,10 @@
 		
 		/**
 		 * 追加兄弟节点
-		 * @param {String/HTMLElement} elem
+		 * after(String)
+		 * after(HTMLElement)
 		 */
-		after: function(elem) {
+		after : function(elem) {
 			var ems = this.ems, 
 				len = ems.length,
 				i = 0,
@@ -190,7 +193,6 @@
 			
 			if (typeof elem === "string") {
 				fragment = joo.strToFragment(elem);
-				
 				for (; i < len; i++) {
 					e = ems[i];
 					next = joo.getNext(e);
@@ -200,7 +202,6 @@
 						e.parentNode.appendChild(fragment.cloneNode(true));
 					}
 				}
-				
 			} else if (typeof elem === "object") {
 				for (; i < len; i++) {
 					e = ems[i];
@@ -243,9 +244,10 @@
 		
 		/**
 		 * 插入兄弟节点
-		 * @param {String/HTMLElement} elem
+		 * before(String)
+		 * before(HTMLElement)
 		 */
-		before: function(elem) {
+		before : function(elem) {
 			var ems = this.ems, 
 				len = ems.length,
 				i = 0,
@@ -288,9 +290,10 @@
 		
 		/**
 		 * 包裹节点
-		 * @param {String/HTMLElement} elem
+		 * wrap(String)
+		 * wrap(HTMLElement)
 		 */
-		wrap: function(elem) {
+		wrap : function(elem) {
 			var ems = this.ems, 
 				len = ems.length,
 				i = 0,
@@ -299,13 +302,11 @@
 			
 			if (typeof elem === "string") {
 				fragment = joo.strToFragment(elem);
-				
 				for (; i < len; i++) {
 					e = ems[i];
 					e.parentNode.insertBefore(fragment.cloneNode(true), e);
 					e.previousSibling.appendChild(e);
 				}
-				
 			} else if (typeof elem === "object") {
 				for (; i < len; i++) {
 					e = ems[i];
@@ -337,10 +338,10 @@
 		
 		/**
 		 * 替换节点
-		 * @param {String/HTMLElement} elem
-		 * @param {Function} fn (optional)
+		 * replace(String,[Function])
+		 * replace(HTMLElement,[Function])
 		 */
-		replace: function(elem, fn) {
+		replace : function(elem, fn) {
 			var ems = this.ems, 
 				len = ems.length,
 				i = 0,
@@ -349,7 +350,6 @@
 			
 			if (typeof elem === "string") {
 				fragment = joo.strToFragment(elem);
-				
 				for (; i < len; i++) {
 					e = ems[i];
 					e.parentNode.replaceChild(fragment.cloneNode(true), e);
@@ -357,7 +357,6 @@
 						fn.call(this, e, i)
 					}
 				}
-				
 			} else if (typeof elem === "object") {
 				for (; i < len; i++) {
 					e = ems[i];
@@ -368,7 +367,6 @@
 						fn.call(this, e, i)
 					}
 				}
-				
 			}
 			
 			return this;
@@ -376,9 +374,9 @@
 		
 		/**
 		 * 删除节点
-		 * @param {Function} fn (optional)
+		 * remove([Function])
 		 */
-		remove: function(fn){
+		remove : function(fn){
 			var ems = this.ems,
 				len = ems.length,
 				i = 0,
@@ -399,17 +397,18 @@
 		
 		/**
 		 * 设置匹配元素的html内容
-		 * @param {String} strHtml
+		 * html(String)
+		 * html(Function)
+		 * html()
 		 */	
 		html: function(strHtml) {
 			var ems = this.ems, 
 				len = ems.length,
 				i = 0,
-				arr;
+				arr, e;
 			
 			if (arguments.length === 1) {
 				if (typeof strHtml === "string") {
-				
 					for (; i < len; i++) {
 						ems[i].innerHTML = strHtml;
 					}
@@ -417,9 +416,9 @@
 				// typeof strHtml === "function"	
 				} else { 
 					for (; i < len; i++) {
-						ems[i].innerHTML = strHtml.call(this.ems[i], i);
+						e = ems[i];
+						e.innerHTML = strHtml.call(this, e, i);
 					}
-					
 				}
 				
 				return this;
@@ -427,19 +426,18 @@
 			// arguments.length === 0	
 			} else { 
 				arr = [];
-				
 				for (; i < len; i++) {
 					arr[i] = ems[i].innerHTML;
 				}
-				
 				return arr;
 			}
 		},
 		
 		/**
 		 * 清空节点子元素
+		 * empty()
 		 */
-		empty: function() {
+		empty : function() {
 			var ems = this.ems, 
 				len = ems.length,
 				i = 0;
@@ -453,9 +451,11 @@
 		
 		/**
 		 * 设置节点文本
-		 * @param {String or Funtion} txt
+		 * text(String)
+		 * text(Function)
+		 * text()
 		 */
-     	text: function(txt) {
+     	text : function(txt) {
 			var ems = this.ems, 
 				len = ems.length,
 				i = 0, 
@@ -463,7 +463,6 @@
 			
 			if (arguments.length === 1) {
 				if (typeof txt === "string") {
-					
 					for (; i < len; i++) {
 						e = ems[i];
 						typeof e.innerText === "string" ? e.innerText = txt : e.textContent = txt;
@@ -496,17 +495,18 @@
 		
 		/**
 		 * 设置节点value值
-		 * @param {String or Function} value
+		 * val(String)
+		 * val(Function)
+		 * val()
 		 */
-		val: function(value) {
+		val : function(value) {
 			var ems = this.ems, 
 				len = ems.length,
 				i = 0, 
-				arr;
+				arr, e;
 			
 			if (arguments.length === 1) {
 				if (typeof value === "string") {
-				
 					for (; i < len; i++) {
 						ems[i].value = value;
 					}
@@ -514,7 +514,8 @@
 				// typeof value === "function"	
 				} else { 
 					for (; i < len; i++) {
-						ems[i].value = value.call(this, ems[i].value, i);
+						e = ems[i];
+						e.value = value.call(this, e.value, e, i);
 					}
 				}
 				
@@ -523,11 +524,9 @@
 			// arguments.length === 0	
 			} else { 
 				arr = [];
-				
 				for (; i < len; i++) {
 					arr[i] = ems[i].value;
 				}
-				
 				return arr;
 			}
 		},
@@ -941,57 +940,78 @@
 			return this;	
 		},
 		
-		
-		unbind : function(type,fn){//移除事件
+		/**
+		 * 
+		 * unbind(String,Function)
+		 * unbind(String)
+		 * unbind()
+		 */
+		unbind : function(type,fn){
 			var ems = this.ems,
 				len = ems.length,
 				i = 0,
-				type, mh, e;
+			    types, mh, e, n, m, j, k;
 				
 			if(arguments.length === 1){
-				for (var i = 0, j = ems.length, n, m; i < j; i++) {
+				types = type.split(",");
+				for (; i < len; i++) {
 					e = ems[i];
 					mh = e.mojoEventHandler;
-					if (mh && mh[type]) {
-						for (n = 0, m = mh[type].length; n < m; n++) {
-							jo.removeEventHandler(e, type, mh[type][n]);
+					for (j = 0, k = types.length; j < k; j++) {
+						type = types[j];
+						if (mh && mh[type]) {
+							for (n = 0, m = mh[type].length; n < m; n++) {
+								if (e.detachEvent) {
+									e.detachEvent("on" + type, mh[type][n]);
+								} else {
+									e.removeEventListener(type, mh[type][n], false);
+								}
+							}
+							delete mh[type];
 						}
-						delete mh[type];
 					}
 				}
-			}else if(len === 2){//移除对应类型对应函数
-				type = args[0];
-				var fn = args[1];
-				for (var i = 0, j = ems.length, n, m; i < j; i++) {
+			} else if(arguments.length === 2){
+				for (; i < len; i++) {
 					e = ems[i];
 					mh = e.mojoEventHandler;
 					if (mh && mh[type]) {
 						for (n = 0, m = mh[type].length; n < m; n++) {
 							if (mh[type][n] === fn) {
-								jo.removeEventHandler(e, type, fn);
+								if (e.detachEvent) {
+									e.detachEvent("on" + type, mh[type][n]);
+								} else {
+									e.removeEventListener(type, mh[type][n], false);
+								}
 								mh[type].splice(n, 1);
 							}
 						}
+						
 						if (mh[type].length === 0) {
 							delete mh[type]
 						}
 					}
 				}
-			}else{//没有参数移除所有事件
-				for (var i = 0, j = ems.length, n, m; i < j; i++) {
+			} else { // arguments.length === 0
+				for (; i < len; i++) {
 					e = ems[i];
 					mh = e.mojoEventHandler;
 					if (mh) {
 						for (type in mh) {
 							for (n = 0, m = mh[type].length; n < m; n++) {
-								jo.removeEventHandler(e, type, mh[type][n]);
+								if (e.detachEvent) {
+									e.detachEvent("on" + type, mh[type][n]);
+								} else {
+									e.removeEventListener(type, mh[type][n], false);
+								}
 							}
 							delete mh[type];
 						}
-						mh = null;
+						delete e.mojoEventHandler;
 					}
 				}				
 			}
+			
 			return this;
 		},
 		
@@ -1702,8 +1722,6 @@
 			shimmer.pseudos[n] = fn;
 			return this;
 		},
-		ver : "0.65",
-		info : "code by scott.Cgi"
 	});
 	
   
