@@ -941,11 +941,14 @@
 			return this;	
 		},
 		
-		unbind : function(){//移除事件
-			var args = arguments,len = args.length,type,
-				mh,e,ems = this.ems;
-			if(len === 1){//移除类型所有处理函数
-				type = args[0];
+		
+		unbind : function(type,fn){//移除事件
+			var ems = this.ems,
+				len = ems.length,
+				i = 0,
+				type, mh, e;
+				
+			if(arguments.length === 1){
 				for (var i = 0, j = ems.length, n, m; i < j; i++) {
 					e = ems[i];
 					mh = e.mojoEventHandler;
