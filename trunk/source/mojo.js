@@ -813,20 +813,23 @@
 			return this;
 		},
 		
-		anim : function(){//自定义动画
-			var args = arguments,obj = args[0],
+		anim : function(obj) {
+			var args = arguments,
+				ems = this.ems,
+				len = ems.length,
+				i = 0,				
+				joo = jo,
 				dur,fn,type,ease,
 				ops,arr,p,
-				ems = this.ems,
 				tids = this.tids;//存放计时器id
 			
-			if(args.length === 2 && typeof args[1] === "object"){//参数为对象的形式
+			if(args.length === 2 && typeof args[1] === "object") {//参数为对象的形式
 				ops = args[1];
 				dur = ops.dur || 300;//动画时间
 				fn = ops.fn || null;//完成回调函数
 				type = ops.type || "swing";//动画类型
 				ease = ops.ease || "easeIn";//缓冲类型
-			}else{//多参数形式
+			} else {//多参数形式
 				dur = args[1] || 300;
 				fn =  args[2] || null;
 				type =  args[3] || "swing";
@@ -834,26 +837,25 @@
 			}
 			
 			ops = [];//依次装入:属性名,符号,值,单位
-			args = 0;
-			for(p in obj){//解析属性值
-				ops[args] = p;
+			for(p in obj) {//解析属性值
+				ops[i] = p;
 				if (p.toLowerCase().indexOf("color") !== -1) {//颜色属性
-					ops[args + 1] = obj[p];
-					ops[args + 2] = "#";
-					ops[args + 3] = "";
+					ops[i + 1] = obj[p];
+					ops[i + 2] = "#";
+					ops[i + 3] = "";
 				} else {
 					arr = obj[p].match(/((-=)?|(\+=)?)(-?\d+)(\D*)/);
-					ops[args + 1] = arr[2] || arr[3];
-					ops[args + 2] = arr[4];
-					ops[args + 3] = arr[5] || "px";
+					ops[i + 1] = arr[2] || arr[3];
+					ops[i + 2] = arr[4];
+					ops[i + 3] = arr[5] || "px";
 				}		
-				args += 4;
+				i += 4;
 			}
-			arr = this;//传递给回调函数作为this的值
-
-			for (var i = 0, j = ems.length; i < j; i++){
-				tids[i] = jo.parseAnim(ems[i],ops,dur,type,ease,fn,arr);
+			
+			for (i = 0; i < len; i++) {
+				tids[i] = joo.parseAnim(this, ems[i], ops, dur, fn, type, ease);
 			}
+			
 			return this;
 		},
 		isAnim : function(){//是否动画中
@@ -1207,7 +1209,7 @@
 			}
 		},
 		
-		parseAnim : function(e,ops,dur,type,ease,fn,ths){//配置anim
+		parseAnim : function(ths, e, ops, dur, fn, type, ease){//配置anim
 			var	len = ops.length,
 		    	step = [],//属性值数组
 				isColor;//是否为颜色属性
