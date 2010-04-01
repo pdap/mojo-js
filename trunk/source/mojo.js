@@ -1327,17 +1327,6 @@
 				rgb = cor.match(/\d+/g).toString().split(",");
 			}
 			return rgb;
-		},		
-		addEventHandler : function(e,type,fn){//添加事件函数
-
-			
-		},
-		removeEventHandler : function(e,type,fn){//删除事件函数
-			if (e.detachEvent) {
-				e.detachEvent("on" + type, fn);
-			}else {
-				e.removeEventListener(type, fn, false);
-			}
 		}
 	};
 	
