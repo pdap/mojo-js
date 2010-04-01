@@ -532,10 +532,12 @@
 		},
 		
 		/**
-		 * @param {Object} attr
-		 * @param {Object} value
+		 * attr(String,Value)
+		 * attr(String,Function)
+		 * attr(String)
+		 * attr({name:value})
 		 */
-		attr: function(attr, value) {
+		attr : function(attr, value) {
 			var ems = this.ems, 
 				len = ems.length, 
 				i = 0, 
@@ -578,9 +580,9 @@
 		},
 		
 		/**
-		 * @param {String} attr
+		 * removeAttr(String)
 		 */
-		removeAttr: function(attrs) {
+		removeAttr : function(attrs) {
 			var ems = this.ems, 
 				len = ems.length, 
 				i = 0, 
@@ -604,10 +606,12 @@
 		
 		/**
 		 * 
-		 * @param {Object or String} key
-		 * @param {String or Function} value
+		 * css(String,String)
+		 * css(String,Function)
+		 * css(String)
+		 * css({name:String,name:Function,...})
 		 */
-		css: function(key, value) {
+		css : function(key, value) {
 			var ems = this.ems, 
 				len = ems.length,
 				i = 0, 
@@ -620,14 +624,12 @@
 				if (typeof value == "string") {
 					if (value.indexOf("+=") !== -1) {
 						value = value.match(re);
-						
 						for (; i < len; i++) {
 							e = ems[i];
 							joo.setStyle(key, e, pInt(joo.getStyle(key, e)) + value[1] * 1 + value[2]);
 						}
 					} else if (value.indexOf("-=") !== -1) {
 						value = value.match(re);
-						
 						for (; i < len; i++) {
 							e = ems[i];
 							joo.setStyle(key, e, pInt(joo.getStyle(key, e)) - value[1] * 1 + value[2]);
@@ -650,11 +652,9 @@
 			} else { 
 				if (typeof key === "string") {
 					arr = [];
-					
 					for (; i < len; i++) {
 						arr[i] = joo.getStyle(key, ems[i]);
 					}
-					
 					return arr;
 					
 				// typeof key === "object"	
@@ -671,17 +671,14 @@
 						// typeof key[p] === "string"
 						} else { 
 							value = key[p];
-							
 							if (value.indexOf("+=") !== -1) {
 								value = value.match(re);
-								
 								for (; i < len; i++) {
 									e = ems[i];
 									joo.setStyle(p, e, pInt(joo.getStyle(p, e)) + value[1] * 1 + value[2]);
 								}
 							} else if (value.indexOf("-=") !== -1) {
 								value = value.match(re);
-								
 								for (; i < len; i++) {
 									e = ems[i];
 									joo.setStyle(p, e, pInt(joo.getStyle(p, e)) - value[1] * 1 + value[2]);
@@ -701,9 +698,9 @@
 		
 		/**
 		 * 添加css样式
-		 * @param {String} cls
+		 * addClass(String)
 		 */
-		addClass: function(cls) {
+		addClass : function(cls) {
 			var ems = this.ems, 
 				len = ems.length, 
 				i = 0, 
@@ -712,7 +709,6 @@
 			
 			for (; i < len; i++) {
 				e = ems[i];
-				
 				if (e.className) {
 					if (!re.test(e.className)) {
 						e.className += " " + cls;
@@ -727,9 +723,10 @@
 		
 		/**
 		 * 删除Css样式
-		 * @param {String} cls
+		 * removeClass(String)
+		 * removeClass()
 		 */
-		removeClass: function(cls) {
+		removeClass : function(cls) {
 			var ems = this.ems, 
 				len = ems.length, 
 				i = 0, 
@@ -740,7 +737,6 @@
 				for (; i < len; i++) {
 					e = ems[i];
 					cls = e.className;
-					
 					if (cls) {
 						e.className = cls.replace(re, "");
 					}
@@ -758,7 +754,8 @@
 		
 		/**
 		 * 添加style内嵌形式的字符串
-		 * @param {Object} sty
+		 * style(String)
+		 * style()
 		 */
 		style: function(sty) {
 			var ems = this.ems, 
@@ -776,18 +773,17 @@
 			// arguments.length === 0	
 			} else { 
 				arr = [];
-				
 				for (; i < len; i++) {
 					arr[i] = ems[i].style.cssText;
 				}
-				
 				return arr;
 			}
 		},
 		
 		/**
 		 * 删除style内嵌形式的字符串
-		 * @param {String} sty
+		 * removeStyle(String)
+		 * removeStyle()
 		 */
 		removeStyle: function(sty) {
 			var ems = this.ems, 
@@ -1005,7 +1001,6 @@
 									e.removeEventListener(type, mh[type][n], false);
 								}
 							}
-							delete mh[type];
 						}
 						delete e.mojoEventHandler;
 					}
@@ -1018,7 +1013,7 @@
 		/**
 		 * 
 		 * on(String,Function,[args])
-		 * on({String,Function},[args])
+		 * on({String:Function},[args])
 		 */
 		on: function(type, fn) {
 			var ems = this.ems, 
@@ -1068,7 +1063,7 @@
 		},
 		
 		/**
-		 * fire(String,Object)
+		 * fire(String,[Object])
 		 */
 		fire: function(type,event) {
 			var ems = this.ems, 
