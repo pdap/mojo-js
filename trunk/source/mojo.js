@@ -1244,7 +1244,7 @@
 					arr = [],//RGB三种颜色的初始值(b1,b2,b3)和变化值(c1,c2,c3)
  					rgb1 = this.color10(this.getStyle(ops[i], e)),//十进制RGB初始颜色
  					rgb2 = this.color10(ops[i + 1]);//十进制RGB最终颜色
-					for(;n < 3;n++){
+					for (n = 0; n < 3; n++) {
 						arr[n] = rgb1[n] * 1;
 						arr[n + 3] = rgb2[n] * 1 - arr[n];
 					}
@@ -1261,69 +1261,76 @@
 			return this.timer(ths, e, step, dur, fn, type, ease);
 		},
 		
-		timer : function(ths, e, step, dur, fn, type, ease){
-			var start = new Date().valueOf(),
-				j = step.length,
-				k = j/5;
+		timer: function(ths, e, step, dur, fn, type, ease) {
+			var joo = jo, end, 
+				start = new Date().valueOf(), 
 				
-				tid = setInterval(function(){
-					
-					var end = new Date().valueOf(),
-						twn = tween[type][ease],
-						ceil = Math.ceil,
-						joo = jo,
-						sty = "",
-						i, n , m,
-						step1, step2, step3, stepi;
-					
-					for(i = 0; i < j; i += 5){
-						step2 = step[i + 2];
-						if (step2 !== dur) {//当前属性动画未完成
-						
-							step[i + 2] = step2 += end - start;
-							
-							if (step2 > dur) {//当前属性动画完成
-								step[i + 2] = step2 = dur;
-							}						
-							
-							step3 = step[i + 3];
-							step1 = step[i + 1];
-							stepi = step[i];
-							
-							if (step1 !== "#") {//非颜色属性
-								if (e[step3]) {
-									sty += step3 + ":" + ceil(twn(step2, stepi, step1, dur)) + step[i + 4];
-								} else {
-								    e[step3] = ceil(twn(step2, stepi, step1, dur));
-								}
-							
-							//颜色属性
-							} else {
-								for (n = 0; n < 3; n++) {
-									m = ceil(twn(step2, stepi[n], stepi[n + 3], dur)).toString(16);
-									stepi[n + 6] = m.length === 1 ? "0" + m : m;
-								}
-								jo.setStyle(step3, e, "#" + stepi[6] + stepi[7] + stepi[8]);
-							}
-							
-							
-						} else {
-							k--;//未完成属性动画计数器
-						}
-					}				
-					
-					if (k !== 0) {
-						start = end;
-					} else {//所有属性动画完成
+				tid = setInterval(function() {
+					end = new Date().valueOf();
+					if (joo.timerFn(e, step, dur, type, ease, end - start)) {
 						clearInterval(tid);
 						if (fn) {
 							fn.call(ths, e);
 						}
-
-					}					
-				},10);
-				
+					} else {
+						start = end;
+					}
+				}, 10);
+			
 			return tid;
+		},
+		
+		timerFn: function(e, step, dur, type, ease, t) {
+			var twn = tween[type][ease], 
+				ceil = Math.ceil, 
+				len = step.length,
+				k = len / 5,
+				sty = "", 
+				i, n, m, 
+				step1, step2, step3, stepi;
+			
+			for (i = 0; i < len; i += 5) {
+				step2 = step[i + 2];
+				if (step2 !== dur) {//当前属性动画未完成
+					step[i + 2] = step2 += t;
+					if (step2 > dur) {//当前属性动画完成
+						step[i + 2] = step2 = dur;
+					}
+					
+					step3 = step[i + 3];
+					step1 = step[i + 1];
+					stepi = step[i];
+					
+					if (step1 !== "#") {//非颜色属性
+						if (e[step3]) {
+							sty += step3 + ":" + ceil(twn(step2, stepi, step1, dur)) + step[i + 4] + ";";
+							
+						} else {
+							e[step3] = ceil(twn(step2, stepi, step1, dur));
+						}
+						
+					//颜色属性
+					} else {
+						for (n = 0; n < 3; n++) {
+							m = ceil(twn(step2, stepi[n], stepi[n + 3], dur)).toString(16);
+							stepi[n + 6] = m.length === 1 ? "0" + m : m;
+						}
+						
+						sty += step3.replace(/[A-Z]/g, "-$&") + ":" + "#" + stepi[6] + stepi[7] + stepi[8] + ";";
+					}
+					
+				} else {
+					k--;//未完成属性动画计数器
+				}
+			}
+			
+			e.style.cssText += ";" + sty;
+			
+			if (k !== 0) {
+				return false;
+			} else {//所有属性动画完成
+				return true;
+			}
 		},
 		
 		/**
