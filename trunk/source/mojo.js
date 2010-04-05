@@ -815,27 +815,28 @@
 		
 		anim : function(obj) {
 			var args = arguments,
+				re = /((-=)?|(\+=)?)(-?\d+)(\D*)/,
 				ems = this.ems,
 				len = ems.length,
 				i = 0,				
 				joo = jo,
-				dur,fn,type,ease,
-				ops,arr,p,
+				dur, fn, type, ease,
+				ops, arr, p, twn,
 				tids = this.tids;//存放计时器id
 			
 			if(args.length === 2 && typeof args[1] === "object") {//参数为对象的形式
 				ops = args[1];
-				dur = ops.dur || 300;//动画时间
+				dur = ops.dur || 400;//动画时间
 				fn = ops.fn || null;//完成回调函数
 				type = ops.type || "swing";//动画类型
 				ease = ops.ease || "easeIn";//缓冲类型
 			} else {//多参数形式
-				dur = args[1] || 300;
+				dur = args[1] || 400;
 				fn =  args[2] || null;
 				type =  args[3] || "swing";
 				ease =  args[4] || "easeIn";
 			}
-			
+			twn = tween[type][ease];
 			ops = [];//依次装入:属性名,符号,值,单位
 			for(p in obj) {//解析属性值
 				ops[i] = p;
@@ -844,16 +845,16 @@
 					ops[i + 2] = "#";
 					ops[i + 3] = "";
 				} else {
-					arr = obj[p].match(/((-=)?|(\+=)?)(-?\d+)(\D*)/);
+					arr = obj[p].match(re);
 					ops[i + 1] = arr[2] || arr[3];
 					ops[i + 2] = arr[4];
-					ops[i + 3] = arr[5] || "px";
+					ops[i + 3] = arr[5];
 				}		
 				i += 4;
 			}
 			
 			for (i = 0; i < len; i++) {
-				tids[i] = joo.configAnim(this, ems[i], ops, dur, fn, type, ease);
+				tids[i] = joo.configAnim(this, ems[i], ops, dur, fn, twn);
 			}
 			
 			return this;
@@ -1178,11 +1179,11 @@
 			var obj =  e.currentStyle || window.getComputedStyle(e, null);
 			switch (sty) {
 	       		case "float" : return  typeof obj.styleFloat === "string" ?
-									   	 obj.styleFloat :
-											obj.cssFloat;
+									   		obj.styleFloat :
+												obj.cssFloat;
 	 			case "opacity" : return e.filters ? 
 											(e.filters.alpha ? e.filters.alpha.opacity : 100) : 
-												obj.opacity * 100;
+											 	obj.opacity * 100;
 	  			default : return obj[sty];	 	 
 			}
 		},
@@ -1210,22 +1211,23 @@
 			}
 		},
 		
-		configAnim : function(ths, e, ops, dur, fn, type, ease){
+		configAnim : function(ths, e, ops, dur, fn, twn){
 			var	len = ops.length,
 		    	step = [],
-				pInt = parseInt,
+				pFloat = parseFloat,
+				isNan = isNaN,
 				i , j, n, rgb1, rgb2,
 				b, c, arr;
 				
 		    for (i = 0, j = 0; i < len; i += 4,j += 5) {
 				if (ops[i + 2] !== "#") {//不是颜色属性
-					if(e[ops[i]]){
-						b = e[ops[i]];
-					} else {
-						b = pInt(this.getStyle(ops[i], e));
-						if (isNaN(b)) {//设置初始值
+					if(!e[ops[i]]){
+						b = pFloat(this.getStyle(ops[i], e));	
+						if(isNan(b)){
 							b = 0;
-						}						
+						}		
+					} else {
+						b = e[ops[i]];
 					}
 					
 					switch (ops[i + 1]) {//判断符号,设置变化量
@@ -1258,16 +1260,19 @@
 				step[j + 4] = ops[i + 3];//当前属性单位
 			}
 			
-			return this.timer(ths, e, step, dur, fn, type, ease);
+			return this.timer(ths, e, step, dur, fn, twn);
 		},
 		
-		timer: function(ths, e, step, dur, fn, type, ease) {
-			var joo = jo, end, 
+		timer: function(ths, e, step, dur, fn, twn) {
+			var joo = jo, 
+				len = step.length,
+				k = len / 5,
+				end, 
 				start = new Date().valueOf(), 
 				
 				tid = setInterval(function() {
 					end = new Date().valueOf();
-					if (joo.timerFn(e, step, dur, type, ease, end - start)) {
+					if (joo.timerFn(e, step, dur, twn, end - start, len, k)) {
 						clearInterval(tid);
 						if (fn) {
 							fn.call(ths, e);
@@ -1275,17 +1280,15 @@
 					} else {
 						start = end;
 					}
-				}, 10);
+				}, 13);
 			
 			return tid;
 		},
 		
-		timerFn: function(e, step, dur, type, ease, t) {
-			var twn = tween[type][ease], 
-				ceil = Math.ceil, 
-				len = step.length,
-				k = len / 5,
-				sty = "", 
+		timerFn: function(e, step, dur, twn, t, len, k) {
+			var sty = [], 
+				re = /[A-Z]/g,
+				j = 2,
 				i, n, m, 
 				step1, step2, step3, stepi;
 			
@@ -1296,27 +1299,39 @@
 					if (step2 > dur) {//当前属性动画完成
 						step[i + 2] = step2 = dur;
 					}
-					
+
 					step3 = step[i + 3];
 					step1 = step[i + 1];
 					stepi = step[i];
 					
+					sty[j++] = step3.replace(re, "-$&");
+					
 					if (step1 !== "#") {//非颜色属性
-						if (e[step3]) {
-							sty += step3 + ":" + ceil(twn(step2, stepi, step1, dur)) + step[i + 4] + ";";
+						if (!e[step3]) {
+							//sty += step3 + ":" + ceil(twn(step2, stepi, step1, dur)) + step[i + 4] + ";";
 							
+							sty[j++] = ":";
+							sty[j++] = twn(step2, stepi, step1, dur);
+							sty[j++] = step[i + 4];
+							sty[j++] = ";";
+						
 						} else {
-							e[step3] = ceil(twn(step2, stepi, step1, dur));
+							e[step3] = twn(step2, stepi, step1, dur);
 						}
 						
 					//颜色属性
 					} else {
 						for (n = 0; n < 3; n++) {
-							m = ceil(twn(step2, stepi[n], stepi[n + 3], dur)).toString(16);
+							m = Math.ceil(twn(step2, stepi[n], stepi[n + 3], dur)).toString(16);
 							stepi[n + 6] = m.length === 1 ? "0" + m : m;
 						}
-						
-						sty += step3.replace(/[A-Z]/g, "-$&") + ":" + "#" + stepi[6] + stepi[7] + stepi[8] + ";";
+						//sty += step3.replace(re, "-$&") + ":" + "#" + stepi[6] + stepi[7] + stepi[8] + ";";
+						sty[j++] = ":";
+						sty[j++] = "#";
+						sty[j++] = stepi[6];
+						sty[j++] = stepi[7];
+						sty[j++] = stepi[8];
+						sty[j++] = ";"
 					}
 					
 				} else {
@@ -1324,7 +1339,13 @@
 				}
 			}
 			
-			e.style.cssText += ";" + sty;
+			if (sty.length) {
+				sty[0] = e.style.cssText;
+				sty[1] = ";";
+				e.style.cssText = sty.join("");
+				
+				//document.getElementById('div1').innerHTML += "," + sty.join("");
+			}
 			
 			if (k !== 0) {
 				return false;
