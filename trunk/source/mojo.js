@@ -1274,7 +1274,7 @@
 				
 				tid = setInterval(function() {
 					end = new Date().valueOf();
-					if (joo.timerFn(e, prop, color, dur, twn, end - start, len, k)) {
+					if (joo.timerFn(e, prop, color, dur, twn, end - start)) {
 						clearInterval(tid);
 						if (fn) {
 							fn.call(ths, e);
@@ -1287,59 +1287,49 @@
 			return tid;
 		},
 		
-		timerFn: function(e, step, color, dur, twn, t, len, k) {
+		timerFn: function(e, prop, color, dur, twn, t) {
 			var sty = [], 
 				re = /[A-Z]/g,
 				j = 2,
-				i, n, m, 
-				step1, step2, step3, stepi;
+				i, n, m, k, len;
 			
-			for (i = 0; i < len; i += 5) {
-				step2 = step[i + 2];
-				if (step2 !== dur) {//当前属性动画未完成
-					step[i + 2] = step2 += t;
-					if (step2 > dur) {//当前属性动画完成
-						step[i + 2] = step2 = dur;
+			for (i = 0, len = prop.length, k = len / 5; i < len; i += 5) {
+				if (prop[i + 2] !== dur) {//当前属性动画未完成
+					prop[i + 2] += t;
+					if (prop[i + 2] > dur) {//当前属性动画完成
+						prop[i + 2] = dur;
 					}
 
-					step3 = step[i + 3];
-					step1 = step[i + 1];
-					stepi = step[i];
+					sty[j++] = prop[i + 3].replace(re, "-$&");
+					sty[j++] = ":";
+					sty[j++] = twn(prop[i + 2], prop[i], prop[i + 1], dur);
+					sty[j++] = prop[i + 4];
+					sty[j++] = ";";
+				
+					//e[step3] = twn(prop[i + 2], prop[i], prop[i + 1], dur);
 					
-					sty[j++] = step3.replace(re, "-$&");
-					
-					if (step1 !== "#") {//非颜色属性
-						if (!e[step3]) {
-							//sty += step3 + ":" + ceil(twn(step2, stepi, step1, dur)) + step[i + 4] + ";";
-							
-							sty[j++] = ":";
-							sty[j++] = twn(step2, stepi, step1, dur);
-							sty[j++] = step[i + 4];
-							sty[j++] = ";";
 						
-						} else {
-							e[step3] = twn(step2, stepi, step1, dur);
-						}
-						
-					//颜色属性
-					} else {
-						for (n = 0; n < 3; n++) {
-							m = Math.ceil(twn(step2, stepi[n], stepi[n + 3], dur)).toString(16);
-							stepi[n + 6] = m.length === 1 ? "0" + m : m;
-						}
-						//sty += step3.replace(re, "-$&") + ":" + "#" + stepi[6] + stepi[7] + stepi[8] + ";";
-						sty[j++] = ":";
-						sty[j++] = "#";
-						sty[j++] = stepi[6];
-						sty[j++] = stepi[7];
-						sty[j++] = stepi[8];
-						sty[j++] = ";"
-					}
-					
 				} else {
-					k--;//未完成属性动画计数器
+					k--;
 				}
 			}
+			
+					//颜色属性
+/*
+			for (i = 0, len = color.length; i < len; i += 5) {
+				for (n = 0; n < 3; n++) {
+					m = Math.ceil(twn(step2, stepi[n], stepi[n + 3], dur)).toString(16);
+					stepi[n + 6] = m.length === 1 ? "0" + m : m;
+				}
+				sty[j++] = ":";
+				sty[j++] = "#";
+				sty[j++] = stepi[6];
+				sty[j++] = stepi[7];
+				sty[j++] = stepi[8];
+				sty[j++] = ";"					
+			}	
+*/		
+			
 			
 			if (sty.length) {
 				sty[0] = e.style.cssText;
