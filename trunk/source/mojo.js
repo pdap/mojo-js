@@ -1212,7 +1212,8 @@
 		
 		configAnim : function(ths, e, ops, dur, fn, twn){
 			var	len = ops.length,
-		    	step = [],
+		    	prop = [],
+				color = [],
 				pFloat = parseFloat,
 				isNan = isNaN,
 				i , j, n, rgb1, rgb2,
@@ -1239,8 +1240,11 @@
 						default:
 							c = ops[i + 2] * 1 - b;
 					}
-					step[j] = b;//压入当前属性的初始值
-					step[j + 1] = c;//压入当前属性的变化值
+					prop[j] = b;//压入当前属性的初始值
+					prop[j + 1] = c;//压入当前属性的变化值
+					prop[j + 2] = 0;//当前属性的动画开始时间
+					prop[j + 3] = ops[i];//压入当前属性的属性名
+					prop[j + 4] = ops[i + 3];//当前属性单位
 				} else {//颜色属性
 					arr = [],//RGB三种颜色的初始值(b1,b2,b3)和变化值(c1,c2,c3)
  					rgb1 = this.color10(this.getStyle(ops[i], e)),//十进制RGB初始颜色
@@ -1250,28 +1254,27 @@
 						arr[n + 3] = rgb2[n] * 1 - arr[n];
 					}
 					
-					step[j] = arr;//压入颜色属性的变化数组
-					step[j + 1] = "#";//表示为颜色数组
+					color[j] = arr;//压入颜色属性的变化数组
+					color[j + 1] = "#";//表示为颜色数组
+					color[j + 2] = 0;//当前属性的动画开始时间
+					color[j + 3] = ops[i];//压入当前属性的属性名
+					color[j + 4] = ops[i + 3];//当前属性单位
 				}
-				
-				step[j + 2] = 0;//当前属性的动画开始时间
-				step[j + 3] = ops[i];//压入当前属性的属性名
-				step[j + 4] = ops[i + 3];//当前属性单位
 			}
 			
-			return this.timer(ths, e, step, dur, fn, twn);
+			return this.timer(ths, e, prop, color, dur, fn, twn);
 		},
 		
-		timer: function(ths, e, step, dur, fn, twn) {
+		timer: function(ths, e, prop, color, dur, fn, twn) {
 			var joo = jo, 
-				len = step.length,
+				len = prop.length,
 				k = len / 5,
 				end, 
 				start = new Date().valueOf(), 
 				
 				tid = setInterval(function() {
 					end = new Date().valueOf();
-					if (joo.timerFn(e, step, dur, twn, end - start, len, k)) {
+					if (joo.timerFn(e, prop, color, dur, twn, end - start, len, k)) {
 						clearInterval(tid);
 						if (fn) {
 							fn.call(ths, e);
@@ -1284,7 +1287,7 @@
 			return tid;
 		},
 		
-		timerFn: function(e, step, dur, twn, t, len, k) {
+		timerFn: function(e, step, color, dur, twn, t, len, k) {
 			var sty = [], 
 				re = /[A-Z]/g,
 				j = 2,
