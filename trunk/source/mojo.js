@@ -3,8 +3,7 @@
  * http://mojo-js.appspot.com
  * under MIT License
  * Since  2009-9-1
- * Version 0.65
- * Date 2009-11-16
+ * Nightly Builds
  */
 (function(window,undefined){
 	var 
@@ -1389,8 +1388,7 @@
  	 * Copyright (c) 2009 scott.cgi
  	 * under MIT License
  	 * Since  2009-11-11
- 	 * Version 1.0
-     * Date 2009-11-16
+ 	 * Nightly Builds
  	 */
 	shimmer = {
 		//注意选择器除了后代规则外是不能有空格的,可以在高层用正则处理一下在传过来
