@@ -854,6 +854,7 @@
 			
 			for (i = 0; i < len; i++) {
 				tids[i] = joo.configAnim(this, ems[i], ops, dur, fn, twn);
+				ems[i].mojoIndex = i;
 			}
 			
 			return this;
@@ -1268,7 +1269,6 @@
 			var joo = jo, 
 				end, t = 0,
 				start = new Date().valueOf(), 
-				
 				tid = setInterval(function() {
 					end = new Date().valueOf();
 					t += end - start;
@@ -1277,7 +1277,7 @@
 						joo.timerFn(e, prop, color, dur, twn, t);
 						clearInterval(tid);
 						if (fn) {
-							fn.call(ths, e);
+							fn.call(ths, e, e.mojoIndex);
 						}
 						return;
 					}
