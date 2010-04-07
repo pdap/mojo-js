@@ -1283,7 +1283,7 @@
 					}
 					joo.timerFn(e, prop, color, dur, twn, t);
 					start = end;
-				}, 13);
+				}, 10);
 			
 			return tid;
 		},
