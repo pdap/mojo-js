@@ -1318,8 +1318,6 @@
 				sty[j++] = ";"					
 			}	
 	
-			
-			
 			if (sty.length) {
 				sty[0] = e.style.cssText;
 				sty[1] = ";";
