@@ -1213,24 +1213,28 @@
 		
 		configAnim : function(ths, e, ops, dur, fn, twn){
 			var	len = ops.length,
-		    	prop = [],
+		    	style = [],
 				color = [],
+				prop = [],
 				pFloat = parseFloat,
 				isNan = isNaN,
-				i , j, n, rgb1, rgb2,
+				i , j, n, k, rgb1, rgb2,
 				b, c, arr;
 				
-		    for (i = 0, j = 0; i < len; i += 4) {
+		    for (i = 0, j = 0, k = 0; i < len; i += 4) {
 				if (ops[i + 2] !== "#") {//不是颜色属性
-					if(!e[ops[i]]){
-						b = pFloat(this.getStyle(ops[i], e));	
-						if(isNan(b)){
-							b = 0;
-						}		
-					} else {
-						b = e[ops[i]];
-					}
+					n = ops[i];
+					arr = typeof e[n] === "undefined";
 					
+					if (arr) {
+						b = pFloat(this.getStyle(ops[i], e));
+						if (isNan(b)) {
+							b = 0;
+						}				
+					} else {
+						b = e[n];
+					}
+						
 					switch (ops[i + 1]) {//判断符号,设置变化量
 						case "+=":
 							c = ops[i + 2] * 1;
@@ -1242,11 +1246,18 @@
 							c = ops[i + 2] * 1 - b;
 					}
 					
-					prop[i] = b;//压入当前属性的初始值
-					prop[i + 1] = c;//压入当前属性的变化值
-					prop[i + 2] = ops[i];//压入当前属性的属性名
-					prop[i + 3] = ops[i + 3];//当前属性单位
-					
+					if (arr) {
+						style[i] = b;//压入当前属性的初始值
+						style[i + 1] = c;//压入当前属性的变化值
+						style[i + 2] = n;//压入当前属性的属性名
+						style[i + 3] = ops[i + 3];//当前属性单位						
+					} else {
+						prop[k] = b;
+						prop[k + 1] = c;
+						prop[k + 2] = n;
+						k += 3;
+					}
+
 				} else {//颜色属性
 					arr = [],//RGB三种颜色的初始值(b1,b2,b3)和变化值(c1,c2,c3)
  					rgb1 = this.color10(this.getStyle(ops[i], e)),//十进制RGB初始颜色
@@ -1262,10 +1273,10 @@
 				}
 			}
 			
-			return this.timer(ths, e, prop, color, dur, fn, twn);
+			return this.timer(ths, e, style, color, prop, dur, fn, twn);
 		},
 		
-		timer: function(ths, e, prop, color, dur, fn, twn) {
+		timer: function(ths, e, style, color, prop, dur, fn, twn) {
 			var joo = jo, 
 				end, t = 0,
 				start = new Date().valueOf(), 
@@ -1274,31 +1285,31 @@
 					t += end - start;
 					if (t > dur) {
 						t = dur;
-						joo.timerFn(e, prop, color, dur, twn, t);
+						joo.timerFn(e, style, color, prop, dur, twn, t);
 						clearInterval(tid);
 						if (fn) {
 							fn.call(ths, e, e.mojoIndex);
 						}
 						return;
 					}
-					joo.timerFn(e, prop, color, dur, twn, t);
+					joo.timerFn(e, style, color, prop, dur, twn, t);
 					start = end;
 				}, 13);
 			
 			return tid;
 		},
 		
-		timerFn: function(e, prop, color, dur, twn, t) {
+		timerFn: function(e, style, color, prop, dur, twn, t) {
 			var sty = [], 
 				re = /[A-Z]/g,
 				j = 2,
 				i, n, m, len, cor;
 
-			for (i = 0, len = prop.length; i < len; i += 4) { 
-					sty[j++] = prop[i + 2].replace(re, "-$&");
+			for (i = 0, len = style.length; i < len; i += 4) { 
+					sty[j++] = style[i + 2].replace(re, "-$&");
 					sty[j++] = ":";
-					sty[j++] = twn(t, prop[i], prop[i + 1], dur);
-					sty[j++] = prop[i + 3];
+					sty[j++] = twn(t, style[i], style[i + 1], dur);
+					sty[j++] = style[i + 3];
 					sty[j++] = ";";
 			}
 			
@@ -1310,14 +1321,20 @@
 					cor[n + 6] = m.length === 1 ? "0" + m : m;
 				}
 				sty[j++] = color[i + 1].replace(re, "-$&");
-				sty[j++] = ":";
-				sty[j++] = "#";
+				sty[j++] = ":#";
 				sty[j++] = cor[6];
 				sty[j++] = cor[7];
 				sty[j++] = cor[8];
 				sty[j++] = ";"					
 			}	
-	
+			
+			for (i = 0, len = prop.length; i < len; i += 2) {
+				sty[j++] = prop[i + 2].replace(re, "-$&");
+				sty[j++] = ":";
+				sty[j++] = twn(t, prop[i], prop[i + 1], dur);
+				sty[j++] = ";"	
+			}
+			
 			if (sty.length) {
 				sty[0] = e.style.cssText;
 				sty[1] = ";";
