@@ -1219,7 +1219,7 @@
 				i , j, n, rgb1, rgb2,
 				b, c, arr;
 				
-		    for (i = 0, j = 0; i < len; i += 4,j += 5) {
+		    for (i = 0, j = 0; i < len; i += 4) {
 				if (ops[i + 2] !== "#") {//不是颜色属性
 					if(!e[ops[i]]){
 						b = pFloat(this.getStyle(ops[i], e));	
@@ -1240,11 +1240,12 @@
 						default:
 							c = ops[i + 2] * 1 - b;
 					}
-					prop[j] = b;//压入当前属性的初始值
-					prop[j + 1] = c;//压入当前属性的变化值
-					prop[j + 2] = 0;//当前属性的动画开始时间
-					prop[j + 3] = ops[i];//压入当前属性的属性名
-					prop[j + 4] = ops[i + 3];//当前属性单位
+					
+					prop[i] = b;//压入当前属性的初始值
+					prop[i + 1] = c;//压入当前属性的变化值
+					prop[i + 2] = ops[i];//压入当前属性的属性名
+					prop[i + 3] = ops[i + 3];//当前属性单位
+					
 				} else {//颜色属性
 					arr = [],//RGB三种颜色的初始值(b1,b2,b3)和变化值(c1,c2,c3)
  					rgb1 = this.color10(this.getStyle(ops[i], e)),//十进制RGB初始颜色
@@ -1255,10 +1256,8 @@
 					}
 					
 					color[j] = arr;//压入颜色属性的变化数组
-					color[j + 1] = "#";//表示为颜色数组
-					color[j + 2] = 0;//当前属性的动画开始时间
-					color[j + 3] = ops[i];//压入当前属性的属性名
-					color[j + 4] = ops[i + 3];//当前属性单位
+					color[j + 1] = ops[i];//表示为颜色属性名
+				    j += 2;
 				}
 			}
 			
@@ -1267,21 +1266,23 @@
 		
 		timer: function(ths, e, prop, color, dur, fn, twn) {
 			var joo = jo, 
-				len = prop.length,
-				k = len / 5,
-				end, 
+				end, t = 0,
 				start = new Date().valueOf(), 
 				
 				tid = setInterval(function() {
 					end = new Date().valueOf();
-					if (joo.timerFn(e, prop, color, dur, twn, end - start)) {
+					t += end - start;
+					if (t > dur) {
+						t = dur;
+						joo.timerFn(e, prop, color, dur, twn, t);
 						clearInterval(tid);
 						if (fn) {
 							fn.call(ths, e);
 						}
-					} else {
-						start = end;
+						return;
 					}
+					joo.timerFn(e, prop, color, dur, twn, t);
+					start = end;
 				}, 13);
 			
 			return tid;
@@ -1291,58 +1292,39 @@
 			var sty = [], 
 				re = /[A-Z]/g,
 				j = 2,
-				i, n, m, k, len;
-			
-			for (i = 0, len = prop.length, k = len / 5; i < len; i += 5) {
-				if (prop[i + 2] !== dur) {//当前属性动画未完成
-					prop[i + 2] += t;
-					if (prop[i + 2] > dur) {//当前属性动画完成
-						prop[i + 2] = dur;
-					}
+				i, n, m, len, cor;
 
-					sty[j++] = prop[i + 3].replace(re, "-$&");
+			for (i = 0, len = prop.length; i < len; i += 4) { 
+					sty[j++] = prop[i + 2].replace(re, "-$&");
 					sty[j++] = ":";
-					sty[j++] = twn(prop[i + 2], prop[i], prop[i + 1], dur);
-					sty[j++] = prop[i + 4];
+					sty[j++] = twn(t, prop[i], prop[i + 1], dur);
+					sty[j++] = prop[i + 3];
 					sty[j++] = ";";
-				
-					//e[step3] = twn(prop[i + 2], prop[i], prop[i + 1], dur);
-					
-						
-				} else {
-					k--;
-				}
 			}
 			
-					//颜色属性
-/*
-			for (i = 0, len = color.length; i < len; i += 5) {
+					
+			for (i = 0, len = color.length; i < len; i += 2) {
+				cor = color[i];
 				for (n = 0; n < 3; n++) {
-					m = Math.ceil(twn(step2, stepi[n], stepi[n + 3], dur)).toString(16);
-					stepi[n + 6] = m.length === 1 ? "0" + m : m;
+					m = Math.ceil(twn(t, cor[n], cor[n + 3], dur)).toString(16);
+					cor[n + 6] = m.length === 1 ? "0" + m : m;
 				}
+				sty[j++] = color[i + 1].replace(re, "-$&");
 				sty[j++] = ":";
 				sty[j++] = "#";
-				sty[j++] = stepi[6];
-				sty[j++] = stepi[7];
-				sty[j++] = stepi[8];
+				sty[j++] = cor[6];
+				sty[j++] = cor[7];
+				sty[j++] = cor[8];
 				sty[j++] = ";"					
 			}	
-*/		
+	
 			
 			
 			if (sty.length) {
 				sty[0] = e.style.cssText;
 				sty[1] = ";";
 				e.style.cssText = sty.join("");
-				
-				//document.getElementById('div1').innerHTML += "," + sty.join("");
-			}
-			
-			if (k !== 0) {
-				return false;
-			} else {//所有属性动画完成
-				return true;
+				//document.getElementById('div1').innerHTML += "<br>" + sty.join("");
 			}
 		},
 		
