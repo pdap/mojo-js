@@ -1231,8 +1231,11 @@
 							b = 0;
 						}				
 						prop[i + 3] = ops[i + 3];//当前属性单位	
+						prop[i + 2] = n;//压入当前属性的属性名
 					} else {
 						b = arr;
+						prop[i + 2] = "&";
+						prop[i + 3] = n;
 					}
 						
 					switch (ops[i + 1]) {//判断符号,设置变化量
@@ -1246,12 +1249,9 @@
 							c = ops[i + 2] * 1 - b;
 					}
 					
-					
 					prop[i] = b;//压入当前属性的初始值
 					prop[i + 1] = c;//压入当前属性的变化值
-					prop[i + 2] = n;//压入当前属性的属性名
-										
-
+					
 				} else {//颜色属性
 					arr = [],//RGB三种颜色的初始值(b1,b2,b3)和变化值(c1,c2,c3)
  					rgb1 = this.color10(this.getStyle(ops[i], e)),//十进制RGB初始颜色
@@ -1300,11 +1300,18 @@
 				i, n, m, len, cor;
 
 			for (i = 0, len = prop.length; i < len; i += 4) { 
-					sty[j++] = prop[i + 2].replace(re, "-$&");
+				n = prop[i + 2].replace(re, "-$&");
+				if (n === "opacity") {
+					this.setStyle(n, e, twn(t, prop[i], prop[i + 1], dur));
+				} else if (n === "&") {
+					e[prop[i + 3]] = twn(t, prop[i], prop[i + 1], dur);
+				} else {
+					sty[j++] = n;
 					sty[j++] = ":";
 					sty[j++] = twn(t, prop[i], prop[i + 1], dur);
 					sty[j++] = prop[i + 3];
 					sty[j++] = ";";
+				}
 			}
 			
 					
