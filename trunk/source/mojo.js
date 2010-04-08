@@ -819,19 +819,19 @@
 				len = ems.length,
 				i = 0,				
 				joo = jo,
-				dur, fn, type, ease,
+				dur, callback, type, ease,
 				ops, arr, p, twn,
 				tids = this.tids;//存放计时器id
 			
 			if(args.length === 2 && typeof args[1] === "object") {//参数为对象的形式
 				ops = args[1];
 				dur = ops.dur || 400;//动画时间
-				fn = ops.fn || null;//完成回调函数
+				callback = ops.callback || null;//完成回调函数
 				type = ops.type || "swing";//动画类型
 				ease = ops.ease || "easeIn";//缓冲类型
 			} else {//多参数形式
 				dur = args[1] || 400;
-				fn =  args[2] || null;
+				callback =  args[2] || null;
 				type =  args[3] || "swing";
 				ease =  args[4] || "easeIn";
 			}
@@ -839,32 +839,34 @@
 			ops = [];//依次装入:属性名,符号,值,单位
 			for(p in obj) {//解析属性值
 				ops[i] = p;
-				if (p.toLowerCase().indexOf("color") !== -1) {//颜色属性
-					ops[i + 1] = obj[p];
-					ops[i + 2] = "#";
-					ops[i + 3] = "";
-				} else {
+				if (p.toLowerCase().indexOf("color") === -1) {//颜色属性
 					arr = obj[p].match(re);
 					ops[i + 1] = arr[2] || arr[3];
 					ops[i + 2] = arr[4];
 					ops[i + 3] = arr[5];
+				} else {
+					ops[i + 1] = obj[p];
+					ops[i + 2] = "#";
+					ops[i + 3] = "";					
 				}		
 				i += 4;
 			}
 			
 			for (i = 0; i < len; i++) {
-				tids[i] = joo.configAnim(this, ems[i], ops, dur, fn, twn);
+				tids[i] = joo.configAnim(this, ems[i], ops, dur, callback, twn);
 				ems[i].mojoIndex = i;
 			}
 			
 			return this;
 		},
+		
 		isAnim : function(){//是否动画中
 			if(this.tids.length){
 				return true;
 			}
 			return false;
 		},
+		
 		stop : function(){//终止动画
 			var tids = this.tids;
 			for (var i = 0, j = tids.length; i < j; i++) {
@@ -873,23 +875,7 @@
 			tids.length = 0;
 			return this;			
 		},
-		addEnd : function(fn){//动画回调函数
-			this.ends.push(fn);
-			return this;
-		},
-		removeEnd : function(fn){//移除动画回调
-			var ends = this.ends;
-			if (arguments.length === 1) {
-				for (var i = 0, j = ends.length; i < j; i++) {
-					if (fn === ends[i]) {
-						ends.splice(i, 1);
-					}
-				}
-			}else {
-				ends.length = 0;
-			}
-			return this;
-		},
+		
 		/**
 		 * 
 		 * bind(String,Function,[args])
@@ -1211,7 +1197,7 @@
 			}
 		},
 		
-		configAnim : function(ths, e, ops, dur, fn, twn){
+		configAnim : function(ths, e, ops, dur, callback, twn){
 			var	len = ops.length,
 				color = [],
 				prop = [],
@@ -1267,10 +1253,10 @@
 				}
 			}
 			
-			return this.timer(ths, e, prop, color, dur, fn, twn);
+			return this.timer(ths, e, prop, color, dur, callback, twn);
 		},
 		
-		timer: function(ths, e, prop, color, dur, fn, twn) {
+		timer: function(ths, e, prop, color, dur, callback, twn) {
 			var joo = jo, 
 				end, t = 0,
 				start = new Date().valueOf(), 
@@ -1281,8 +1267,8 @@
 						t = dur;
 						joo.timerFn(e, prop, color, dur, twn, t);
 						clearInterval(tid);
-						if (fn) {
-							fn.call(ths, e, e.mojoIndex);
+						if (callback) {
+							callback.call(ths, e, e.mojoIndex);
 						}
 						return;
 					}
@@ -1300,13 +1286,13 @@
 				i, n, m, len, cor;
 
 			for (i = 0, len = prop.length; i < len; i += 4) { 
-				n = prop[i + 2].replace(re, "-$&");
+				n = prop[i + 2];
 				if (n === "opacity") {
 					this.setStyle(n, e, twn(t, prop[i], prop[i + 1], dur));
 				} else if (n === "&") {
 					e[prop[i + 3]] = twn(t, prop[i], prop[i + 1], dur);
 				} else {
-					sty[j++] = n;
+					sty[j++] = n.replace(re, "-$&");
 					sty[j++] = ":";
 					sty[j++] = twn(t, prop[i], prop[i + 1], dur);
 					sty[j++] = prop[i + 3];
@@ -1314,7 +1300,6 @@
 				}
 			}
 			
-					
 			for (i = 0, len = color.length; i < len; i += 2) {
 				cor = color[i];
 				for (n = 0; n < 3; n++) {
@@ -1333,7 +1318,6 @@
 				sty[0] = e.style.cssText;
 				sty[1] = ";";
 				e.style.cssText = sty.join("");
-				//document.getElementById('div1').innerHTML += "<br>" + sty.join("");
 			}
 		},
 		
@@ -1356,7 +1340,7 @@
 					rgb[i] = pInt(color.substring(2 * i + 1, 2 * i + 3), 16);
 				}
 			} else {//rgb(0,0,0)格式
-				if (color === "transparent") {
+				if (color === "transparent" || color === "rgba(0, 0, 0, 0)") {
 					color = "rgb(255,255,255)";
 				}
 				rgb = color.match(/\d+/g).toString().split(",");
