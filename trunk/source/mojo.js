@@ -823,17 +823,17 @@
 				ops, arr, p, twn,
 				tids = this.tids;//存放计时器id
 			
-			if(args.length === 2 && typeof args[1] === "object") {//参数为对象的形式
+			if(typeof args[1] !== "object") {//多参数形式
+				dur = args[1] || 400;
+				callback =  args[2] || null;
+				type =  args[3] || "swing";
+				ease =  args[4] || "easeIn";			
+			} else {
 				ops = args[1];
 				dur = ops.dur || 400;//动画时间
 				callback = ops.callback || null;//完成回调函数
 				type = ops.type || "swing";//动画类型
 				ease = ops.ease || "easeIn";//缓冲类型
-			} else {//多参数形式
-				dur = args[1] || 400;
-				callback =  args[2] || null;
-				type =  args[3] || "swing";
-				ease =  args[4] || "easeIn";
 			}
 			twn = tween[type][ease];
 			ops = [];//依次装入:属性名,符号,值,单位
