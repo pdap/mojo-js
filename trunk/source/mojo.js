@@ -25,7 +25,7 @@
 		 		 * @param {Number} c change in value 变化量
 		   		 * @param {Number} d duration 持续时间
 		 		 */
-				easeIn: function(t, b, c, d) {
+				easeNone: function(t, b, c, d) {
 					return ((-Math.cos(t / d * Math.PI) / 2) + 0.5) * c + b;
 				}
 			}
@@ -830,14 +830,14 @@
 				fn =  args[2] || null;
 				que = args[3] || true;
 				type =  args[3] || "swing";
-				ease =  args[4] || "easeIn";			
+				ease =  args[4] || "easeNone";			
 			} else {
 				ops = args[1];
 				dur = ops.dur || 400;//动画时间
 				fn = ops.fn || null;//完成回调函数
 				que = ops.que || true;
 				type = ops.type || "swing";//动画类型
-				ease = ops.ease || "easeIn";//缓冲类型
+				ease = ops.ease || "easeNone";//缓冲类型
 			}
 			
 			twn = tween[type][ease];
@@ -1275,7 +1275,7 @@
 			var joo = this, 
 				end, t = 0,
 				start = new Date().valueOf(), 
-				tid = setInterval(function() {
+				tid = setInterval(function() { 
 					end = new Date().valueOf();
 					t += end - start;
 					var i = 0,
