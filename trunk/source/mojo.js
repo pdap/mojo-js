@@ -49,6 +49,8 @@
 			this.ems = arr;
 			//动画id
 			this.tids = [];
+			//
+			this.tid = 0;
 			//动画队列
 			this.animQue = [];
 			//缓存mojo对像上数据的容器
@@ -918,17 +920,14 @@
 			}
 			
 			if(que) {
-				if(this.animQue.length) {
+				this.animQue.push([props, colors, dur, fn, twn]);
+				if (this.tid) {
 					this.animQue.push([props, colors, dur, fn, twn]);
 				} else {
-					if(this.isAnim()) {
-						this.animQue.push([props, colors, dur, fn, twn]);
-					} else {
-						this.tids.push(joo.timer(this, ems, props, colors, dur, fn, twn));						
-					}
-				}
+					this.tids.push(joo.timer(this, this.animQue.shift()));
+				}	
 			} else {
-				this.tids.push(joo.timer(this, ems, props, colors, dur, fn, twn));
+				this.tids.push(joo.timer(this, [props, colors, dur, fn, twn]));
 			}
 			
 			return this;
@@ -942,9 +941,13 @@
 		},
 		
 		stop : function(){//终止动画
-			var tids = this.tids;
-			for (var i = 0, j = tids.length; i < j; i++) {
-				clearInterval(tids[i]);
+			var tids = this.tids,
+				len = tids.length,
+				i = 0,
+				win = window;
+				
+			for (; i < j; i++) {
+				win.clearInterval(tids[i]);
 			}
 			tids.length = 0;
 			return this;			
