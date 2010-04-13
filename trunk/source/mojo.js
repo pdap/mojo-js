@@ -824,8 +824,7 @@
 				isNan = isNaN,
 				dur, fn, que, type, ease,
 				ops, arr, twn,
-				i, j, n, m, k, len1, len2, rgb1, rgb2, b, c, e,
-				tids = this.tids;//存放计时器id
+				i, j, n, m, k, len1, len2, rgb1, rgb2, b, c, e;
 			
 			if(typeof args[1] !== "object") {//多参数形式
 				dur = args[1] || 400;
@@ -918,14 +917,16 @@
 				props[m] = prop;
 				colors[m] = color;
 			}
-			
+
 			if(que) {
-				this.animQue.push([props, colors, dur, fn, twn]);
 				if (this.tid) {
 					this.animQue.push([props, colors, dur, fn, twn]);
 				} else {
-					this.tids.push(joo.timer(this, this.animQue.shift()));
+					this.tid = joo.timer(this, [props, colors, dur, fn, twn]);
 				}	
+				
+				document.getElementById('div2').innerHTML += "," + this.animQue.length ;
+				document.getElementById('div2').innerHTML += "-" + this.tid ;
 			} else {
 				this.tids.push(joo.timer(this, [props, colors, dur, fn, twn]));
 			}
@@ -1274,30 +1275,48 @@
 			}
 		},
 			
-		timer: function(ths, ems, props, colors, dur, fn, twn) {
-			var joo = this, 
-				end, t = 0,
+		timer: function(ths, arr) {
+			var joo = this,  
+				t = 0,
 				start = new Date().valueOf(), 
 				tid = setInterval(function() { 
-					end = new Date().valueOf();
-					t += end - start;
 					var i = 0,
-						len = ems.length;
-						
+						ems = ths.ems,
+						len = ems.length,
+						props = arr[0],
+						colors = arr[1],
+						dur = arr[2],
+						fn = arr[3],
+						twn = arr[4],
+						end = new Date().valueOf();
+					
+					t += end - start;	
+					
 					if (t > dur) {
 						t = dur;
 						for (; i < len; i++) {
 							joo.timerFn(ems[i], props[i], colors[i], dur, twn, t);
 						}
-						clearInterval(tid);
+						
+						if(ths.animQue.length){
+							arr = ths.animQue.shift();
+							t = 0;
+							
+						} else {
+							ths.tid = 0;
+							window.clearInterval(tid);
+						}
+						
 						if (fn) {
 							fn.call(ths);
 						}
 						return;
 					}
+					
 					for (; i < len; i++) {
 						joo.timerFn(ems[i], props[i], colors[i], dur, twn, t);
 					}
+					
 					start = end;
 				}, 13);
 			
