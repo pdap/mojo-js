@@ -48,8 +48,6 @@
 			//选择器对应的HTMLElement元素数组
 			this.ems = arr;
 			//动画id
-			this.tids = [];
-			//
 			this.tid = 0;
 			//动画队列
 			this.animQue = [];
@@ -822,21 +820,19 @@
 				prop, props = [],
 				pFloat = parseFloat,
 				isNan = isNaN,
-				dur, fn, que, type, ease,
+				dur, fn, type, ease,
 				ops, arr, twn,
 				i, j, n, m, k, len1, len2, rgb1, rgb2, b, c, e;
 			
 			if(typeof args[1] !== "object") {//多参数形式
 				dur = args[1] || 400;
 				fn =  args[2] || null;
-				que = args[3] || true;
 				type =  args[3] || "swing";
 				ease =  args[4] || "easeNone";			
 			} else {
 				ops = args[1];
 				dur = ops.dur || 400;//动画时间
 				fn = ops.fn || null;//完成回调函数
-				que = ops.que || true;
 				type = ops.type || "swing";//动画类型
 				ease = ops.ease || "easeNone";//缓冲类型
 			}
@@ -918,24 +914,17 @@
 				colors[m] = color;
 			}
 
-			if(que) {
-				if (this.tid) {
-					this.animQue.push([props, colors, dur, fn, twn]);
-				} else {
-					this.tid = joo.timer(this, [props, colors, dur, fn, twn]);
-				}	
-				
-				document.getElementById('div2').innerHTML += "," + this.animQue.length ;
-				document.getElementById('div2').innerHTML += "-" + this.tid ;
+			if (this.tid) {
+				this.animQue.push([props, colors, dur, fn, twn]);
 			} else {
-				this.tids.push(joo.timer(this, [props, colors, dur, fn, twn]));
-			}
+				this.tid = joo.timer(this, [props, colors, dur, fn, twn]);
+			}	
 			
 			return this;
 		},
 		
 		isAnim : function(){//是否动画中
-			if(this.tids.length){
+			if(this.tid){
 				return true;
 			}
 			return false;
