@@ -1429,15 +1429,26 @@
 	shimmer = {
 		//注意选择器除了后代规则外是不能有空格的,可以在高层用正则处理一下在传过来
 		selector: function(s, context){//选择器字符串,上下文
-			var arr = [], arrs = s.split(","), arr1, arr2, nodes1, nodes2 = [];
-			for (var i = 0, j = arrs.length; i < j; i++) {//逗号分隔有效选择器
-				arr1 = arrs[i].split(/ |\+|>|~/);//把选择器按照4大规则分开存放到数组(后代,子元素,哥哥,弟弟)
-				arr2 = arrs[i].match(/ |\+|>|~/g);//存放4大规则的数组,这个数组比arr1长度小1
-				if (arr2 === null) {//没有4大规则的情况
-					arr = arr.concat(this.idClassTag(arr1[0], context, " "));//默认为当前上下文的后代规则
+			var arr = [], 
+				arrs = s.split(","), 
+				arr1, arr2, nodes1, nodes2 = [];
+				
+			//逗号分隔有效选择器
+			for (var i = 0, j = arrs.length; i < j; i++) {
+				//把选择器按照4大规则分开存放到数组(后代,子元素,哥哥,弟弟)
+				arr1 = arrs[i].split(/ |\+|>|~/);
+				//存放4大规则的数组,这个数组比arr1长度小1
+				arr2 = arrs[i].match(/ |\+|>|~/g);
+				
+				//没有4大规则的情况
+				if (arr2 === null) {
+					//默认为当前上下文的后代规则
+					arr = arr.concat(this.idClassTag(arr1[0], context, " "));
 				} else {
 					nodes1 = this.idClassTag(arr1[0], context, " ");
-					for (var n = 0, m = arr2.length, k, l; n < m; n++) {//更具规则组装arr数组,存放既是HTMLElement
+					
+					//根据规则组装arr数组,存放既是HTMLElement
+					for (var n = 0, m = arr2.length, k, l; n < m; n++) {
 						l = nodes1.length
 						for (k = 0; k < l; k++) {
 							nodes2 = nodes2.concat(this.idClassTag(arr1[n + 1], nodes1[k], arr2[n]));
@@ -1450,25 +1461,37 @@
 					arr = arr.concat(nodes1);
 				}
 			}
+			
 			return arr;
 		},
-		idClassTag : function(s,context,symbol){//选择器,上下文,规则
+		
+		/**
+		 * 
+		 * @param {Object} s          选择器字符串
+		 * @param {Object} context    上下文
+		 * @param {Object} symbol     规则
+		 */
+		idClassTag : function(s,context,symbol){
 			var arr = [];
 			if(/#(\S+)/.test(s)){//解析id
 				var e = document.getElementById(RegExp.$1);
 				if(e){
 					arr[0] = e;
 				}
-			} else if(/\[|:/.test(s)){ //复杂情况有伪类和属性
+				
+			//复杂情况有伪类和属性	
+			} else if(/\[|:/.test(s)){ 
 				var n,tag,attr,pseudo;
-				if(/([a-zA-Z]*\.[^\[:]+)/.test(s)){//带有伪类,属性的class规则
+				//带有伪类,属性的class规则
+				if(/([a-zA-Z]*\.[^\[:]+)/.test(s)){
 					//把去除伪类和属性的部分调用自己,这部分含有class规则
 					n = this.idClassTag(RegExp.$1,context,symbol);
 				} else {
 					//这部分仅含有tag,或只有伪类和属性时候使用*
 					n = this.idClassTag(s.match(/[a-zA-Z]*/)[0] || "*",context,symbol);
 				}
-				attr = s.match(/[^\[]+(?=\])/g);//存放属性数组
+				//存放属性数组
+				attr = s.match(/[^\[]+(?=\])/g);
 				pseudo = s.split(":");
 				pseudo = pseudo.length === 1 ? null : pseudo.slice(1);//存放伪类数组
 				
@@ -1478,11 +1501,14 @@
 				} else {
 					arr = n;
 				}
+				
 				//用伪类数组过滤HTMLElement集合
 				if (pseudo) { 
 					arr = this.filterPseudo(arr,pseudo);
 				}
-			} else if(/([a-zA-Z]*)\.(\S+)/.test(s)){//解析class
+				
+			//解析class	
+			} else if(/([a-zA-Z]*)\.(\S+)/.test(s)){
 				var cls = RegExp.$2.replace(/\./g, " "),
 					tag = RegExp.$1,
 					k = 0,
@@ -1536,7 +1562,9 @@
 							n = n.previousSibling;
 						}
 				}
-			} else {//解析tag
+				
+			//解析tag	
+			} else {
 				var n;
 				switch (symbol) {
 					//后代
@@ -1585,6 +1613,7 @@
 			}
 			return arr;
 		},
+		
 		filterAttr : function(nodes,attr){//需要属性过滤的的元素数组,属性规则数组
 			var attr1,attr2,attrVal,arr = [],k = 0,len = attr.length;
 			for(var i = 0,j = nodes.length,n; i < j; i++){
@@ -1626,11 +1655,14 @@
 								n = len;		
 					}
 				}
-				if(n === len){//说明循环顺利结束,当前元素符合条件
+				
+				//说明循环顺利结束,当前元素符合条件
+				if(n === len){
 					arr[k] = nodes[i];
 					k++;
 				}		
 			}
+			
 			return arr;
 		},
 		filterPseudo : function(nodes,pseudo){//需要伪类过滤的的元素数组,伪类规则数组
