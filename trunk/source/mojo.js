@@ -4,8 +4,8 @@
  * under MIT License
  * Since  2009-9-1
  * Nightly Builds
- */
-(function(window,undefined){
+ */ 
+(function(window,undefined){ 
 	var 
 		//函数域中的文档对象引用
 		document = window.document,
@@ -811,7 +811,7 @@
 			return this;
 		},
 		
-		anim : function(obj) {
+		anim : function(obj) { 
 			var args = arguments,
 				re = /((-=)?|(\+=)?)(-?\d+)(\D*)/,
 				joo = jo,
@@ -865,6 +865,10 @@
 				return true;
 			}
 			return false;
+		},
+		
+		delay : function() {
+			
 		},
 		
 		stop : function(){//终止动画
@@ -1261,7 +1265,7 @@
 			return [props, colors];
 		},
 			
-		timer : function(ths, arr) {
+		timer : function(ths, arr) { 
 			var joo = this,  
 				t = 0,
 				start = new Date().valueOf(), 
@@ -1756,7 +1760,7 @@
 		addPseudo : function(n,fn){//添加伪类选择器解析
 			shimmer.pseudos[n] = fn;
 			return this;
-		},
+		}
 	});
 	
   
