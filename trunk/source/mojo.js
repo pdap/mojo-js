@@ -1207,6 +1207,12 @@
 			}
 		},
 		
+		/**
+		 * 计算动画步骤
+		 * 
+		 * @param {Array} ems 当前mojo对象对应的HTMLElment元素
+		 * @param {Array} ops 动画属性数组
+		 */
 		stepInfo: function(ems, ops) {
 			var len1 = ems.length,
 				len2 = ops.length,
@@ -1273,7 +1279,13 @@
 			
 			return [props, colors];
 		},
-			
+		
+		/**
+		 * 启动动画时钟
+		 * 
+		 * @param {mojo} ths  当前mojo对象
+		 * @param {Array} arr 动画需要的信息
+		 */	
 		timer : function(ths, arr) { 
 			var joo = this,  
 				t = 0,
@@ -1325,6 +1337,16 @@
 			return tid;
 		},
 		
+		/**
+		 * HTMLElement元素每一格动画设置
+		 * 
+		 * @param {HTMLElement} e 动画元素
+		 * @param {Array} prop	  属性变化数组	
+		 * @param {Array} color	  颜色变化数组		
+		 * @param {Number} dur    动画完成时间
+		 * @param {Funtion} twn   动画缓冲算法
+		 * @param {Number} t      当前动画时间
+		 */
 		timerFn: function(e, prop, color, dur, twn, t) {
 			var sty = [], 
 				re = /[A-Z]/g,
