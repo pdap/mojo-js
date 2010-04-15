@@ -868,15 +868,8 @@
 		},
 		
 		stop : function(){//终止动画
-			var tids = this.tids,
-				len = tids.length,
-				i = 0,
-				win = window;
-				
-			for (; i < j; i++) {
-				win.clearInterval(tids[i]);
-			}
-			tids.length = 0;
+			
+			
 			return this;			
 		},
 		
