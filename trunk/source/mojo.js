@@ -1611,6 +1611,16 @@
 						}
 				}
 			}
+			
+			for(var i = 0,len = arr.length, diffArr = [], j = 0; i < len; i++) {
+				if(!arr[i].mojoFlag){
+					diffArr[j++] = arr[i];
+					arr[i].mojoFlag = true;
+				}
+			}
+			
+			arr = diffArr;
+			
 			return arr;
 		},
 		
