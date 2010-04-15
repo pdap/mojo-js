@@ -1429,7 +1429,7 @@
 	shimmer = {
 		select : function(s, context){//选择器字符串,上下文
 			var arr = [], 
-				arrs = s.split(","), 
+				arrs = s.replace(/ *([ +>~]) */g,"$1").split(","), 
 				arr1, arr2, 
 				nodes1, nodes2 = [],
 				i, j;
