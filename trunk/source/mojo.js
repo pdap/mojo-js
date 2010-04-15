@@ -1110,7 +1110,7 @@
 			
 			//选择器为字符串	
 			if (typeof selector === "string") {
-				arr = arr.concat(shimmer.selector(selector,document));
+				arr = arr.concat(shimmer.select(selector,document));
 			} else if(typeof selector === "object"){//选择器为对象
 				arr = arr.concat(selector);
 			}
@@ -1427,14 +1427,15 @@
  	 * Nightly Builds
  	 */
 	shimmer = {
-		//注意选择器除了后代规则外是不能有空格的,可以在高层用正则处理一下在传过来
-		selector: function(s, context){//选择器字符串,上下文
+		select : function(s, context){//选择器字符串,上下文
 			var arr = [], 
 				arrs = s.split(","), 
-				arr1, arr2, nodes1, nodes2 = [];
+				arr1, arr2, 
+				nodes1, nodes2 = [],
+				i, j;
 				
 			//逗号分隔有效选择器
-			for (var i = 0, j = arrs.length; i < j; i++) {
+			for (i = 0, j = arrs.length; i < j; i++) {
 				//把选择器按照4大规则分开存放到数组(后代,子元素,哥哥,弟弟)
 				arr1 = arrs[i].split(/ |\+|>|~/);
 				//存放4大规则的数组,这个数组比arr1长度小1
