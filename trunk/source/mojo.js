@@ -1297,12 +1297,12 @@
 							arr[0] = i[0];
 							arr[1] = i[1];
 							t = 0;
+							if (fn) {
+								fn.call(ths);
+							}							
 						} else {
 							window.clearInterval(tid);
 							ths.tid = 0;
-							if (fn) {
-								fn.call(ths);
-							}
 						}
 						
 						return;
