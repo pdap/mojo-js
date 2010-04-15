@@ -814,15 +814,10 @@
 		anim : function(obj) {
 			var args = arguments,
 				re = /((-=)?|(\+=)?)(-?\d+)(\D*)/,
-				ems = this.ems,
 				joo = jo,
-				color, colors = [],
-				prop, props = [],
-				pFloat = parseFloat,
-				isNan = isNaN,
+				ems = this.ems,
 				dur, fn, type, ease,
-				ops, arr, twn,
-				i, j, n, m, k, len1, len2, rgb1, rgb2, b, c, e;
+				ops, arr, twn, p, i;
 			
 			if(typeof args[1] !== "object") {//多参数形式
 				dur = args[1] || 400;
@@ -840,84 +835,26 @@
 			twn = tween[type][ease];
 			ops = [];//依次装入:属性名,符号,值,单位
 			i = 0;
-			for(n in obj) {//解析属性值
-				ops[i] = n;
-				if (n.toLowerCase().indexOf("color") === -1) {//颜色属性
-					arr = obj[n].match(re);
+			for(p in obj) {//解析属性值
+				ops[i] = p;
+				if (p.toLowerCase().indexOf("color") === -1) {//颜色属性
+					arr = obj[p].match(re);
 					ops[i + 1] = arr[2] || arr[3];
 					ops[i + 2] = arr[4];
 					ops[i + 3] = arr[5];
 				} else {
-					ops[i + 1] = obj[n];
+					ops[i + 1] = obj[p];
 					ops[i + 2] = "#";
 					ops[i + 3] = "";					
 				}		
 				i += 4;
 			}
 			
-			m = 0;
-			len1 = ems.length;
-			len2 = ops.length;
-			
-			for (; m < len1; m++) {
-				e = ems[m];
-				color = [];
-				prop = [];
-				
-				for (i = 0, j = 0, k = 0; i < len2; i += 4) {
-					if (ops[i + 2] !== "#") {//不是颜色属性
-						n = ops[i];
-						arr = e[n];
-						
-						if (!arr) {
-							b = pFloat(joo.getStyle(ops[i], e));
-							if (isNan(b)) {
-								b = 0;
-							}
-							prop[i + 3] = ops[i + 3];//当前属性单位	
-							prop[i + 2] = n;//压入当前属性的属性名
-						} else {
-							b = arr;
-							prop[i + 2] = "&";
-							prop[i + 3] = n;
-						}
-						
-						switch (ops[i + 1]) {//判断符号,设置变化量
-							case "+=":
-								c = ops[i + 2] * 1;
-								break;
-							case "-=":
-								c = ops[i + 2] * 1 - ops[i + 2] * 2;
-								break;
-							default:
-								c = ops[i + 2] * 1 - b;
-						}
-						
-						prop[i] = b;//压入当前属性的初始值
-						prop[i + 1] = c;//压入当前属性的变化值
-					} else {//颜色属性
-						arr = [],//RGB三种颜色的初始值(b1,b2,b3)和变化值(c1,c2,c3)
- 						rgb1 = joo.color10(joo.getStyle(ops[i], e)),//十进制RGB初始颜色
- 						rgb2 = joo.color10(ops[i + 1]);//十进制RGB最终颜色
-						for (n = 0; n < 3; n++) {
-							arr[n] = rgb1[n] * 1;
-							arr[n + 3] = rgb2[n] * 1 - arr[n];
-						}
-						
-						color[j] = arr;//压入颜色属性的变化数组
-						color[j + 1] = ops[i];//表示为颜色属性名
-						j += 2;
-					}
-				}
-				
-				props[m] = prop;
-				colors[m] = color;
-			}
-
 			if (this.tid) {
-				this.animQue.push([props, colors, dur, fn, twn]);
+				this.animQue.push([ems, ops, dur, fn, twn]);
 			} else {
-				this.tid = joo.timer(this, [props, colors, dur, fn, twn]);
+				arr = joo.stepInfo(ems, ops);
+				this.tid = joo.timer(this, [arr[0], arr[1], dur, fn, twn]);
 			}	
 			
 			return this;
@@ -1263,8 +1200,75 @@
 		  		default : obj[sty] = value;
 			}
 		},
+		
+		stepInfo: function(ems, ops) {
+			var len1 = ems.length,
+				len2 = ops.length,
+				pFloat = parseFloat,
+				isNan = isNaN,
+				color, colors = [],
+				prop, props = [],
+				arr, i, j, n, m, k, rgb1, rgb2, b, c, e;
+				
+			for (m = 0; m < len1; m++) {
+				e = ems[m];
+				color = [];
+				prop = [];
+				
+				for (i = 0, j = 0, k = 0; i < len2; i += 4) {
+					if (ops[i + 2] !== "#") {//不是颜色属性
+						n = ops[i];
+						arr = e[n];
+						
+						if (!arr) {
+							b = pFloat(this.getStyle(ops[i], e));
+							if (isNan(b)) {
+								b = 0;
+							}
+							prop[i + 3] = ops[i + 3];//当前属性单位	
+							prop[i + 2] = n;//压入当前属性的属性名
+						} else {
+							b = arr;
+							prop[i + 2] = "&";
+							prop[i + 3] = n;
+						}
+						
+						switch (ops[i + 1]) {//判断符号,设置变化量
+							case "+=":
+								c = ops[i + 2] * 1;
+								break;
+							case "-=":
+								c = ops[i + 2] * 1 - ops[i + 2] * 2;
+								break;
+							default:
+								c = ops[i + 2] * 1 - b;
+						}
+						
+						prop[i] = b;//压入当前属性的初始值
+						prop[i + 1] = c;//压入当前属性的变化值
+					} else {//颜色属性
+						arr = [],//RGB三种颜色的初始值(b1,b2,b3)和变化值(c1,c2,c3)
+ 						rgb1 = this.color10(this.getStyle(ops[i], e)),//十进制RGB初始颜色
+ 						rgb2 = this.color10(ops[i + 1]);//十进制RGB最终颜色
+						for (n = 0; n < 3; n++) {
+							arr[n] = rgb1[n] * 1;
+							arr[n + 3] = rgb2[n] * 1 - arr[n];
+						}
+						
+						color[j] = arr;//压入颜色属性的变化数组
+						color[j + 1] = ops[i];//表示为颜色属性名
+						j += 2;
+					}
+				}
+				
+				props[m] = prop;
+				colors[m] = color;
+			}
 			
-		timer: function(ths, arr) {
+			return [props, colors];
+		},
+			
+		timer : function(ths, arr) {
 			var joo = this,  
 				t = 0,
 				start = new Date().valueOf(), 
@@ -1289,16 +1293,18 @@
 						
 						if(ths.animQue.length){
 							arr = ths.animQue.shift();
+							i = joo.stepInfo(arr[0], arr[1]);
+							arr[0] = i[0];
+							arr[1] = i[1];
 							t = 0;
-							
 						} else {
-							ths.tid = 0;
 							window.clearInterval(tid);
+							ths.tid = 0;
+							if (fn) {
+								fn.call(ths);
+							}
 						}
 						
-						if (fn) {
-							fn.call(ths);
-						}
 						return;
 					}
 					
