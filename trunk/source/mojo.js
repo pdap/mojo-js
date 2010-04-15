@@ -860,20 +860,29 @@
 			return this;
 		},
 		
-		isAnim : function(){//是否动画中
+		/**
+		 * 是否正在动画
+		 * 
+		 * isAnim()
+		 */
+		isAnim : function(){
 			if(this.tid){
 				return true;
 			}
 			return false;
 		},
 		
-		delay : function() {
-			
-		},
-		
-		stop : function(){//终止动画
-			
-			
+		/**
+		 * 终止动画
+		 * 
+		 * stop()
+		 */
+		stop : function(){
+			if(this.tid) {
+				window.clearInterval(this.tid);
+				this.animQue.length = 0;				
+			}
+
 			return this;			
 		},
 		
