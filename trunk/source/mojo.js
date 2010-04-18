@@ -1427,19 +1427,23 @@
  	 * Nightly Builds
  	 */
 	shimmer = {
-		select : function(s, context){//选择器字符串,上下文
+		RE : {
+						
+		},
+		
+		select : function(seletor, context){//选择器字符串,上下文
 			var arr = [], 
-				arrs = s.replace(/ *([ +>~]) */g,"$1").split(","), 
+				seletors = seletor.replace(/ *([ +>~]) */g,"$1").split(","), 
 				arr1, arr2, 
 				nodes1, nodes2 = [],
 				i, j;
 				
 			//逗号分隔有效选择器
-			for (i = 0, j = arrs.length; i < j; i++) {
+			for (i = 0, j = seletors.length; i < j; i++) {
 				//把选择器按照4大规则分开存放到数组(后代,子元素,哥哥,弟弟)
-				arr1 = arrs[i].split(/ |\+|>|~/);
+				arr1 = seletors[i].split(/ |\+|>|~/);
 				//存放4大规则的数组,这个数组比arr1长度小1
-				arr2 = arrs[i].match(/ |\+|>|~/g);
+				arr2 = seletors[i].match(/ |\+|>|~/g);
 				
 				//没有4大规则的情况
 				if (arr2 === null) {
@@ -1472,30 +1476,31 @@
 		 * @param {Object} context    上下文
 		 * @param {Object} symbol     规则
 		 */
-		idClassTag : function(s,context,symbol){
-			var arr = [];
-			if(/#(\S+)/.test(s)){//解析id
-				var e = document.getElementById(RegExp.$1);
-				if(e){
+		idClassTag : function(selector,context,rule){
+			var arr = [], e;
+			
+			//id
+			if (/^#(\S+)$/.test(selector)) {
+				e = document.getElementById(RegExp.$1);
+				if (e) {
 					arr[0] = e;
 				}
 				
-			//复杂情况有伪类和属性	
-			} else if(/\[|:/.test(s)){ 
-				var n,tag,attr,pseudo;
+			//有伪类或属性	
+			} else if (/\[|:/.test(selector)) {
+				var n, tag, attr, pseudo;
 				//带有伪类,属性的class规则
-				if(/([a-zA-Z]*\.[^\[:]+)/.test(s)){
+				if (/([a-zA-Z]*\.[^\[:]+)/.test(selector)) {
 					//把去除伪类和属性的部分调用自己,这部分含有class规则
-					n = this.idClassTag(RegExp.$1,context,symbol);
+					n = this.idClassTag(RegExp.$1, context, rule);
 				} else {
 					//这部分仅含有tag,或只有伪类和属性时候使用*
-					n = this.idClassTag(s.match(/[a-zA-Z]*/)[0] || "*",context,symbol);
+					n = this.idClassTag(selector.match(/[a-zA-Z]*/)[0] || "*", context, rule);
 				}
 				//存放属性数组
-				attr = s.match(/[^\[]+(?=\])/g);
-				pseudo = s.split(":");
+				attr = selector.match(/[^\[]+(?=\])/g);
+				pseudo = selector.split(":");
 				pseudo = pseudo.length === 1 ? null : pseudo.slice(1);//存放伪类数组
-				
 				//根据属性数组规则,剔除不符合的HTMLElement
 				if (attr) {
 					arr = this.filterAttr(n, attr);
@@ -1504,20 +1509,17 @@
 				}
 				
 				//用伪类数组过滤HTMLElement集合
-				if (pseudo) { 
-					arr = this.filterPseudo(arr,pseudo);
+				if (pseudo) {
+					arr = this.filterPseudo(arr, pseudo);
 				}
 				
-			//解析class	
-			} else if(/([a-zA-Z]*)\.(\S+)/.test(s)){
-				var cls = RegExp.$2.replace(/\./g, " "),
-					tag = RegExp.$1,
-					k = 0,
-					n;
-				switch (symbol) {
+			//class	
+			} else if (/([a-zA-Z]*)\.(\S+)/.test(selector)) {
+				var cls = RegExp.$2.replace(/\./g, " "), tag = RegExp.$1, k = 0, n;
+				switch (rule) {
 					//后代
 					case " ":
-						n = context.getElementsByTagName(tag || "*"); 
+						n = context.getElementsByTagName(tag || "*");
 						for (var i = 0, j = n.length; i < j; i++) {
 							if (n[i].className.indexOf(cls) !== -1) {
 								arr[k] = n[i];
@@ -1527,21 +1529,21 @@
 						break;
 					//子元素		
 					case ">":
-						for(var i = 0,ns = context.childNodes, j = ns.length; i < j; i++){
+						for (var i = 0, ns = context.childNodes, j = ns.length; i < j; i++) {
 							n = ns[i];
 							if (n.nodeType === 1 && n.nodeName.toLowerCase() === tag) {
 								if (n.className.indexOf(cls) !== -1) {
 									arr[k] = n;
 									k++;
-								}								
+								}
 							}
 						}
-						break;	
+						break;
 					//弟弟元素
 					case "+":
 						n = context.nextSibling;
-						while(n){
-							if(n.nodeType === 1 && n.nodeName.toLowerCase() === tag){
+						while (n) {
+							if (n.nodeType === 1 && n.nodeName.toLowerCase() === tag) {
 								if (n.className.indexOf(cls) !== -1) {
 									arr[k] = n;
 									k++;
@@ -1553,7 +1555,7 @@
 					//哥哥元素
 					case "~":
 						n = context.previousSibling;
-						while(n){
+						while (n) {
 							if (n.nodeType === 1 && n.nodeName.toLowerCase() === tag) {
 								if (n.className.indexOf(cls) !== -1) {
 									arr[k] = n;
@@ -1564,13 +1566,13 @@
 						}
 				}
 				
-			//解析tag	
+			//tag	
 			} else {
 				var n;
-				switch (symbol) {
+				switch (rule) {
 					//后代
 					case " ":
-						n = context.getElementsByTagName(s);
+						n = context.getElementsByTagName(selector);
 						//shit,这里用Array.prototype.slice.call(nodes,0)转换在IE下报错
 						//我也不知道怎么搞的fuck ie
 						for (var i = 0, j = n.length; i < j; i++) {
@@ -1581,7 +1583,7 @@
 					case ">":
 						for (var i = 0, ns = context.childNodes, j = ns.length, k = 0; i < j; i++) {
 							n = ns[i];
-							if (n.nodeType === 1 && n.nodeName.toLowerCase() === s){
+							if (n.nodeType === 1 && n.nodeName.toLowerCase() === selector) {
 								arr[k] = n;
 								k++;
 							}
@@ -1591,8 +1593,8 @@
 					case "+":
 						n = context.nextSibling;
 						var k = 0;
-						while(n){
-							if (n.nodeType === 1 && n.nodeName.toLowerCase() === s) {
+						while (n) {
+							if (n.nodeType === 1 && n.nodeName.toLowerCase() === selector) {
 								arr[k] = n;
 								k++;
 							}
@@ -1604,7 +1606,7 @@
 						n = context.previousSibling;
 						var k = 0;
 						while (n) {
-							if (n.nodeType === 1 && n.nodeName.toLowerCase() === s) {
+							if (n.nodeType === 1 && n.nodeName.toLowerCase() === selector) {
 								arr[k] = n;
 								k++;
 							}
