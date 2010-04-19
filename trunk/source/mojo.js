@@ -1480,8 +1480,8 @@
 			var arr = [], e;
 			
 			//id
-			if (/^#(\S+)$/.test(selector)) {
-				e = document.getElementById(RegExp.$1);
+			if (/^#/.test(selector)) {
+				e = document.getElementById(RegExp["$'"]);
 				if (e) {
 					arr[0] = e;
 				}
