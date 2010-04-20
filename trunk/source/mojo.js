@@ -1497,6 +1497,8 @@
 					//这部分仅含有tag,或只有伪类和属性时候使用*
 					n = this.idClassTag(selector.match(/[a-zA-Z]*/)[0] || "*", context, rule);
 				}
+				
+				
 				//存放属性数组
 				attr = selector.match(/[^\[]+(?=\])/g);
 				pseudo = selector.split(":");
