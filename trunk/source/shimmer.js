@@ -50,5 +50,22 @@
 			}
 			
 			return arr;			
+		},
+		
+		idClassTag : function(selector, context, rule) {
+			var arr = [],
+				e;
+			
+			//id
+			if (/^#/.test(selector)) {
+				e = document.getElementById(RegExp["$'"]);
+				if (e) {
+					arr[0] = e;
+				}
+				
+			
+			} else {
+				
+			}			
 		}
 	};
