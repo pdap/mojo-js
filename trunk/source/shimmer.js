@@ -13,19 +13,19 @@
 			
 		},
 		
-		seletor : function(selector, context) {
+		select : function(selector, context) {
 			var arr = [], 
-				seletors = seletor.replace(/ *([ +>~]) */g,"$1").split(","), 
+				selectors = selector.replace(/ *([ +>~]) */g,"$1").split(","), 
 				arr1, arr2, 
 				nodes1, nodes2 = [],
 				i, j;
 				
 			//逗号分隔有效选择器
-			for (i = 0, j = seletors.length; i < j; i++) {
+			for (i = 0, j = selectors.length; i < j; i++) {
 				//把选择器按照4大规则分开存放到数组
-				arr1 = seletors[i].split(/ |\+|>|~/);
+				arr1 = selectors[i].split(/ |\+|>|~/);
 				//存放4大规则的数组,这个数组比arr1长度小1
-				arr2 = seletors[i].match(/ |\+|>|~/g);
+				arr2 = selectors[i].match(/ |\+|>|~/g);
 				
 				//没有4大规则的情况
 				if (arr2 === null) {
@@ -57,30 +57,27 @@
 				e, tag, cls, ns;
 			
 			//id
-			if (/^#/.test(selector)) {
-				e = document.getElementById(RegExp["$'"]);
+			if (selector.charAt(0) === "#") {
+				e = document.getElementById(selector.substring(1));
 				if (e) {
 					arr[0] = e;
 				}
 				
-			} else {
-				selector.search(/([a-zA-Z]*)([^\[:]*)/);
+			} else { 
+				/([a-zA-Z]*)([^\[:]*)/.test(selector);
 				tag = RegExp.$1;
 				cls = RegExp.$2;
 				//伪类和属性选择字符串
 				selector = RegExp["$'"];
 				
-				//tag
-				if(cls === "") {
-					ns = this.getByTag(tag || "*", context, rule);
-				//class	
-				} else {
-					ns = this.getByClass(tag || "*", context, rule);
-				}
+				ns = this.getByTagOrClass(tag || "*", cls, context, rule);
+			
 			}			
+			
+			return ns;
 		},
 		
-		getByTag : function(tag, context, rule) {
+		getByTagOrClass : function(tag, cls, context, rule) {
 			var n, i, len, e,
 				j = 0,
 				arr = [];
@@ -88,68 +85,185 @@
 			switch (rule) {
 				case " ":
 					n = context.getElementsByTagName(tag);
-					if (tag !== "*") {
+					
+					//class
+					if (cls) {
 						for (i = 0, len = n.length; i < len; i++) {
 							e = n[i];
-							if (e.parentNode === context || e.parentNode.nodeName !== context.nodeName) {
+							if (e.parentNode.nodeName !== context.nodeName || e.parentNode === context) {
+								if (this.hasClass(e, cls)) {
+									arr[j++] = e;
+								}
+							}
+						}					
+					
+					//tag
+					} else {
+						for (i = 0, len = n.length; i < len; i++) {
+							e = n[i];
+							if (e.parentNode.nodeName !== context.nodeName || e.parentNode === context) {
 								arr[j++] = e;
 							}
-						}
+						}						
 					}
+					
+					
 					break;
 					
 				case ">":
 					n = context.childNodes;
-					if (tag !== "*") {
-						for (i = 0, len = n.length; i < len; i++) {
-							e = n[i];
-							if (e.nodeType === 1 && e.nodeName.toLowerCase() === tag.toLowerCase()) {
-								arr[j++] = e;
+					
+					//class
+					if (cls) {
+						if (tag !== "*") {
+							for (i = 0, len = n.length; i < len; i++) {
+								e = n[i];
+								if (e.nodeType == 1 
+										&& e.nodeName.toLowerCase() === tag.toLowerCase() 
+											&& this.hasClass(e, cls)) {
+									arr[j++] = e;
+								}
+							}
+						} else {
+							for (i = 0, len = n.length; i < len; i++) {
+								e = n[i];
+								if (e.nodeType === 1 && this.hasClass(e, cls))  { 
+										arr[j++] = e;
+								}
 							}
 						}
+					
+					//tag
 					} else {
-						for (i = 0, len = n.length; i < len; i++) {
-							arr[j++] = n[i];
+						if (tag !== "*") {
+							for (i = 0, len = n.length; i < len; i++) {
+								e = n[i];
+								if (e.nodeType === 1 && e.nodeName.toLowerCase() === tag.toLowerCase()) {
+									arr[j++] = e;
+								}
+							}
+						} else {
+							for (i = 0, len = n.length; i < len; i++) {
+								if (e.nodeType === 1) {
+									arr[j++] = n[i];
+								}
+							}
 						}						
 					}
+					
 					break;
 					
 				case "+":
 					n = context.nextSibling;
-					if (tag !== "*") {
-						while (n) {
-							if (n.nodeType === 1 && n.nodeName.toLowerCase() === tag.toLowerCase()) {
-								arr[0] = n;
-								break;
+					
+					//class
+					if (cls) {
+						if (tag !== "*") {
+							while (n) {
+								if (n.nodeType === 1) {
+									if (n.nodeName.toLowerCase() === tag.toLowerCase() 
+										&& this.hasClass(n, cls)) {
+										arr[0] = n;
+									}
+									break;
+								}
+								n = n.nextSibling;
 							}
-							n = n.nextSibling;
+						} else {
+							while (n) {
+								if (n.nodeType === 1) {
+									if (this.hasClass(n, cls)) {
+										arr[0] = n;
+									}
+									break;
+								}
+								n = n.nextSibling;
+							}
 						}
+					
+					//tag
 					} else {
-						while (n) {
-							if (n.nodeType === 1) {
-								arr[0] = n;
-								break;
+						if (tag !== "*") {
+							while (n) {
+								if (n.nodeType === 1) {
+									if(n.nodeName.toLowerCase() === tag.toLowerCase()) {
+										arr[0] = n;
+									}
+									break;
+								}
+								n = n.nextSibling;
 							}
-							n = n.nextSibling;
+						} else {
+							while (n) {
+								if (n.nodeType === 1) {
+									arr[0] = n;
+									break;
+								}
+								n = n.nextSibling;
+							}
 						}						
 					}
+					
 					break;
 					
 				case "~":
 					n = context.nextSibling;
-					if (tag !== "*") {
-						while (n) {
-							if (n.nodeType === 1 && n.nodeName.toLowerCase() === tag.toLowerCase()) {
-								arr[j++] = n;
+					
+					//class
+					if (cls) {
+						if (tag !== "*") {
+							while (n) {
+								if (n.nodeType === 1) {
+									if(n.nodeName === context.nodeName) {
+										break;
+									}									
+									
+									if (n.nodeName.toLowerCase() == tag.toLowerCase() 
+											&& this.hasClass(n, cls)) {
+										arr[j++] = n;
+									}
+								}
+								n = n.nextSibling;
 							}
-							n = n.nextSibling;
-						}
+						} else {
+							while (n) {
+								if (n.nodeType === 1) {
+									if(n.nodeName === context.nodeName) {
+										break;
+									}									
+									
+									if (this.hasClass(n. cls)) {
+										arr[j++] = n;
+									}
+								}
+								n = n.nextSibling;
+							}
+						}					
+					
+					//tag
 					} else {
-						while (n) {
-							if (n.nodeType === 1) {
-								arr[j++] = n;
+						if (tag !== "*") {
+							while (n) {
+								if (n.nodeType === 1) {
+									if(n.nodeName === context.nodeName) {
+										break;
+									}
+									if(n.nodeName.toLowerCase() === tag.toLowerCase()) {
+										arr[j++] = n;
+									}
+								}
+								n = n.nextSibling;
 							}
-							n = n.nextSibling;
+						} else {
+							while (n) {
+								if (n.nodeType === 1) {
+									if(n.nodeName === context.nodeName) {
+										break;
+									}
+									arr[j++] = n;
+								}
+								n = n.nextSibling;
+							}
 						}						
 					}
 			}
@@ -157,96 +271,17 @@
 			return arr;
 		},
 		
-		getByClass : function(tag, cls, context, rule) {
-			var cls = cls.replace(/\./g, " ").repace(/^ /,""),  //.cls1.cls2转换成cls cls
-				j = 0, 
-				n, i, len, e;
+		hasClass : function(e, cls) {
+			var clsName = e.className,
+				i, len;
 			
-			switch (rule) {
+			cls = cls.split(".");
+			for(i = 1, len = cls.length; i < len; i += 2) {
+				if(clsName.indexOf(cls[i]) === -1) {
+					return false;
+				}
+			}
 			
-				case " ":
-					n = context.getElementsByTagName(tag);
-					for (i = 0, len = n.length; i < len; i++) {
-						e = n[i];
-						if (e.parentNode === context || e.parentNode.nodeName !== context.nodeName) {
-							if (e.className.indexOf(cls) !== -1) {
-								arr[j++] = e;
-							}
-						}
-					}
-					break;
-		
-				case ">":
-					n = context.childNodes;
-					if (tag !== "*") {
-						for (i = 0, len = n.length; i < len; i++) {
-							e = n[i];
-							if (e.nodeType === 1 && e.nodeName.toLowerCase() === tag.toLowerCase()) {
-								if (n.className.indexOf(cls) !== -1) {
-									arr[j++] = e;
-								}
-							}
-						}
-					} else {
-						for (i = 0, len = n.length; i < len; i++) {
-							e = n[i];
-							if (e.nodeType === 1) {
-								if (n.className.indexOf(cls) !== -1) {
-									arr[j++] = e;
-								}
-							}
-						}						
-					}
-					break;
-		
-				case "+":
-					n = context.nextSibling;
-					if (tag !== "*") {
-						while (n) {
-							if (n.nodeType === 1 && n.nodeName.toLowerCase() === tag.toLowerCase()) {
-								if (n.className.indexOf(cls) !== -1) {
-									arr[0] = n;
-									break;
-								}
-							}
-							n = n.nextSibling;
-						}
-					} else {
-						while (n) {
-							if (n.nodeType === 1) {
-								if (n.className.indexOf(cls) !== -1) {
-									arr[0] = n;
-									break;
-								}
-							}
-							n = n.nextSibling;
-						}						
-					}
-					break;
-				
-				case "~":
-					n = context.nextSibling;
-					if (tag !== "*") {
-						while (n) {
-							if (n.nodeType === 1 && n.nodeName.toLowerCase() === tag.toLowerCase()) {
-								if (n.className.indexOf(cls) !== -1) {
-									arr[j++] = n;
-								}
-							}
-							n = n.nextSibling;
-						}
-					} else {
-						while (n) {
-							if (n.nodeType === 1) {
-								if (n.className.indexOf(cls) !== -1) {
-									arr[j++] = n;
-								}
-							}
-							n = n.nextSibling;
-						}						
-					}
-			}			
-			
-			return arr;
+			return true;
 		}
 	};
