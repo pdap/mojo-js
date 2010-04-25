@@ -15,7 +15,7 @@
 		
 		select : function(selector, context) {
 			var arr = [], 
-				selectors = selector.replace(/ *([ +>~]) */g,"$1").split(","), 
+				selectors = selector.toLowerCase().replace(/ *([ +>~]) */g,"$1").split(","), 
 				arr1, arr2, 
 				nodes1, nodes2 = [],
 				i, j;
@@ -119,7 +119,7 @@
 							for (i = 0, len = n.length; i < len; i++) {
 								e = n[i];
 								if (e.nodeType == 1 
-										&& e.nodeName.toLowerCase() === tag.toLowerCase() 
+										&& e.nodeName === tag 
 											&& this.hasClass(e, cls)) {
 									arr[j++] = e;
 								}
@@ -138,7 +138,7 @@
 						if (tag !== "*") {
 							for (i = 0, len = n.length; i < len; i++) {
 								e = n[i];
-								if (e.nodeType === 1 && e.nodeName.toLowerCase() === tag.toLowerCase()) {
+								if (e.nodeType === 1 && e.nodeName === tag) {
 									arr[j++] = e;
 								}
 							}
@@ -162,7 +162,7 @@
 						if (tag !== "*") {
 							while (n) {
 								if (n.nodeType === 1) {
-									if (n.nodeName.toLowerCase() === tag.toLowerCase() 
+									if (n.nodeName === tag 
 										&& this.hasClass(n, cls)) {
 										arr[0] = n;
 									}
@@ -187,7 +187,7 @@
 						if (tag !== "*") {
 							while (n) {
 								if (n.nodeType === 1) {
-									if(n.nodeName.toLowerCase() === tag.toLowerCase()) {
+									if(n.nodeName === tag) {
 										arr[0] = n;
 									}
 									break;
@@ -215,7 +215,7 @@
 						if (tag !== "*") {
 							while (n) {
 								if (n.nodeType === 1) {
-									if (n.nodeName.toLowerCase() == tag.toLowerCase() 
+									if (n.nodeName == tag 
 											&& this.hasClass(n, cls)) {
 										arr[j++] = n;
 									}
@@ -245,7 +245,7 @@
 						if (tag !== "*") {
 							while (n) {
 								if (n.nodeType === 1) {
-									if(n.nodeName.toLowerCase() === tag.toLowerCase()) {
+									if(n.nodeName === tag) {
 										arr[j++] = n;
 									}									
 									if(n.nodeName === context.nodeName) {
