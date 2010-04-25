@@ -64,7 +64,7 @@
 				}
 				
 			} else { 
-				/([a-zA-Z]*)([^\[:]*)/.test(selector);
+				/([a-zA-Z\*]*)([^\[:]*)/.test(selector);
 				tag = RegExp.$1;
 				cls = RegExp.$2;
 				//伪类和属性选择字符串
@@ -143,7 +143,8 @@
 								}
 							}
 						} else {
-							for (i = 0, len = n.length; i < len; i++) {
+							for (i = 0, len = n.length; i < len; i++) { 
+								e = n[i];
 								if (e.nodeType === 1) {
 									arr[j++] = n[i];
 								}
@@ -214,27 +215,26 @@
 						if (tag !== "*") {
 							while (n) {
 								if (n.nodeType === 1) {
-									if(n.nodeName === context.nodeName) {
-										break;
-									}									
-									
 									if (n.nodeName.toLowerCase() == tag.toLowerCase() 
 											&& this.hasClass(n, cls)) {
 										arr[j++] = n;
 									}
+									if(n.nodeName === context.nodeName) {
+										break;
+									}									
+																		
 								}
 								n = n.nextSibling;
 							}
 						} else {
 							while (n) {
 								if (n.nodeType === 1) {
-									if(n.nodeName === context.nodeName) {
-										break;
-									}									
-									
 									if (this.hasClass(n. cls)) {
 										arr[j++] = n;
 									}
+									if(n.nodeName === context.nodeName) {
+										break;
+									}									
 								}
 								n = n.nextSibling;
 							}
@@ -245,11 +245,11 @@
 						if (tag !== "*") {
 							while (n) {
 								if (n.nodeType === 1) {
-									if(n.nodeName === context.nodeName) {
-										break;
-									}
 									if(n.nodeName.toLowerCase() === tag.toLowerCase()) {
 										arr[j++] = n;
+									}									
+									if(n.nodeName === context.nodeName) {
+										break;
 									}
 								}
 								n = n.nextSibling;
@@ -257,10 +257,10 @@
 						} else {
 							while (n) {
 								if (n.nodeType === 1) {
+									arr[j++] = n;
 									if(n.nodeName === context.nodeName) {
 										break;
 									}
-									arr[j++] = n;
 								}
 								n = n.nextSibling;
 							}
