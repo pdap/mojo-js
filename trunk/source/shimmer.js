@@ -229,7 +229,7 @@
 						} else {
 							while (n) {
 								if (n.nodeType === 1) {
-									if (this.hasClass(n. cls)) {
+									if (this.hasClass(n, cls)) {
 										arr[j++] = n;
 									}
 									if(n.nodeName === context.nodeName) {
@@ -276,7 +276,7 @@
 				i, len;
 			
 			cls = cls.split(".");
-			for(i = 1, len = cls.length; i < len; i += 2) {
+			for(i = 1, len = cls.length; i < len; i++) {
 				if(clsName.indexOf(cls[i]) === -1) {
 					return false;
 				}
