@@ -271,6 +271,12 @@
 			return arr;
 		},
 		
+		rules : {
+			" " : function(tag, cls, context){
+						
+			}	
+		},
+		
 		hasClass : function(e, cls) {
 			var clsName = e.className,
 				i, len;
