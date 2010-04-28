@@ -273,7 +273,28 @@
 		
 		rules : {
 			" " : function(tag, cls, context){
+				var nodes, len, e,
+					i = 0,
+					j = 0,
+					arr = [];		
+					
+					nodes = context.getElementsByTagName(tag);
+					
+					//class
+					if(cls) {
+						for(len = nodes.length; i < len; i++) {
+							e = nodes[i];
+							if(this.hasClass(e, cls)) {
+								arr[j++] = e;
+							}
+						}
+					
+					//tag
+					} else {
 						
+					}
+					
+					
 			}	
 		},
 		
