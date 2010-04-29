@@ -391,8 +391,30 @@
 									
 				//tag
 				} else {
-					
+					if (tag !== "*") {
+						while (node) {
+							if (node.nodeType === 1) {
+								if (node.nodeName === tag) {
+									arr[j++] = node;
+								}
+								break;
+							}
+							node = node.nextSibling;
+						}
+					} else {
+						while (node) {
+							if (node.nodeType === 1) {
+								arr[j++] = node;
+								break;
+							}
+							node = node.nextSibling;
+						}
+					}					
 				}		
+			},
+			
+			"~" : function(tag, cls, context) {
+				
 			}
 		},
 		
