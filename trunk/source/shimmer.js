@@ -49,7 +49,7 @@
 		
 		parse : function(selector, context, rule) {
 			var arr = [],
-				e, tag, cls, ns;
+				e, tag, cls;
 			
 			//id
 			if (selector.charAt(0) === "#") {
@@ -65,13 +65,13 @@
 				//伪类和属性选择字符串
 				selector = RegExp["$'"];
 				
-				ns = this.getEms(tag || "*", cls, context, rule);
+				this.setEms(tag || "*", cls, context, rule);
 			
 			}			
 			
 		},
 		
-		getEms : function(tag, cls, context, rule) {
+		setEms : function(tag, cls, context, rule) {
 			var n, i, len, e,
 				j = 0,
 				arr = [];
@@ -268,9 +268,15 @@
 		rules : {
 			" " : function(tag, cls, context){
 				var nodes, len, e,
+					arr = this.ems,
 					i = 0,
-					j = 0,
-					arr = [];		
+					j = arr.length;		
+					
+					//当前上下文的元素重复
+					if(context.nodeName === context.parentNode.nodeName &&
+						context.parentNode.mojoDiff) {
+						return ;		
+					}		
 					
 					nodes = context.getElementsByTagName(tag);
 					
@@ -280,16 +286,114 @@
 							e = nodes[i];
 							if(this.hasClass(e, cls)) {
 								arr[j++] = e;
+								//标记元素被选取
+								e.mojoDiff = true;
 							}
 						}
 					
 					//tag
 					} else {
-						
+						for(len = nodes.length; i < len; i++) {
+							e = nodes[i];
+							arr[j++] = e;
+							//标记元素被选取
+							e.mojoDiff = true;
+						}
 					}
+			},
+			
+			">" : function(tag, cls, context) {
+				var nodes, len, e,
+					arr = this.ems,
+					i = 0,
+					j = arr.length;
+				
+				nodes = context.getElementsByTagName(tag);
+				
+				//cls
+				if(cls) {
+					if (tag !== "*") {
+						for (len = n.length; i < len; i++) {
+							e = nodes[i];
+							if (e.nodeType == 1 
+									&& e.nodeName === tag 
+										&& this.hasClass(e, cls)) {
+								arr[j++] = e;
+								//标记元素被选取
+								e.mojoDiff = true;								
+							}
+						}
+					} else {
+						for (len = n.length; i < len; i++) {
+							e = nodes[i];
+							if (e.nodeType === 1 && this.hasClass(e, cls)) {
+								arr[j++] = e;
+								//标记元素被选取
+								e.mojoDiff = true;								
+							}
+						}
+					}					
+				
+				//tag	
+				} else {
+					if (tag !== "*") {
+						for (len = n.length; i < len; i++) {
+							e = nodes[i];
+							if (e.nodeType === 1 && e.nodeName === tag) {
+								arr[j++] = e;
+								//标记元素被选取
+								e.mojoDiff = true;								
+							}
+						}
+					} else {
+						for (len = n.length; i < len; i++) {
+							e = nodes[i];
+							if (e.nodeType === 1) {
+								arr[j++] = n[i];
+								//标记元素被选取
+								e.mojoDiff = true;								
+							}
+						}
+					}					
+				}
+			},
+			
+			"+" : function(tag, cls, context) {
+				var node, e,
+					arr = this.ems,
+					j = arr.length;		
+				
+				node = context.nextSibling;
+				
+				//class
+				if (cls) {
+					if (tag !== "*") {
+						while (node) {
+							if (node.nodeType === 1) {
+								if (node.nodeName === tag && this.hasClass(node, cls)) {
+									arr[j++] = node;
+								}
+								break;
+							}
+							node = node.nextSibling;
+						}
+					} else {
+						while (node) {
+							if (node.nodeType === 1) {
+								if (this.hasClass(node, cls)) {
+									arr[j++] = node;
+								}
+								break;
+							}
+							node = node.nextSibling;
+						}
+					}
+									
+				//tag
+				} else {
 					
-					
-			}	
+				}		
+			}
 		},
 		
 		hasClass : function(e, cls) {
