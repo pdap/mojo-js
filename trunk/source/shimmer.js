@@ -417,7 +417,7 @@
 				
 			}
 		},
-		
+		 
 		hasClass : function(e, cls) {
 			var clsName = e.className,
 				i, len;
