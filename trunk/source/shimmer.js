@@ -14,10 +14,9 @@
 		},
 		
 		select : function(selector, context) {
-			var arr = [], 
-				selectors = selector.toLowerCase().replace(/ *([ +>~]) */g,"$1").split(","), 
+			var selectors = selector.toLowerCase().replace(/ *([ +>~]) */g,"$1").split(","), 
 				arr1, arr2, 
-				nodes1, nodes2 = [],
+				nodes,
 				i, j;
 				
 			//逗号分隔有效选择器
@@ -27,29 +26,25 @@
 				//存放4大规则的数组,这个数组比arr1长度小1
 				arr2 = selectors[i].match(/ |\+|>|~/g);
 				
+				//默认为当前上下文的后代规则
+				this.parse(arr1[0], context, " ");			
+				
 				//没有4大规则的情况
-				if (arr2 === null) {
-					//默认为当前上下文的后代规则
-					arr = arr.concat(this.parse(arr1[0], context, " "));
-				} else {
-					nodes1 = this.parse(arr1[0], context, " ");
+				if (arr2 !== null) {
 					
 					//根据规则组装arr数组,存放既是HTMLElement
 					for (var n = 0, m = arr2.length, k, l; n < m; n++) {
-						l = nodes1.length
+						nodes = this.ems;
+						l = nodes.length;
+						this.ems.length = 0;
 						for (k = 0; k < l; k++) {
-							nodes2 = nodes2.concat(this.parse(arr1[n + 1], nodes1[k], arr2[n]));
+							this.parse(arr1[n + 1], nodes[k], arr2[n]);
 						}
-						//这是为了让下一次应用4大规则之一的时候,上一次的元素作为上下文
-						nodes1 = nodes2;
-						//nodes2.length = 0本来用这种方式清空数组的,但是发现concat有问题
-						nodes2 = [];
 					}
-					arr = arr.concat(nodes1);
 				}
 			}
 			
-			return arr;			
+			return this.ems;			
 		},
 		
 		parse : function(selector, context, rule) {
@@ -70,14 +65,13 @@
 				//伪类和属性选择字符串
 				selector = RegExp["$'"];
 				
-				ns = this.getByTagOrClass(tag || "*", cls, context, rule);
+				ns = this.getEms(tag || "*", cls, context, rule);
 			
 			}			
 			
-			return ns;
 		},
 		
-		getByTagOrClass : function(tag, cls, context, rule) {
+		getEms : function(tag, cls, context, rule) {
 			var n, i, len, e,
 				j = 0,
 				arr = [];
