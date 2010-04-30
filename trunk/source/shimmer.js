@@ -65,204 +65,10 @@
 				//伪类和属性选择字符串
 				selector = RegExp["$'"];
 				
-				this.setEms(tag || "*", cls, context, rule);
+				this.rules[rule](tag || "*", cls, context, rule);
 			
 			}			
 			
-		},
-		
-		setEms : function(tag, cls, context, rule) {
-			var n, i, len, e,
-				j = 0,
-				arr = [];
-			
-			switch (rule) {
-				case " ":
-					n = context.getElementsByTagName(tag);
-					
-					//class
-					if (cls) {
-						for (i = 0, len = n.length; i < len; i++) {
-							e = n[i];
-							if (e.parentNode.nodeName !== context.nodeName || e.parentNode === context) {
-								if (this.hasClass(e, cls)) {
-									arr[j++] = e;
-								}
-							}
-						}					
-					
-					//tag
-					} else {
-						for (i = 0, len = n.length; i < len; i++) {
-							e = n[i];
-							if (e.parentNode.nodeName !== context.nodeName || e.parentNode === context) {
-								arr[j++] = e;
-							}
-						}						
-					}
-					
-					
-					break;
-					
-				case ">":
-					n = context.childNodes;
-					
-					//class
-					if (cls) {
-						if (tag !== "*") {
-							for (i = 0, len = n.length; i < len; i++) {
-								e = n[i];
-								if (e.nodeType == 1 
-										&& e.nodeName === tag 
-											&& this.hasClass(e, cls)) {
-									arr[j++] = e;
-								}
-							}
-						} else {
-							for (i = 0, len = n.length; i < len; i++) {
-								e = n[i];
-								if (e.nodeType === 1 && this.hasClass(e, cls))  { 
-										arr[j++] = e;
-								}
-							}
-						}
-					
-					//tag
-					} else {
-						if (tag !== "*") {
-							for (i = 0, len = n.length; i < len; i++) {
-								e = n[i];
-								if (e.nodeType === 1 && e.nodeName === tag) {
-									arr[j++] = e;
-								}
-							}
-						} else {
-							for (i = 0, len = n.length; i < len; i++) { 
-								e = n[i];
-								if (e.nodeType === 1) {
-									arr[j++] = n[i];
-								}
-							}
-						}						
-					}
-					
-					break;
-					
-				case "+":
-					n = context.nextSibling;
-					
-					//class
-					if (cls) {
-						if (tag !== "*") {
-							while (n) {
-								if (n.nodeType === 1) {
-									if (n.nodeName === tag 
-										&& this.hasClass(n, cls)) {
-										arr[0] = n;
-									}
-									break;
-								}
-								n = n.nextSibling;
-							}
-						} else {
-							while (n) {
-								if (n.nodeType === 1) {
-									if (this.hasClass(n, cls)) {
-										arr[0] = n;
-									}
-									break;
-								}
-								n = n.nextSibling;
-							}
-						}
-					
-					//tag
-					} else {
-						if (tag !== "*") {
-							while (n) {
-								if (n.nodeType === 1) {
-									if(n.nodeName === tag) {
-										arr[0] = n;
-									}
-									break;
-								}
-								n = n.nextSibling;
-							}
-						} else {
-							while (n) {
-								if (n.nodeType === 1) {
-									arr[0] = n;
-									break;
-								}
-								n = n.nextSibling;
-							}
-						}						
-					}
-					
-					break;
-					
-				case "~":
-					n = context.nextSibling;
-					
-					//class
-					if (cls) {
-						if (tag !== "*") {
-							while (n) {
-								if (n.nodeType === 1) {
-									if (n.nodeName == tag 
-											&& this.hasClass(n, cls)) {
-										arr[j++] = n;
-									}
-									if(n.nodeName === context.nodeName) {
-										break;
-									}									
-																		
-								}
-								n = n.nextSibling;
-							}
-						} else {
-							while (n) {
-								if (n.nodeType === 1) {
-									if (this.hasClass(n, cls)) {
-										arr[j++] = n;
-									}
-									if(n.nodeName === context.nodeName) {
-										break;
-									}									
-								}
-								n = n.nextSibling;
-							}
-						}					
-					
-					//tag
-					} else {
-						if (tag !== "*") {
-							while (n) {
-								if (n.nodeType === 1) {
-									if(n.nodeName === tag) {
-										arr[j++] = n;
-									}									
-									if(n.nodeName === context.nodeName) {
-										break;
-									}
-								}
-								n = n.nextSibling;
-							}
-						} else {
-							while (n) {
-								if (n.nodeType === 1) {
-									arr[j++] = n;
-									if(n.nodeName === context.nodeName) {
-										break;
-									}
-								}
-								n = n.nextSibling;
-							}
-						}						
-					}
-			}
-			
-			return arr;
 		},
 		
 		rules : {
@@ -272,12 +78,6 @@
 					i = 0,
 					j = arr.length;		
 					
-					//当前上下文的元素重复
-					if(context.nodeName === context.parentNode.nodeName &&
-						context.parentNode.mojoDiff) {
-						return ;		
-					}		
-					
 					nodes = context.getElementsByTagName(tag);
 					
 					//class
@@ -286,8 +86,6 @@
 							e = nodes[i];
 							if(this.hasClass(e, cls)) {
 								arr[j++] = e;
-								//标记元素被选取
-								e.mojoDiff = true;
 							}
 						}
 					
@@ -296,8 +94,6 @@
 						for(len = nodes.length; i < len; i++) {
 							e = nodes[i];
 							arr[j++] = e;
-							//标记元素被选取
-							e.mojoDiff = true;
 						}
 					}
 			},
@@ -319,8 +115,6 @@
 									&& e.nodeName === tag 
 										&& this.hasClass(e, cls)) {
 								arr[j++] = e;
-								//标记元素被选取
-								e.mojoDiff = true;								
 							}
 						}
 					} else {
@@ -328,8 +122,6 @@
 							e = nodes[i];
 							if (e.nodeType === 1 && this.hasClass(e, cls)) {
 								arr[j++] = e;
-								//标记元素被选取
-								e.mojoDiff = true;								
 							}
 						}
 					}					
@@ -341,8 +133,6 @@
 							e = nodes[i];
 							if (e.nodeType === 1 && e.nodeName === tag) {
 								arr[j++] = e;
-								//标记元素被选取
-								e.mojoDiff = true;								
 							}
 						}
 					} else {
@@ -350,8 +140,6 @@
 							e = nodes[i];
 							if (e.nodeType === 1) {
 								arr[j++] = n[i];
-								//标记元素被选取
-								e.mojoDiff = true;								
 							}
 						}
 					}					
@@ -414,7 +202,37 @@
 			},
 			
 			"~" : function(tag, cls, context) {
+				var node, e, name,
+					arr = this.ems,
+					j = arr.length;			
+					
+				node = context.nextSibling;
 				
+				//class
+				if (cls) {
+					if (tag !== "*") {
+						while (node) {
+							if (node.nodeType === 1) {
+								name = node.nodeName;
+								if (name == tag && this.hasClass(node, cls)) {
+									arr[j++] = node;
+								}
+							}
+							node = node.nextSibling;
+						}
+					}
+				//tag	
+				} else {
+					while (node) {
+						if (node.nodeType === 1) {
+							name = node.nodeName;
+							if (name == tag) {
+								arr[j++] = node;
+							}
+						}
+						node = node.nextSibling;
+					}
+				}	
 			}
 		},
 		 
