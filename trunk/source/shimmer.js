@@ -7,17 +7,13 @@
  	 */
 	shimmer = {
 		
-		ems : [],
-		
-		RE : {
-			
-		},
-		
 		select : function(selector, context) {
 			var selectors = selector.toLowerCase().replace(/ *([ +>~]) */g,"$1").split(","), 
+				ems,
+				arr = [],
 				arr1, arr2, 
-				nodes,
-				i, j;
+				nodes, node,
+				i, j, n, m, k, l;
 				
 			//逗号分隔有效选择器
 			for (i = 0, j = selectors.length; i < j; i++) {
@@ -26,36 +22,33 @@
 				//存放4大规则的数组,这个数组比arr1长度小1
 				arr2 = selectors[i].match(/ |\+|>|~/g);
 				
-				//默认为当前上下文的后代规则
-				this.parse(arr1[0], context, " ");			
+				ems = [];
+				this.parse(ems, arr1[0], context, " ");			
 				
-				//没有4大规则的情况
 				if (arr2 !== null) {
-					
-					//根据规则组装arr数组,存放既是HTMLElement
-					for (var n = 0, m = arr2.length, k, l; n < m; n++) {
-						nodes = this.ems;
-						l = nodes.length;
-						this.ems.length = 0;
-						for (k = 0; k < l; k++) {
-							this.parse(arr1[n + 1], nodes[k], arr2[n]);
+					for (n = 0, m = arr2.length; n < m; n++) {
+						nodes = this.getDiff(ems);
+						ems = [];
+						for (k = 0, l = nodes.length; k < l; k++) {
+							this.parse(ems, arr1[n + 1], nodes[k], arr2[n]);
 						}
 					}
 				}
+				
+				arr = arr.concat(this.getDiff(ems));
 			}
 			
-			return this.ems;			
+			return arr;			
 		},
 		
-		parse : function(selector, context, rule) {
-			var arr = [],
-				e, tag, cls;
+		parse : function(ems, selector, context, rule) {
+			var e, tag, cls;
 			
 			//id
 			if (selector.charAt(0) === "#") {
 				e = document.getElementById(selector.substring(1));
 				if (e) {
-					arr[0] = e;
+					ems[0] = e;
 				}
 				
 			} else { 
@@ -65,18 +58,17 @@
 				//伪类和属性选择字符串
 				selector = RegExp["$'"];
 				
-				this.rules[rule](tag || "*", cls, context, rule);
+				this.rules[rule].call(this, ems, tag || "*", cls, context, rule);
 			
 			}			
 			
 		},
 		
 		rules : {
-			" " : function(tag, cls, context){
+			" " : function(ems, tag, cls, context, rule){
 				var nodes, len, e,
-					arr = this.ems,
 					i = 0,
-					j = arr.length;		
+					j = ems.length;		
 					
 					nodes = context.getElementsByTagName(tag);
 					
@@ -85,43 +77,41 @@
 						for(len = nodes.length; i < len; i++) {
 							e = nodes[i];
 							if(this.hasClass(e, cls)) {
-								arr[j++] = e;
+								ems[j++] = e;
 							}
 						}
 					
 					//tag
 					} else {
 						for(len = nodes.length; i < len; i++) {
-							e = nodes[i];
-							arr[j++] = e;
+							ems[j++] = nodes[i];
 						}
 					}
 			},
 			
-			">" : function(tag, cls, context) {
+			">" : function(ems, tag, cls, context, rule) {
 				var nodes, len, e,
-					arr = this.ems,
 					i = 0,
-					j = arr.length;
+					j = ems.length;;
 				
 				nodes = context.getElementsByTagName(tag);
 				
 				//cls
 				if(cls) {
 					if (tag !== "*") {
-						for (len = n.length; i < len; i++) {
+						for (len = nodes.length; i < len; i++) {
 							e = nodes[i];
 							if (e.nodeType == 1 
 									&& e.nodeName === tag 
 										&& this.hasClass(e, cls)) {
-								arr[j++] = e;
+								ems[j++] = e;
 							}
 						}
 					} else {
-						for (len = n.length; i < len; i++) {
+						for (len = nodes.length; i < len; i++) {
 							e = nodes[i];
 							if (e.nodeType === 1 && this.hasClass(e, cls)) {
-								arr[j++] = e;
+								ems[j++] = e;
 							}
 						}
 					}					
@@ -129,108 +119,123 @@
 				//tag	
 				} else {
 					if (tag !== "*") {
-						for (len = n.length; i < len; i++) {
+						for (len = nodes.length; i < len; i++) {
 							e = nodes[i];
 							if (e.nodeType === 1 && e.nodeName === tag) {
-								arr[j++] = e;
+								ems[j++] = e;
 							}
 						}
 					} else {
-						for (len = n.length; i < len; i++) {
+						for (len = nodes.length; i < len; i++) {
 							e = nodes[i];
 							if (e.nodeType === 1) {
-								arr[j++] = n[i];
+								ems[j++] = e;
 							}
 						}
 					}					
 				}
 			},
 			
-			"+" : function(tag, cls, context) {
-				var node, e,
-					arr = this.ems,
-					j = arr.length;		
+			"+" : function(ems, tag, cls, context, rule) {
+				var e,
+					j = ems.length;		
 				
-				node = context.nextSibling;
+				e = context.nextSibling;
 				
 				//class
 				if (cls) {
 					if (tag !== "*") {
-						while (node) {
-							if (node.nodeType === 1) {
-								if (node.nodeName === tag && this.hasClass(node, cls)) {
-									arr[j++] = node;
+						while (e) {
+							if (e.nodeType === 1) {
+								if (e.nodeName === tag && this.hasClass(e, cls)) {
+									ems[j++] = e;
 								}
 								break;
 							}
-							node = node.nextSibling;
+							e = e.nextSibling;
 						}
 					} else {
-						while (node) {
-							if (node.nodeType === 1) {
-								if (this.hasClass(node, cls)) {
-									arr[j++] = node;
+						while (e) {
+							if (e.nodeType === 1) {
+								if (this.hasClass(e, cls)) {
+									ems[j++] = e;
 								}
 								break;
 							}
-							node = node.nextSibling;
+							e = e.nextSibling;
 						}
 					}
 									
 				//tag
 				} else {
 					if (tag !== "*") {
-						while (node) {
-							if (node.nodeType === 1) {
-								if (node.nodeName === tag) {
-									arr[j++] = node;
+						while (e) {
+							if (e.nodeType === 1) {
+								if (e.nodeName === tag) {
+									ems[j++] = e;
 								}
 								break;
 							}
-							node = node.nextSibling;
+							e = e.nextSibling;
 						}
 					} else {
-						while (node) {
-							if (node.nodeType === 1) {
-								arr[j++] = node;
+						while (e) {
+							if (e.nodeType === 1) {
+								ems[j++] = e;
 								break;
 							}
-							node = node.nextSibling;
+							e = e.nextSibling;
 						}
 					}					
 				}		
 			},
 			
-			"~" : function(tag, cls, context) {
-				var node, e, name,
-					arr = this.ems,
-					j = arr.length;			
+			"~" : function(ems, tag, cls, context, rule) {
+				var e,
+					j = ems.length;			
 					
-				node = context.nextSibling;
+				e = context.nextSibling;
 				
 				//class
 				if (cls) {
 					if (tag !== "*") {
-						while (node) {
-							if (node.nodeType === 1) {
-								name = node.nodeName;
-								if (name == tag && this.hasClass(node, cls)) {
-									arr[j++] = node;
+						while (e) {
+							if (e.nodeType === 1) {
+								if (e.nodeName == tag && this.hasClass(e, cls)) {
+									ems[j++] = e;
 								}
 							}
-							node = node.nextSibling;
+							e = e.nextSibling;
 						}
+					} else {
+						while (e) {
+							if (e.nodeType === 1) {
+								if (this.hasClass(e, cls)) {
+									ems[j++] = e;
+								}
+							}
+							e = e.nextSibling;
+						}						
 					}
+					
 				//tag	
 				} else {
-					while (node) {
-						if (node.nodeType === 1) {
-							name = node.nodeName;
-							if (name == tag) {
-								arr[j++] = node;
+					if (tag !== "*") {
+						while (e) {
+							if (e.nodeType === 1) {
+								if (e.nodeName == tag) {
+									ems[j++] = e;
+								}
 							}
+							e = e.nextSibling;
 						}
-						node = node.nextSibling;
+					} else {
+						while (e) {
+							if (e.nodeType === 1) {
+								ems[j++] = e;
+							}
+							e = e.nextSibling;
+						}						
 					}
 				}	
 			}
@@ -248,5 +253,29 @@
 			}
 			
 			return true;
+		},
+		
+		getDiff : function(arr) {
+			var e,
+				newArr = [],
+				i = 0,
+				j = 0,
+				len = arr.length;
+			
+			for(;i < len; i++) {
+				e = arr[i];
+				if(e.mojoDiff) {
+					delete e.mojoDiff;
+				} else {
+					e.mojoDiff = true;
+					newArr[j++] = e;
+				}
+			}
+			
+			for(i = 0; i < j; i++) {
+				delete newArr[i].mojoDiff;
+			}
+			
+			return newArr;
 		}
 	};
