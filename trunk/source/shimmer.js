@@ -35,10 +35,10 @@
 					}
 				}
 				
-				arr = arr.concat(this.getDiff(ems));
+				arr = arr.concat(ems);
 			}
 			
-			return arr;			
+			return this.getDiff(arr);			
 		},
 		
 		parse : function(ems, selector, context, rule) {
