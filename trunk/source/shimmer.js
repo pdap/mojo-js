@@ -98,41 +98,21 @@
 				
 				//cls
 				if(cls) {
-					if (tag !== "*") {
-						for (len = nodes.length; i < len; i++) {
-							e = nodes[i];
-							if (e.nodeType == 1 
-									&& e.nodeName === tag 
-										&& this.hasClass(e, cls)) {
-								ems[j++] = e;
-							}
+                	for (len = nodes.length; i < len; i++) {
+						e = nodes[i];
+						if (e.nodeType === 1 && this.hasClass(e, cls)) {
+							ems[j++] = e;
 						}
-					} else {
-						for (len = nodes.length; i < len; i++) {
-							e = nodes[i];
-							if (e.nodeType === 1 && this.hasClass(e, cls)) {
-								ems[j++] = e;
-							}
-						}
-					}					
+					}
 				
 				//tag	
 				} else {
-					if (tag !== "*") {
-						for (len = nodes.length; i < len; i++) {
-							e = nodes[i];
-							if (e.nodeType === 1 && e.nodeName === tag) {
-								ems[j++] = e;
-							}
+					for (len = nodes.length; i < len; i++) {
+						e = nodes[i];
+						if (e.nodeType === 1) {
+							ems[j++] = e;
 						}
-					} else {
-						for (len = nodes.length; i < len; i++) {
-							e = nodes[i];
-							if (e.nodeType === 1) {
-								ems[j++] = e;
-							}
-						}
-					}					
+					}
 				}
 			},
 			
