@@ -244,9 +244,7 @@
 			
 			for(;i < len; i++) {
 				e = arr[i];
-				if(e.mojoDiff) {
-					delete e.mojoDiff;
-				} else {
+				if(!e.mojoDiff) {
 					e.mojoDiff = true;
 					newArr[j++] = e;
 				}
