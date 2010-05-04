@@ -27,7 +27,7 @@
 				
 				if (arr2 !== null) {
 					for (n = 0, m = arr2.length; n < m; n++) {
-						nodes = this.getDiff(ems);
+						nodes = ems;
 						ems = [];
 						for (k = 0, l = nodes.length; k < l; k++) {
 							this.parse(ems, arr1[n + 1], nodes[k], arr2[n]);
@@ -268,10 +268,12 @@
 				}
 			}
 			
-			for(i = 0; i < j; i++) {
-				delete newArr[i].mojoDiff;
-			}
+			arr.length = 0;
 			
-			return newArr;
+			for(i = 0; i < j; i++) {
+				e = newArr[i];
+				delete e.mojoDiff;
+				arr[i] = e;
+			}
 		}
 	};
