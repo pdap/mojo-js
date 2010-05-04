@@ -92,26 +92,44 @@
 			">" : function(ems, tag, cls, context, rule) {
 				var nodes, len, e,
 					i = 0,
-					j = ems.length;;
+					j = ems.length;
 				
-				nodes = context.getElementsByTagName(tag);
+				nodes = context.childNodes;
 				
 				//cls
 				if(cls) {
-                	for (len = nodes.length; i < len; i++) {
-						e = nodes[i];
-						if (e.nodeType === 1 && this.hasClass(e, cls)) {
-							ems[j++] = e;
-						}
+					if (tag !== "*") {
+                		for (len = nodes.length; i < len; i++) {
+							e = nodes[i];
+							if (e.nodeType === 1 && e.nodeName === tag && this.hasClass(e, cls)) {
+								ems[j++] = e;
+							}
+						}					
+					} else {
+                		for (len = nodes.length; i < len; i++) {
+							e = nodes[i];
+							if (e.nodeType === 1 && this.hasClass(e, cls)) {
+								ems[j++] = e;
+							}
+						}							
 					}
 				
 				//tag	
 				} else {
-					for (len = nodes.length; i < len; i++) {
-						e = nodes[i];
-						if (e.nodeType === 1) {
-							ems[j++] = e;
-						}
+					if(tag !== "*") {
+						for (len = nodes.length; i < len; i++) {
+							e = nodes[i];
+							if (e.nodeType === 1 && e.nodeName === tag) {
+								ems[j++] = e;
+							}
+						}						
+					} else {
+						for (len = nodes.length; i < len; i++) {
+							e = nodes[i];
+							if (e.nodeType === 1) {
+								ems[j++] = e;
+							}
+						}						
 					}
 				}
 			},
