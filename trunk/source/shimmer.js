@@ -8,9 +8,9 @@
 	shimmer = {
 		
 		select : function(selector, context) {
-			var selectors = selector.toLowerCase().replace(/ *([ +>~]) */g,"$1").split(","), 
+			var selectors = selector.replace(/ *([ +>~]) */g,"$1").split(","), 
 				ems,
-				arr = [],
+				results = [],
 				arr1, arr2, 
 				nodes, node,
 				i, j, n, m, k, l;
@@ -35,10 +35,10 @@
 					}
 				}
 				
-				arr = arr.concat(ems);
+				results = results.concat(ems);
 			}
 			
-			return this.getDiff(arr);			
+			return results;			
 		},
 		
 		parse : function(ems, selector, context, rule) {
@@ -76,16 +76,25 @@
 					if(cls) {
 						for(len = nodes.length; i < len; i++) {
 							e = nodes[i];
-							if(this.hasClass(e, cls)) {
+							if(this.hasClass(e, cls) && !e.mojoDiff) {
 								ems[j++] = e;
+								e.mojoDiff = true;
 							}
 						}
 					
 					//tag
 					} else {
 						for(len = nodes.length; i < len; i++) {
-							ems[j++] = nodes[i];
+							e = nodes[i];
+							if (!e.mojoDiff) {
+								ems[j++] = e;
+								e.mojoDiff = true;
+							}
 						}
+					}
+					
+					for(i = 0,j = ems.length; i < j; i++) {
+						delete ems[i].mojoDiff;
 					}
 			},
 			
@@ -199,8 +208,9 @@
 					if (tag !== "*") {
 						while (e) {
 							if (e.nodeType === 1) {
-								if (e.nodeName == tag && this.hasClass(e, cls)) {
+								if (e.nodeName == tag && this.hasClass(e, cls) && !e.mojoDiff) {
 									ems[j++] = e;
+									e.mojoDiff = true;
 								}
 							}
 							e = e.nextSibling;
@@ -208,8 +218,9 @@
 					} else {
 						while (e) {
 							if (e.nodeType === 1) {
-								if (this.hasClass(e, cls)) {
+								if (this.hasClass(e, cls) && !e.mojoDiff) {
 									ems[j++] = e;
+									e.mojoDiff = true;
 								}
 							}
 							e = e.nextSibling;
@@ -221,16 +232,18 @@
 					if (tag !== "*") {
 						while (e) {
 							if (e.nodeType === 1) {
-								if (e.nodeName == tag) {
+								if (e.nodeName == tag && !e.mojoDiff) {
 									ems[j++] = e;
+									e.mojoDiff = true;
 								}
 							}
 							e = e.nextSibling;
 						}
 					} else {
 						while (e) {
-							if (e.nodeType === 1) {
+							if (e.nodeType === 1 && !e.mojoDiff) {
 								ems[j++] = e;
+								e.mojoDiff = true;
 							}
 							e = e.nextSibling;
 						}						
@@ -253,27 +266,4 @@
 			return true;
 		},
 		
-		getDiff : function(arr) {
-			var e,
-				newArr = [],
-				i = 0,
-				j = 0,
-				len = arr.length;
-			
-			for(;i < len; i++) {
-				e = arr[i];
-				if(!e.mojoDiff) {
-					e.mojoDiff = true;
-					newArr[j++] = e;
-				}
-			}
-			
-			arr.length = 0;
-			
-			for(i = 0; i < j; i++) {
-				e = newArr[i];
-				delete e.mojoDiff;
-				arr[i] = e;
-			}
-		}
 	};
