@@ -22,7 +22,7 @@
 				//存放4大规则的数组,这个数组比arr1长度小1
 				rules = selectors[i].match(/ |\+|>|~/g);
 				
-				contexts = this.parse(ems, arr1[0], context, " ");			
+				contexts = this.parse(selector[0], context, " ");			
 				
 				if (rules !== null) {
 					for (n = 0, m = rules.length; n < m; n++) {
@@ -106,8 +106,6 @@
 				var nodes, len, e, m,
 					arr = [],
 					n = i = j = 0;
-				
-				nodes = context.childNodes;
 				
 				//cls
 				if(cls) {
