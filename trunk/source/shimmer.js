@@ -19,7 +19,7 @@
 			for (i = 0, j = selectors.length; i < j; i++) {
 				//选择器按照4大规则分开存放到数组
 				selector = selectors[i].split(/ |\+|>|~/);
-				//存放4大规则的数组,这个数组比arr1长度小1
+				//存放4大规则的数组,这个数组比selector长度小1
 				rules = selectors[i].match(/ |\+|>|~/g);
 				
 				contexts = this.parse(selector[0], context, " ");			
