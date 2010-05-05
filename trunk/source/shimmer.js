@@ -344,7 +344,7 @@
 				e = arr[i];
 				if(!e.mojoDiff) {
 					tempArr[j++] = e;
-					mojoDiff = true;
+					e.mojoDiff = true;
 				}	
 			}	
 			
