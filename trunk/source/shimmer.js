@@ -67,15 +67,15 @@
 			 * @param {Array} contexts HTMLElement数组
 			 */
 			" " : function(tag, cls, contexts){
-				var nodes, len, e, m,
+				var nodes, len, e, m, i,
 					arr = [],
-					n = i = j = 0;		
+					n = j = 0;		
 					
 					//class
 					if(cls) {
 						for (m = contexts.length; n < m; n++) {
-							nodes = context[n].getElementsByTagName(tag);
-							for (len = nodes.length; i < len; i++) {
+							nodes = contexts[n].getElementsByTagName(tag);
+							for (i = 0, len = nodes.length; i < len; i++) {
 								e = nodes[i];
 								if (this.hasClass(e, cls)) {
 									arr[j++] = e;
@@ -86,8 +86,8 @@
 					//tag
 					} else {
 						for (m = contexts.length; n < m; n++) {
-							nodes = context[n].getElementsByTagName(tag);
-							for (len = nodes.length; i < len; i++) {
+							nodes = contexts[n].getElementsByTagName(tag);
+							for (i = 0, len = nodes.length; i < len; i++) {
 								arr[j++] = nodes[i];
 							}
 						}
@@ -103,16 +103,16 @@
 			},
 			
 			">" : function(tag, cls, contexts) {
-				var nodes, len, e, m,
+				var nodes, len, e, m, i,
 					arr = [],
-					n = i = j = 0;
+					n = j = 0;
 				
 				//cls
 				if(cls) {
 					if (tag !== "*") {
 						for (m = contexts.length; n < m; n++) {
 							nodes = contexts[n].childNodes;
-							for (len = nodes.length; i < len; i++) {
+							for (i = 0, len = nodes.length; i < len; i++) {
 								e = nodes[i];
 								if (e.nodeType === 1 
 										&& e.nodeName.toLowerCase() === tag.toLowerCase() 
@@ -125,7 +125,7 @@
 					} else {
 						for (m = contexts.length; n < m; n++) {
 							nodes = contexts[n].childNodes;
-							for (len = nodes.length; i < len; i++) {
+							for (i = 0, len = nodes.length; i < len; i++) {
 								e = nodes[i];
 								if (e.nodeType === 1 && this.hasClass(e, cls)) {
 									arr[j++] = e;
@@ -140,7 +140,7 @@
 					if (tag !== "*") {
 						for (m = contexts.length; n < m; n++) {
 							nodes = contexts[n].childNodes;
-							for (len = nodes.length; i < len; i++) {
+							for (i = 0, len = nodes.length; i < len; i++) {
 								e = nodes[i];
 								if (e.nodeType === 1 
 										&& e.nodeName.toLowerCase() === tag.toLowerCase()) {
@@ -152,7 +152,7 @@
 					} else {
 						for (m = contexts.length; n < m; n++) {
 							nodes = contexts[n].childNodes;
-							for (len = nodes.length; i < len; i++) {
+							for (i = 0, len = nodes.length; i < len; i++) {
 								e = nodes[i];
 								if (e.nodeType === 1) {
 									arr[j++] = e;
@@ -170,13 +170,13 @@
 			"+" : function(tag, cls, contexts) {
 				var len, e, m,
 					arr = [],
-					n = i = j = 0;		
+					n = j = 0;		
 				
 				//class
 				if (cls) {
 					if (tag !== "*") {
 						for (m = contexts.length; n < m; n++) {
-							e = context[n].nextSibling;
+							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1) {
 									if (e.nodeName.toLowerCase() === tag.toLowerCase() 
@@ -191,7 +191,7 @@
 						
 					} else {
 						for (m = contexts.length; n < m; n++) {
-							e = context[n].nextSibling;
+							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1) {
 									if (this.hasClass(e, cls)) {
@@ -209,7 +209,7 @@
 				} else {
 					if (tag !== "*") {
 						for (m = contexts.length; n < m; n++) {
-							e = context[n].nextSibling;
+							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1) {
 									if (e.nodeName.toLowerCase() === tag.toLowerCase()) {
@@ -223,7 +223,7 @@
 						
 					} else {
 						for (m = contexts.length; n < m; n++) {
-							e = context[n].nextSibling;
+							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1) {
 									arr[j++] = e;
@@ -243,13 +243,13 @@
 			"~": function(tag, cls, contexts) {
 				var len, e, m,
 					arr = [],
-					n = i = j = 0;		
+					n = j = 0;		
 				
 				//class
 				if (cls) {
 					if (tag !== "*") {
 						for (m = contexts.length; n < m; n++) {
-							e = context[n].nextSibling;
+							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1
 										&& e.nodeName.toLowerCase() === tag.toLowerCase() 
@@ -262,7 +262,7 @@
 						
 					} else {
 						for (m = contexts.length; n < m; n++) {
-							e = context[n].nextSibling;
+							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1 && this.hasClass(e, cls)) {
 										arr[j++] = e;
@@ -277,7 +277,7 @@
 				} else {
 					if (tag !== "*") {
 						for (m = contexts.length; n < m; n++) {
-							e = context[n].nextSibling;
+							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1 
 										&& e.nodeName.toLowerCase() === tag.toLowerCase()) {
@@ -289,7 +289,7 @@
 						
 					} else {
 						for (m = contexts.length; n < m; n++) {
-							e = context[n].nextSibling;
+							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1) {
 									arr[j++] = e;
