@@ -8,12 +8,23 @@
 	shimmer = {
 		
 		select : function(selector, context) {
-			var selectors = selector.replace(/ *([ +>~]) */g,"$1") //去除多余空格
-									.replace(/^\s+|\s+$/g,"")	  //去除前后空格
-									.split(","),                  
+			var selectors, contexts, rules,
 				results = [],
-				contexts, rules, 
 				i, j, n, m;
+				
+			if(typeof context === "undefined") {
+				contexts = [document];
+			} else if(typeof context === "string") {
+				contexts = this.select(context, [document]);
+			} else if(typeof context === "object") {
+				contexts = [context];
+			} else {
+				contexts = context;
+			}
+				
+			selectors = selector.replace(/ *([ +>~]) */g,"$1") //去除多余空格
+								.replace(/^\s+|\s+$/g,"")	  //去除前后空格
+								.split(",");
 				
 			//逗号分隔有效选择器
 			for (i = 0, j = selectors.length; i < j; i++) {
@@ -22,7 +33,7 @@
 				//存放4大规则的数组,这个数组比selector长度小1
 				rules = selectors[i].match(/ |\+|>|~/g);
 				
-				contexts = this.parse(selector[0], context, " ");			
+				contexts = this.parse(selector[0], contexts, " ");			
 				
 				if (rules !== null) {
 					for (n = 0, m = rules.length; n < m; n++) {
