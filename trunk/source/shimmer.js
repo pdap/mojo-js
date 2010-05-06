@@ -6,10 +6,21 @@
  	 * Nightly Builds
  	 */
 
-(function(window){
+(function(window, undefined){
 	
 	window.mojoCss = {
 		
+		/**
+		 * 根据选择器和上下文,获得HTMLElement数组
+		 * 
+		 * @param {String} selector 选择器
+		 * @param {Undefined/String/HTMLElement/Array} context 选择器上下文
+		 * 
+		 * get(String)
+		 * get(String, String)
+		 * get(String, HTMLElement)
+		 * get(String, Array)
+		 */
 		get : function(selector, context) {
 			var selectors, contexts, rules,
 				results = [],
@@ -29,39 +40,51 @@
 					context = [context];
 					break;
 				
+				//数组形式
 				default :
 				  	context = context;		
 			}
 				
-			selectors = selector.replace(/ *([ +>~]) */g, "$1") //去除多余空格
-								.replace(/^\s+|\s+$/g, "")	  //去除前后空格
+			selectors = selector.replace(/^\s+|\s+$/g, "")      //去除前后空格
+								.replace(/ *([ +>~]) */g, "$1") //去除多余空格
 								.split(",");
 				
-			//逗号分隔有效选择器
+			//逗号分隔的选择器
 			for (i = 0, j = selectors.length; i < j; i++) {
-				//选择器按照4大规则分开存放到数组
+				//选择器按照4种规则分开存放到数组
 				selector = selectors[i].split(/ |\+|>|~/);
-				//存放4大规则的数组,这个数组比selector长度小1
+				
+				//存放4种规则的数组,这个数组比selector长度小1
 				rules = selectors[i].match(/ |\+|>|~/g);
 				
 				contexts = this.parse(selector[0], context, " ");			
 				
+				//没有4种规则的情况
 				if (rules !== null) {
+					//每次解析后的HTMLElement数组,作为下一次解析的上下文
 					for (n = 0, m = rules.length; n < m; n++) {
 						contexts = this.parse(selector[n + 1], contexts, rules[n]);
 					}
 				}
 				
+				//连接逗号分隔选择器的结果
 				results = results.concat(contexts);
 			}
 			
 			return results;			
 		},
 		
+		/**
+		 * 解析选择器
+		 * 
+		 * @param {String} selector 选择器
+		 * @param {Array} contexts  上下文
+		 * @param {String} rule     规则
+		 */
 		parse : function(selector, contexts, rule) {
 			var e, tag, cls;
 			
-			//id
+			//处理选择器为id的情况
 			if (selector.charAt(0) === "#") {
 				e = document.getElementById(selector.substring(1));
 				if (e) {
@@ -70,8 +93,13 @@
 				
 			} else { 
 				/([a-zA-Z\*]*)([^\[:]*)/.test(selector);
+				
+				//HTML标签
 				tag = RegExp.$1;
+				
+				//class属性
 				cls = RegExp.$2;
+				
 				//伪类和属性选择字符串
 				selector = RegExp["$'"];
 				
@@ -84,18 +112,20 @@
 			/**
 			 * 获得当前规则的HTMLElement数组
 			 * 
-			 * @param {String} tag  HTML tag
-			 * @param {String} cls  class属性值
-			 * @param {Array} contexts HTMLElement数组
+			 * @param {String} tag  HTML标签
+			 * @param {String} cls  class属性
+			 * @param {Array} contexts 上下文数组
 			 */
 			" " : function(tag, cls, contexts){
-				var nodes, len, e, m, i,
+				var nodes, len, e, i,
 					arr = [],
+					m = contexts.length,
 					n = j = 0;		
 					
-					//class
+					//处理class属性选择器
+					//示例形式: [.cls], [div.cls], [div.cls1.cls2]...
 					if(cls) {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							nodes = contexts[n].getElementsByTagName(tag);
 							for (i = 0, len = nodes.length; i < len; i++) {
 								e = nodes[i];
@@ -105,9 +135,9 @@
 							}
 						}
 					
-					//tag
+					//处理html标签选择器
 					} else {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							nodes = contexts[n].getElementsByTagName(tag);
 							for (i = 0, len = nodes.length; i < len; i++) {
 								arr[j++] = nodes[i];
@@ -124,15 +154,24 @@
 					return arr;	
 			},
 			
+			/**
+			 * 获得当前规则的HTMLElement数组
+			 * 
+			 * @param {String} tag  HTML标签
+			 * @param {String} cls  class属性
+			 * @param {Array} contexts 上下文数组
+			 */
 			">" : function(tag, cls, contexts) {
-				var nodes, len, e, m, i,
+				var nodes, len, e, i,
 					arr = [],
+					m = contexts.length,
 					n = j = 0;
 				
 				//cls
 				if(cls) {
+					//html标签为"*"
 					if (tag !== "*") {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							nodes = contexts[n].childNodes;
 							for (i = 0, len = nodes.length; i < len; i++) {
 								e = nodes[i];
@@ -145,7 +184,7 @@
 						}
 									
 					} else {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							nodes = contexts[n].childNodes;
 							for (i = 0, len = nodes.length; i < len; i++) {
 								e = nodes[i];
@@ -160,7 +199,7 @@
 				//tag	
 				} else {
 					if (tag !== "*") {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							nodes = contexts[n].childNodes;
 							for (i = 0, len = nodes.length; i < len; i++) {
 								e = nodes[i];
@@ -172,7 +211,7 @@
 						}
 									
 					} else {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							nodes = contexts[n].childNodes;
 							for (i = 0, len = nodes.length; i < len; i++) {
 								e = nodes[i];
@@ -188,16 +227,24 @@
 				
 				return arr;
 			},
-			
+
+			/**
+			 * 获得当前规则的HTMLElement数组
+			 * 
+			 * @param {String} tag  HTML标签
+			 * @param {String} cls  class属性
+			 * @param {Array} contexts 上下文数组
+			 */			
 			"+" : function(tag, cls, contexts) {
-				var len, e, m,
+				var len, e,
 					arr = [],
+					m = contexts.length,
 					n = j = 0;		
 				
 				//class
 				if (cls) {
 					if (tag !== "*") {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1) {
@@ -212,7 +259,7 @@
 						}
 						
 					} else {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1) {
@@ -230,7 +277,7 @@
 				//tag
 				} else {
 					if (tag !== "*") {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1) {
@@ -244,7 +291,7 @@
 						}
 						
 					} else {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1) {
@@ -261,16 +308,24 @@
 				
 				return arr;
 			},
-			
+
+			/**
+			 * 获得当前规则的HTMLElement数组
+			 * 
+			 * @param {String} tag  HTML标签
+			 * @param {String} cls  class属性
+			 * @param {Array} contexts 上下文数组
+			 */				
 			"~": function(tag, cls, contexts) {
-				var len, e, m,
+				var len, e,
 					arr = [],
+					m = contexts.length,
 					n = j = 0;		
 				
 				//class
 				if (cls) {
 					if (tag !== "*") {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1
@@ -283,7 +338,7 @@
 						}
 						
 					} else {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1 && this.hasClass(e, cls)) {
@@ -298,7 +353,7 @@
 				//tag
 				} else {
 					if (tag !== "*") {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1 
@@ -310,7 +365,7 @@
 						}
 						
 					} else {
-						for (m = contexts.length; n < m; n++) {
+						for (; n < m; n++) {
 							e = contexts[n].nextSibling;
 							while (e) {
 								if (e.nodeType === 1) {
