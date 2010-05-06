@@ -5,9 +5,12 @@
  	 * Since  2009-11-11
  	 * Nightly Builds
  	 */
-	shimmer = {
+
+(function(window){
+	
+	window.mojoCss = {
 		
-		select : function(selector, context) {
+		get : function(selector, context) {
 			var selectors, contexts, rules,
 				results = [],
 				i, j, n, m;
@@ -19,7 +22,7 @@
 					break;
 				
 				case "string" :	
-					context = this.select(context, [document]);
+					context = this.get(context, [document]);
 					break;
 				
 				case "object" :
@@ -378,3 +381,5 @@
 		}
 		
 	};
+
+})(window);	
