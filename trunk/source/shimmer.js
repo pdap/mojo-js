@@ -15,19 +15,19 @@
 			
 			switch (typeof context) {
 				case "undefined" :
-					contexts = [document];
+					context = [document];
 					break;
 				
 				case "string" :	
-					contexts = this.select(context, [document]);
+					context = this.select(context, [document]);
 					break;
 				
 				case "object" :
-					contexts = [context];
+					context = [context];
 					break;
 				
 				default :
-				  	contexts = context;		
+				  	context = context;		
 			}
 				
 			selectors = selector.replace(/ *([ +>~]) */g, "$1") //去除多余空格
@@ -41,7 +41,7 @@
 				//存放4大规则的数组,这个数组比selector长度小1
 				rules = selectors[i].match(/ |\+|>|~/g);
 				
-				contexts = this.parse(selector[0], contexts, " ");			
+				contexts = this.parse(selector[0], context, " ");			
 				
 				if (rules !== null) {
 					for (n = 0, m = rules.length; n < m; n++) {
