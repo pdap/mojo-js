@@ -12,18 +12,26 @@
 				results = [],
 				i, j, n, m;
 				
-			if(typeof context === "undefined") {
-				contexts = [document];
-			} else if(typeof context === "string") {
-				contexts = this.select(context, [document]);
-			} else if(typeof context === "object") {
-				contexts = [context];
-			} else {
-				contexts = context;
+			
+			switch (typeof context) {
+				case "undefined" :
+					contexts = [document];
+					break;
+				
+				case "string" :	
+					contexts = this.select(context, [document]);
+					break;
+				
+				case "object" :
+					contexts = [context];
+					break;
+				
+				default :
+				  	contexts = context;		
 			}
 				
-			selectors = selector.replace(/ *([ +>~]) */g,"$1") //去除多余空格
-								.replace(/^\s+|\s+$/g,"")	  //去除前后空格
+			selectors = selector.replace(/ *([ +>~]) */g, "$1") //去除多余空格
+								.replace(/^\s+|\s+$/g, "")	  //去除前后空格
 								.split(",");
 				
 			//逗号分隔有效选择器
