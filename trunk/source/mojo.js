@@ -1835,4 +1835,4 @@
 	});
 	
   
-})(window,undefined);
+})(window);
