@@ -60,7 +60,8 @@
 				contexts = this.parse(selector[0], context, " ");			
 				
 				//没有4种规则的情况
-				if (rules !== null) {
+				// rules !=== null
+				if (rules) {
 					//每次解析后的HTMLElement数组,作为下一次解析的上下文
 					for (n = 0, m = rules.length; n < m; n++) {
 						contexts = this.parse(selector[n + 1], contexts, rules[n]);
@@ -82,7 +83,7 @@
 		 * @param {String} rule     规则
 		 */
 		parse : function(selector, contexts, rule) {
-			var e, tag, cls;
+			var e, tag, cls, arr, attrs;
 			
 			//处理选择器为id的情况
 			if (selector.charAt(0) === "#") {
@@ -103,7 +104,12 @@
 				//伪类和属性选择字符串
 				selector = RegExp["$'"];
 				
-				return this.rules[rule].call(this, tag || "*", cls, contexts);
+				//解析出属性规则
+				attrs = selector.match(/[^\[]+(?=\])/g);
+				
+				arr = this.rules[rule].call(this, tag || "*", cls, contexts);
+				
+				
 			}			
 			
 		},
@@ -385,6 +391,11 @@
 				
 				return arr;			
 			}
+		},
+		
+		filterAttr : function(nodes, attrs) {
+			
+		
 		},
 		
 		/**
