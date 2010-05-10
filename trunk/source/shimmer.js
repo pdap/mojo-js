@@ -394,7 +394,11 @@
 		},
 		
 		filterAttr : function(nodes, attrs) {
+			var i, j;
 			
+			for(i = 0, j = attrs.length; i < j; i++) {
+				
+			}
 		
 		},
 		
