@@ -6,3 +6,10 @@
  * Nightly Builds
  */
 
+(function(window, undefined){
+	
+	window.mojoFx = {
+		
+	};	
+	
+})(window);
