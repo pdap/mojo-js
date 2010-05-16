@@ -1,10 +1,10 @@
-	/**
- 	 * Copyright (c) 2009 scott.cgi
- 	 * http://mojo-js.appspot.com
- 	 * under MIT License
- 	 * Since  2009-11-11
- 	 * Nightly Builds
- 	 */
+/**
+ * Copyright (c) 2009 scott.cgi
+ * http://mojo-js.appspot.com
+ * under MIT License
+ * Since  2009-11-11
+ * Nightly Builds
+ */
 
 (function(window, undefined){
 	
@@ -26,7 +26,6 @@
 				results = [],
 				i, j, n, m;
 				
-			
 			switch (typeof context) {
 				case "undefined" :
 					context = [document];
@@ -60,7 +59,7 @@
 				contexts = this.parse(selector[0], context, " ");			
 				
 				//没有4种规则的情况
-				// rules !=== null
+				// rules !== null
 				if (rules) {
 					//每次解析后的HTMLElement数组,作为下一次解析的上下文
 					for (n = 0, m = rules.length; n < m; n++) {
@@ -103,13 +102,10 @@
 				
 				//伪类和属性选择字符串
 				selector = RegExp["$'"];
-				
-				//解析出属性规则
-				attrs = selector.match(/[^\[]+(?=\])/g);
-				
+
 				arr = this.rules[rule].call(this, tag || "*", cls, contexts);
 				
-				
+				return arr;
 			}			
 			
 		},
@@ -391,15 +387,6 @@
 				
 				return arr;			
 			}
-		},
-		
-		filterAttr : function(nodes, attrs) {
-			var i, j;
-			
-			for(i = 0, j = attrs.length; i < j; i++) {
-				
-			}
-		
 		},
 		
 		/**
