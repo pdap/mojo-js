@@ -32,7 +32,7 @@
 		}, 
 		
 		//css选择器解析引擎
-		shimmer,
+		mojoCss,
 		
 		//内部对象,mojo方法实现的辅助对象
 		jo,
@@ -1100,24 +1100,26 @@
 	
 	//内部对象,mojo方法辅助对象
 	jo = {
+		
 		/**
-		 * 根据选择器初始化mo对象
-		 * @param {String or Object} selector
+		 * 根据选择器和上下文,获得HTMLElement数组
+		 * 
+		 * @param {String} selector 选择器
+		 * @param {Undefined/String/HTMLElement/Array} context 选择器上下文
+		 * 
+		 * get(String)
+		 * get(String, String)
+		 * get(String, HTMLElement)
+		 * get(String, Array)
 		 */
-		init : function(selector){
-			var i,j,str,obj,
-			    arr = [];
+		init : function(selector, context){
+			var arr = mojoCss.get(selector, context);
 			
-			//选择器为字符串	
-			if (typeof selector === "string") {
-				arr = arr.concat(shimmer.select(selector,document));
-			} else if(typeof selector === "object"){//选择器为对象
-				arr = arr.concat(selector);
-			}
+			alert(arr.length)
 			
 			//判断选择器的有效性
 			if(arr.length){
-				return new mo(selector,arr);
+				return new mo(selector, arr);
 			}
 			
 			return null;
@@ -1417,422 +1419,440 @@
 			return rgb;
 		}
 	};
-	
-	
+
 	
 	/**
- 	 * Copyright (c) 2009 scott.cgi
- 	 * under MIT License
- 	 * Since  2009-11-11
- 	 * Nightly Builds
- 	 */
-	shimmer = {
-		RE : {
-						
-		},
+	 * css 选择器
+	 */
+	mojoCss = {
 		
-		select : function(seletor, context){//选择器字符串,上下文
-			var arr = [], 
-				seletors = seletor.replace(/ *([ +>~]) */g,"$1").split(","), 
-				arr1, arr2, 
-				nodes1, nodes2 = [],
-				i, j;
+		/**
+		 * 根据选择器和上下文,获得HTMLElement数组
+		 * 
+		 * @param {String} selector 选择器
+		 * @param {Undefined/String/HTMLElement/Array} context 选择器上下文
+		 * 
+		 * get(String)
+		 * get(String, String)
+		 * get(String, HTMLElement)
+		 * get(String, Array)
+		 */
+		get : function(selector, context) {
+			var selectors, contexts, rules,
+				results = [],
+				i, j, n, m;
 				
-			//逗号分隔有效选择器
-			for (i = 0, j = seletors.length; i < j; i++) {
-				//把选择器按照4大规则分开存放到数组(后代,子元素,哥哥,弟弟)
-				arr1 = seletors[i].split(/ |\+|>|~/);
-				//存放4大规则的数组,这个数组比arr1长度小1
-				arr2 = seletors[i].match(/ |\+|>|~/g);
+			switch (typeof context) {
+				case "undefined" :
+					context = [document];
+					break;
 				
-				//没有4大规则的情况
-				if (arr2 === null) {
-					//默认为当前上下文的后代规则
-					arr = arr.concat(this.idClassTag(arr1[0], context, " "));
-				} else {
-					nodes1 = this.idClassTag(arr1[0], context, " ");
-					
-					//根据规则组装arr数组,存放既是HTMLElement
-					for (var n = 0, m = arr2.length, k, l; n < m; n++) {
-						l = nodes1.length
-						for (k = 0; k < l; k++) {
-							nodes2 = nodes2.concat(this.idClassTag(arr1[n + 1], nodes1[k], arr2[n]));
-						}
-						//这是为了让下一次应用4大规则之一的时候,上一次的元素作为上下文
-						nodes1 = nodes2;
-						//nodes2.length = 0本来用这种方式清空数组的,但是发现concat有问题
-						nodes2 = [];
+				case "string" :	
+					context = this.get(context, [document]);
+					break;
+				
+				case "object" :
+					context = [context];
+					break;
+				
+				//数组形式
+				default :
+				  	context = context;		
+			}
+				
+			selectors = selector.replace(/^\s+|\s+$/g, "")      //去除前后空格
+								.replace(/ *([ +>~]) */g, "$1") //去除多余空格
+								.split(",");
+				
+			//逗号分隔的选择器
+			for (i = 0, j = selectors.length; i < j; i++) {
+				//选择器按照4种规则分开存放到数组
+				selector = selectors[i].split(/ |\+|>|~/);
+				
+				//存放4种规则的数组,这个数组比selector长度小1
+				rules = selectors[i].match(/ |\+|>|~/g);
+				
+				contexts = this.parse(selector[0], context, " ");			
+				
+				//没有4种规则的情况
+				// rules !== null
+				if (rules) {
+					//每次解析后的HTMLElement数组,作为下一次解析的上下文
+					for (n = 0, m = rules.length; n < m; n++) {
+						contexts = this.parse(selector[n + 1], contexts, rules[n]);
 					}
-					arr = arr.concat(nodes1);
 				}
+				
+				//连接逗号分隔选择器的结果
+				results = results.concat(contexts);
 			}
 			
-			return arr;
+			return results;			
 		},
 		
 		/**
+		 * 解析选择器
 		 * 
-		 * @param {Object} s          选择器字符串
-		 * @param {Object} context    上下文
-		 * @param {Object} symbol     规则
+		 * @param {String} selector 选择器
+		 * @param {Array} contexts  上下文
+		 * @param {String} rule     规则
 		 */
-		idClassTag : function(selector,context,rule){
-			var arr = [], e;
+		parse : function(selector, contexts, rule) {
+			var e, tag, cls, arr, attrs;
 			
-			//id
-			if (/^#/.test(selector)) {
-				e = document.getElementById(RegExp["$'"]);
+			//处理选择器为id的情况
+			if (selector.charAt(0) === "#") {
+				e = document.getElementById(selector.substring(1));
 				if (e) {
-					arr[0] = e;
+					return [e];
 				}
 				
-			//有伪类或属性	
-			} else if (/\[|:/.test(selector)) {
-				var n, tag, attr, pseudo;
-				//带有伪类,属性的class规则
-				if (/([a-zA-Z]*\.[^\[:]+)/.test(selector)) {
-					//把去除伪类和属性的部分调用自己,这部分含有class规则
-					n = this.idClassTag(RegExp.$1, context, rule);
-				} else {
-					//这部分仅含有tag,或只有伪类和属性时候使用*
-					n = this.idClassTag(selector.match(/[a-zA-Z]*/)[0] || "*", context, rule);
-				}
+			} else { 
+				/([a-zA-Z\*]*)([^\[:]*)/.test(selector);
 				
+				//HTML标签
+				tag = RegExp.$1;
 				
-				//存放属性数组
-				attr = selector.match(/[^\[]+(?=\])/g);
-				pseudo = selector.split(":");
-				pseudo = pseudo.length === 1 ? null : pseudo.slice(1);//存放伪类数组
-				//根据属性数组规则,剔除不符合的HTMLElement
-				if (attr) {
-					arr = this.filterAttr(n, attr);
-				} else {
-					arr = n;
-				}
+				//class属性
+				cls = RegExp.$2;
 				
-				//用伪类数组过滤HTMLElement集合
-				if (pseudo) {
-					arr = this.filterPseudo(arr, pseudo);
-				}
+				//伪类和属性选择字符串
+				selector = RegExp["$'"];
+
+				arr = this.rules[rule].call(this, tag || "*", cls, contexts);
 				
-			//class	
-			} else if (/([a-zA-Z]*)\.(\S+)/.test(selector)) {
-				var cls = RegExp.$2.replace(/\./g, " "), tag = RegExp.$1, k = 0, n;
-				switch (rule) {
-					//后代
-					case " ":
-						n = context.getElementsByTagName(tag || "*");
-						for (var i = 0, j = n.length; i < j; i++) {
-							if (n[i].className.indexOf(cls) !== -1) {
-								arr[k] = n[i];
-								k++;
-							}
-						}
-						break;
-					//子元素		
-					case ">":
-						for (var i = 0, ns = context.childNodes, j = ns.length; i < j; i++) {
-							n = ns[i];
-							if (n.nodeType === 1 && n.nodeName.toLowerCase() === tag) {
-								if (n.className.indexOf(cls) !== -1) {
-									arr[k] = n;
-									k++;
-								}
-							}
-						}
-						break;
-					//弟弟元素
-					case "+":
-						n = context.nextSibling;
-						while (n) {
-							if (n.nodeType === 1 && n.nodeName.toLowerCase() === tag) {
-								if (n.className.indexOf(cls) !== -1) {
-									arr[k] = n;
-									k++;
-								}
-							}
-							n = n.nextSibling;
-						}
-						break;
-					//哥哥元素
-					case "~":
-						n = context.previousSibling;
-						while (n) {
-							if (n.nodeType === 1 && n.nodeName.toLowerCase() === tag) {
-								if (n.className.indexOf(cls) !== -1) {
-									arr[k] = n;
-									k++;
-								}
-							}
-							n = n.previousSibling;
-						}
-				}
-				
-			//tag	
-			} else {
-				var n;
-				switch (rule) {
-					//后代
-					case " ":
-						n = context.getElementsByTagName(selector);
-						//shit,这里用Array.prototype.slice.call(nodes,0)转换在IE下报错
-						//我也不知道怎么搞的fuck ie
-						for (var i = 0, j = n.length; i < j; i++) {
-							arr[i] = n[i];
-						}
-						break;
-					//子元素		
-					case ">":
-						for (var i = 0, ns = context.childNodes, j = ns.length, k = 0; i < j; i++) {
-							n = ns[i];
-							if (n.nodeType === 1 && n.nodeName.toLowerCase() === selector) {
-								arr[k] = n;
-								k++;
-							}
-						}
-						break;
-					//弟弟元素
-					case "+":
-						n = context.nextSibling;
-						var k = 0;
-						while (n) {
-							if (n.nodeType === 1 && n.nodeName.toLowerCase() === selector) {
-								arr[k] = n;
-								k++;
-							}
-							n = n.nextSibling;
-						}
-						break;
-					//哥哥元素	
-					case "~":
-						n = context.previousSibling;
-						var k = 0;
-						while (n) {
-							if (n.nodeType === 1 && n.nodeName.toLowerCase() === selector) {
-								arr[k] = n;
-								k++;
-							}
-							n = n.previousSibling;
-						}
-				}
-			}
+				return arr;
+			}			
 			
-			
-			return arr;
 		},
 		
-		filterAttr : function(nodes,attr){//需要属性过滤的的元素数组,属性规则数组
-			var attr1,attr2,attrVal,arr = [],k = 0,len = attr.length;
-			for(var i = 0,j = nodes.length,n; i < j; i++){
-				for(n = 0; n < len; n++){
-					attr1 = attr[n].split(/=|~=|\|=|\^=|\$=|\*=/);//属性规则的属性名值对
-					attr2 = attr[n].match(/=|~=|\|=|\^=|\$=|\*=/g);//属性规则的规则符号
-					attr2 = attr2 ? attr2[0] : " ";
-					//元素属性名对应的属性值,强制字符串转换了
-					attrVal = String(nodes[i][attr1[0]] || nodes[i].getAttribute(attr1[0]) || "");
+		rules : {
+			/**
+			 * 获得当前规则的HTMLElement数组
+			 * 
+			 * @param {String} tag  HTML标签
+			 * @param {String} cls  class属性
+			 * @param {Array} contexts 上下文数组
+			 */
+			" " : function(tag, cls, contexts){
+				var nodes, len, e, i,
+					arr = [],
+					m = contexts.length,
+					n = j = 0;		
 					
-					//根据规则符号处理,一旦不符合条件就终止循环
-					switch (attr2) {
-						case " ": 
-							if (!attrVal) 
-								n = len;
-							break;
-						case "=":
-							if(attrVal !== attr1[1])
-								n = len;
-							break;
-						/*
-						这个规则让我好迷惑,没有实现
-						case "~=":;
-							break;
-						这个规则也让我好迷惑,没有实现	
-						case "|=":;
-							break;	
-						*/
-						case "^=":
-							if(!new RegExp("^"+attr1[1]).test(attrVal))
-								n = len;
-							break;
-						case "$=":
-							if(!new RegExp(attr1[1]+"$").test(attrVal))
-								n = len;
-							break;	
-						case "*=":
-							if(attrVal.indexOf(attr1[1]) === -1)
-								n = len;		
+					//处理class属性选择器
+					//示例形式: [.cls], [div.cls], [div.cls1.cls2]...
+					if(cls) {
+						for (; n < m; n++) {
+							nodes = contexts[n].getElementsByTagName(tag);
+							for (i = 0, len = nodes.length; i < len; i++) {
+								e = nodes[i];
+								if (this.hasClass(e, cls)) {
+									arr[j++] = e;
+								}
+							}
+						}
+					
+					//处理html标签选择器
+					} else {
+						for (; n < m; n++) {
+							nodes = contexts[n].getElementsByTagName(tag);
+							for (i = 0, len = nodes.length; i < len; i++) {
+								arr[j++] = nodes[i];
+							}
+						}
+						
 					}
+					
+					//当contexts不只一个元素的时候,就可能存在重复元素
+					if(m > 1) {
+						this.makeDiff(arr);
+					}
+						
+					return arr;	
+			},
+			
+			/**
+			 * 获得当前规则的HTMLElement数组
+			 * 
+			 * @param {String} tag  HTML标签
+			 * @param {String} cls  class属性
+			 * @param {Array} contexts 上下文数组
+			 */
+			">" : function(tag, cls, contexts) {
+				var nodes, len, e, i,
+					arr = [],
+					m = contexts.length,
+					n = j = 0;
+				
+				//cls
+				if(cls) {
+					//html标签为"*"
+					if (tag !== "*") {
+						for (; n < m; n++) {
+							nodes = contexts[n].childNodes;
+							for (i = 0, len = nodes.length; i < len; i++) {
+								e = nodes[i];
+								if (e.nodeType === 1 
+										&& e.nodeName.toLowerCase() === tag.toLowerCase() 
+											&& this.hasClass(e, cls)) {
+									arr[j++] = e;
+								}
+							}
+						}
+									
+					} else {
+						for (; n < m; n++) {
+							nodes = contexts[n].childNodes;
+							for (i = 0, len = nodes.length; i < len; i++) {
+								e = nodes[i];
+								if (e.nodeType === 1 && this.hasClass(e, cls)) {
+									arr[j++] = e;
+								}
+							}
+						}
+								
+					}
+				
+				//tag	
+				} else {
+					if (tag !== "*") {
+						for (; n < m; n++) {
+							nodes = contexts[n].childNodes;
+							for (i = 0, len = nodes.length; i < len; i++) {
+								e = nodes[i];
+								if (e.nodeType === 1 
+										&& e.nodeName.toLowerCase() === tag.toLowerCase()) {
+									arr[j++] = e;
+								}
+							}
+						}
+									
+					} else {
+						for (; n < m; n++) {
+							nodes = contexts[n].childNodes;
+							for (i = 0, len = nodes.length; i < len; i++) {
+								e = nodes[i];
+								if (e.nodeType === 1) {
+									arr[j++] = e;
+								}
+							}
+						}
+								
+					}
+					
 				}
 				
-				//说明循环顺利结束,当前元素符合条件
-				if(n === len){
-					arr[k] = nodes[i];
-					k++;
+				return arr;
+			},
+
+			/**
+			 * 获得当前规则的HTMLElement数组
+			 * 
+			 * @param {String} tag  HTML标签
+			 * @param {String} cls  class属性
+			 * @param {Array} contexts 上下文数组
+			 */			
+			"+" : function(tag, cls, contexts) {
+				var len, e,
+					arr = [],
+					m = contexts.length,
+					n = j = 0;		
+				
+				//class
+				if (cls) {
+					if (tag !== "*") {
+						for (; n < m; n++) {
+							e = contexts[n].nextSibling;
+							while (e) {
+								if (e.nodeType === 1) {
+									if (e.nodeName.toLowerCase() === tag.toLowerCase() 
+											&& this.hasClass(e, cls)) {
+										arr[j++] = e;
+									}
+									break;
+								}
+								e = e.nextSibling;
+							}
+						}
+						
+					} else {
+						for (; n < m; n++) {
+							e = contexts[n].nextSibling;
+							while (e) {
+								if (e.nodeType === 1) {
+									if (this.hasClass(e, cls)) {
+										arr[j++] = e;
+									}
+									break;
+								}
+								e = e.nextSibling;
+							}
+						}
+						
+					}
+									
+				//tag
+				} else {
+					if (tag !== "*") {
+						for (; n < m; n++) {
+							e = contexts[n].nextSibling;
+							while (e) {
+								if (e.nodeType === 1) {
+									if (e.nodeName.toLowerCase() === tag.toLowerCase()) {
+										arr[j++] = e;
+									}
+									break;
+								}
+								e = e.nextSibling;
+							}
+						}
+						
+					} else {
+						for (; n < m; n++) {
+							e = contexts[n].nextSibling;
+							while (e) {
+								if (e.nodeType === 1) {
+									arr[j++] = e;
+									break;
+								}
+								e = e.nextSibling;
+							}
+						}
+						
+					}
+										
 				}		
+				
+				return arr;
+			},
+
+			/**
+			 * 获得当前规则的HTMLElement数组
+			 * 
+			 * @param {String} tag  HTML标签
+			 * @param {String} cls  class属性
+			 * @param {Array} contexts 上下文数组
+			 */				
+			"~": function(tag, cls, contexts) {
+				var len, e,
+					arr = [],
+					m = contexts.length,
+					n = j = 0;		
+				
+				//class
+				if (cls) {
+					if (tag !== "*") {
+						for (; n < m; n++) {
+							e = contexts[n].nextSibling;
+							while (e) {
+								if (e.nodeType === 1
+										&& e.nodeName.toLowerCase() === tag.toLowerCase() 
+											&& this.hasClass(e, cls)) {
+									arr[j++] = e;
+								}
+								e = e.nextSibling;
+							}
+						}
+						
+					} else {
+						for (; n < m; n++) {
+							e = contexts[n].nextSibling;
+							while (e) {
+								if (e.nodeType === 1 && this.hasClass(e, cls)) {
+										arr[j++] = e;
+								}
+								e = e.nextSibling;
+							}
+						}
+						
+					}
+									
+				//tag
+				} else {
+					if (tag !== "*") {
+						for (; n < m; n++) {
+							e = contexts[n].nextSibling;
+							while (e) {
+								if (e.nodeType === 1 
+										&& e.nodeName.toLowerCase() === tag.toLowerCase()) {
+									arr[j++] = e;
+								}
+								e = e.nextSibling;
+							}
+						}
+						
+					} else {
+						for (; n < m; n++) {
+							e = contexts[n].nextSibling;
+							while (e) {
+								if (e.nodeType === 1) {
+									arr[j++] = e;
+								}
+								e = e.nextSibling;
+							}
+						}
+						
+					}
+										
+				}		
+				
+				if(m > 1) {
+					this.makeDiff(arr);
+				}
+				
+				return arr;			
+			}
+		},
+		
+		/**
+		 * 判断是否含有class属性值
+		 * 
+		 * @param {HTMLElement} e
+		 * @param {String} cls
+		 */ 
+		hasClass : function(e, cls) {
+			var clsName = e.className,
+				i, len;
+			
+			cls = cls.split(".");
+			for(i = 1, len = cls.length; i < len; i++) {
+				if(clsName.indexOf(cls[i]) === -1) {
+					return false;
+				}
 			}
 			
-			return arr;
+			return true;
 		},
-		filterPseudo : function(nodes,pseudo){//需要伪类过滤的的元素数组,伪类规则数组
-			var arr = [],name,param;
-			for(var i = 0,j = pseudo.length; i < j; i++){
-				if(/\((\S+)\)/.test(pseudo[i])){
-					param = RegExp.$1;
-				}
-				name = pseudo[i].replace(/-|\(\S+\)/g,"");
-				arr = arr.concat(this.pseudos[name](nodes,param));
-			}
-			return arr;
-		},
-		pseudos : {//伪类的规则
-			firstchild : function(nodes){ 
-				var arr = [], f, k = 0;
-				for (var i = 0, j = nodes.length; i < j; i++) {
-					f = nodes[i].firstChild;
-					while (f) {
-						if (f.nodeType === 1) {
-							arr[k] = f;
-							k++;
-							break;
-						}
-						f = f.nextSibling;
-					}
-				}
-				return arr;
-			},
-			lastchild : function(nodes){
-				var arr = [], f, k = 0;
-				for(var i = 0,j = nodes.length; i < j; i++){
-					f = nodes[i].lastChild;	
-					while(f){
-						if(f.nodeType === 1){
-							arr[k] = f;
-							k++;
-							break;
-						}
-						f = f.previousSibling;
-					}
-				}
-				return arr;
-			},
-			even : function(nodes){
-				var arr = [],k = 0;
-				for(var i = 0,j = nodes.length;i < j; i+=2){
-					arr[k] = nodes[i];
-					k++;
-				}
-				return arr;
-			},
-			odd : function(nodes){
-				var arr = [],k = 0;
-				for(var i = 1,j = nodes.length;i < j; i+=2){
-					arr[k] = nodes[i];
-					k++;
-				}
-				return arr;				
-			},
-			eq : function(nodes,param){
-				var arr = [];
-				param = param * 1;
-				if(param < nodes.length){
-					arr[0] = nodes[param];
-				}
-				return arr;
-			},
-			gt : function(nodes,param){
-				var arr = [];
-				param = param * 1;
-				if(param < nodes.length){
-					arr = arr.concat(nodes.slice(param));
-				}
-				return arr;				
-			},
-			lt : function(nodes,param){
-				var arr = [];
-				param = param * 1;
-				if(param < nodes.length){
-					arr = arr.concat(nodes.slice(0,param));
-				}
-				return arr;				
-			},
-			first : function(nodes){
-				var arr = [];
-				if(nodes.length){
-					arr[0] = nodes[0];
-				}
-				return arr;
-			},
-			last : function(nodes){
-				var arr = [];
-				if(nodes.length){
-					arr[0] = nodes[nodes.length - 1];
-				}
-				return arr;
-			},
-			enabled : function(nodes){
-				var arr = [],k = 0;
-				for(var i = 0,j = nodes.length;i < j; i++){
-					if(!nodes[i].disabled){
-						arr[k] = nodes[i];
-						k++;
-					}
-				}
-				return arr;
-			},
-			disabled : function(nodes){
-				var arr = [],k = 0;
-				for(var i = 0,j = nodes.length;i < j; i++){
-					if(nodes[i].disabled){
-						arr[k] = nodes[i];
-						k++;
-					}
-				}
-				return arr;				
-			},
-			checked : function(nodes){
-				var arr = [],k = 0;
-				for(var i = 0,j = nodes.length;i < j; i++){
-					if(nodes[i].checked){
-						arr[k] = nodes[i];
-						k++;
-					}
-				}
-				return arr;				
-			},
-			selected : function(nodes){
-				var arr = [],k = 0;
-				for(var i = 0,j = nodes.length;i < j; i++){
-					if(nodes[i].selected){
-						arr[k] = nodes[i];
-						k++;
-					}
-				}
-				return arr;				
-			}
-		}	
-	};
-
-	//mojo扩展
-	mojo.extend = mojo.fn.extend = function(obj){
-		var p;
-		for (p in obj) {
-			this[p] = obj[p];
+		
+		/**
+		 * 去除重复数组中的HTMLElment元素
+		 * 
+		 * @param {Array} arr
+		 */
+		makeDiff : function(arr) {
+			var i, len, e,
+				j = 0,
+				tempArr = [];
+			
+			for (i = 0, len = arr.length; i < len; i++) {
+				e = arr[i];
+				if(!e.mojoDiff) {
+					tempArr[j++] = e;
+					e.mojoDiff = true;
+				}	
+			}	
+			
+			arr.length = len = 0;
+			
+			for (i = 0; i < j; i++) {
+				e = tempArr[i];
+				delete e.mojoDiff;
+				arr[len++] = e;
+		    }
+			
 		}
-		return this;
+		
 	};
-	
-	mojo.extend({
-		tween: function(t){//安装tween算法
-			var p;
-			for (p in t) {
-				tween[p] = t[p];
-			}
-			return this;
-		},
-		addPseudo : function(n,fn){//添加伪类选择器解析
-			shimmer.pseudos[n] = fn;
-			return this;
-		}
-	});
-	
-  
+	 
 })(window);
