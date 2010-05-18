@@ -1115,8 +1115,6 @@
 		init : function(selector, context){
 			var arr = mojoCss.get(selector, context);
 			
-			alert(arr.length)
-			
 			//判断选择器的有效性
 			if(arr.length){
 				return new mo(selector, arr);
