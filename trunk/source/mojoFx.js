@@ -54,21 +54,13 @@
 			config : function() {
 				var args = this,
 					obj  = args[0], 
-					dur, fn, type, ease, twn,
-					p, infos;
-				
-				//多参数形式
-				if(typeof args[1] !== "object") {
-					dur  =  args[1] || 400;
-					fn   =  args[2] || null;
-					type =  args[3] || "swing";
-					ease =  args[4] || "easeNone";				
-				
-				//对象形式	
-				} else {
-					infos = args[1];
-					dur   = infos.dur || 400;
-					fn    = infos.fn  || null;					
+					dur, fn, p, infos;
+
+				dur  =  args[1] || 400;
+				fn   =  args[2] || null;
+
+				for(p in obj) {
+					
 				}
 				
 				
