@@ -10,11 +10,30 @@
 	
 	var 
 		//动画元素
-		elems = [],
+		elems,
 		
 		//动画队列
-		animQue = [],
+		animQue,
 		
+		//动画时间
+		dur,
+		
+		//回调函数
+		fn,
+		
+		//动画属性
+		info,
+		
+		//动画是否进入队列
+		que,
+		
+		//动画效果
+		twn = {
+			dft : {
+				type : "swing",
+				ease : "easeNone"				
+			}
+		},
 		
 	    /**
  	 	 * 动画缓冲算法
@@ -41,30 +60,81 @@
 		 * 动画功能实现类
 		 */
 		fx = {
+			/**
+			 * 配置动画参数
+			 */
+			animTo : function() {
+				var args = arguments;
+				
+				info = args[0]; 
+				dur  = args[1] || 400;
+				fn   = args[2] || null;
+				que  = args[3] || true;
+			},
 			
+			/**
+			 * 应用动画的元素
+			 * 
+			 * @param {HTMLElement/Array} els 应用动画的元素或元素数组
+			 * @param {Object/Undefined} init 元素的初始化信息
+			 * 
+			 * on(HTMLElement)
+			 * on(Array)
+			 * on(HTMLElement, Object)
+			 * on(Array, Object)
+			 */
+			on : function(els, init) {
+				var i, len, el, p;
+				
+				if(arguments.length === 2) {
+					if(fxUtil.isArray(els)) {
+						for(i = 0, len = els.length; i < len; i++) {
+							el = els[i];
+							for(p in init) {
+								el.style[p] = init[p];
+							}
+						}
+					} else {
+						for(p in init) {
+							els.style[p] = init[p];
+						}
+					}
+				} 
+				
+				elems = [].concat(els);
+			},
+			
+			/**
+			 * 动画效果设置
+			 * 
+			 * @param {String/Object} type
+			 * @param {String/Undefined} ease
+			 */
+			twn : function(type, ease) {
+				
+				if(typeof type === "object") {
+					twn = type;
+				
+				//typeof type === "string"
+				} else {
+					
+				}
+			}						
 		},
+		
 		
 		/**
 		 * 辅助类
 		 */
 		fxUtil = {
 			/**
-			 * 配置动画参数
+			 * 判断数组
+			 * 
+			 * @param {Object} obj
 			 */
-			config : function() {
-				var args = this,
-					obj  = args[0], 
-					dur, fn, p, infos;
-
-				dur  =  args[1] || 400;
-				fn   =  args[2] || null;
-
-				for(p in obj) {
-					
-				}
-				
-				
-			}	
+			isArray : function(obj) {
+				return Object.prototype.toString.call(obj) === "[object Array]";
+			}
 		};
 		
 	
@@ -74,7 +144,7 @@
 	 * 绑定mojoFx
 	 */
 	window.mojoFx = function(){
-		fxUtil.config.apply(arguments);
+		fx.on.apply(arguments);
 		return fx;
 	};
 	
