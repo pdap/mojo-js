@@ -22,7 +22,7 @@
 		fn,
 		
 		//动画属性
-		info,
+		animInfo,
 		
 		//动画是否进入队列
 		que,
@@ -66,10 +66,10 @@
 			animTo : function() {
 				var args = arguments;
 				
-				info = args[0]; 
-				dur  = args[1] || 400;
-				fn   = args[2] || null;
-				que  = args[3] || true;
+				animInfo = args[0]; 
+				dur      = args[1] || 400;
+				fn       = args[2] || null;
+				que      = args[3] || true;
 			},
 			
 			/**
@@ -111,13 +111,25 @@
 			 * @param {String/Undefined} ease
 			 */
 			twn : function(type, ease) {
-				
 				if(typeof type === "object") {
+					if(!type.dft) {
+						type.dft = twn.dft;
+					} else {
+						if(!type.dft.type) {
+							type.dft.type = twn.dft.type;
+						}
+						if(!type.dft.ease) {
+							type.dft.ease = twn.dtf.type;
+						}
+					}
+					
 					twn = type;
-				
 				//typeof type === "string"
 				} else {
-					
+					twn.dft.type = type;
+					if(ease) {
+						twn.dft.ease = ease;
+					}
 				}
 			}						
 		},
