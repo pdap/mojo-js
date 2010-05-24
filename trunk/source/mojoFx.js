@@ -222,19 +222,42 @@
 			},
 			
 			config : function() {
-				var arr = [], 
-					els = elems,
-					info = animInfo,
-					len = els.length,
-					i, el, p;
+				var 
+					info  = animInfo,
+					tw    = twn,
+					//属性名,符号,属性值,单位,动画类型
+					arr = [],
+					i   = 0,
+					m, val, p;
 				
-				for(i = 0; i < len; i++) {
-					el = els[i];
 					for(p in info) {
-						
+						arr[i] = p;
+						//非颜色属性
+						if(p.toLowerCase().indexOf("color") === -1) {
+							val = info[p];
+							arr[i + 4] = tw.def;
+							if (typeof val === "number") {
+								arr[i + 1] = "";
+								arr[i + 2] = val;
+								arr[i + 3] = "px";
+							} else {
+								if(typeof val === "object") {
+									arr[i + 4] = val[1] || tw[p] || tw.def;
+									val        = val[0];									
+								}
+								
+								m          = val.match(/((-=)?|(\+=)?)(-?\d+)(\D*)/);
+								arr[i + 1] = m[2] || m[3];
+								arr[i + 2] = m[4];
+								arr[i + 3] = m[5] || "px";								
+							}
+							
+						//颜色属性
+						} else {
+							
+						}
 					}
 					
-				}
 				
 			}
 		};
