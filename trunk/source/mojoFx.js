@@ -232,17 +232,17 @@
 				
 					for(p in info) {
 						arr[i] = p;
+						arr[i + 4] = tw[p] || tw.def;
+						val = info[p];
 						//非颜色属性
 						if(p.toLowerCase().indexOf("color") === -1) {
-							val = info[p];
-							arr[i + 4] = tw.def;
 							if (typeof val === "number") {
 								arr[i + 1] = "";
 								arr[i + 2] = val;
 								arr[i + 3] = "px";
 							} else {
 								if(typeof val === "object") {
-									arr[i + 4] = val[1] || tw[p] || tw.def;
+									arr[i + 4] = tw[p] || val[1] || tw.def;
 									val        = val[0];									
 								}
 								
@@ -254,11 +254,13 @@
 							
 						//颜色属性
 						} else {
-							
+							arr[i + 1] = "#";
+							arr[i + 2] = val;
 						}
+						
+						i += 5;
 					}
 					
-				
 			}
 		};
 		
