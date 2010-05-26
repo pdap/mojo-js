@@ -262,6 +262,13 @@
 						i += 5;
 					}
 					
+					return arr;
+			},
+			
+			step : function() {
+				var 
+					arr = this.config(),
+					els = elems;
 			}
 		};
 		
