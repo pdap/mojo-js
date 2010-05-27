@@ -221,7 +221,7 @@
 				return rgb;				
 			},
 			
-			config : function() {
+			getInfo : function() {
 				var 
 					info  = animInfo,
 					tw    = twn,
@@ -265,10 +265,15 @@
 					return arr;
 			},
 			
-			step : function() {
+			getStep : function() {
 				var 
-					arr = this.config(),
-					els = elems;
+					arr    = this.getInfo(),
+					els    = elems,
+					arrLen = arr.length,
+					elsLen = els.length;
+				
+					
+					
 			}
 		};
 		
