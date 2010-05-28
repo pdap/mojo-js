@@ -157,10 +157,13 @@
 
   				switch (sty) {
 					case "float":
-						typeof styObj.styleFloat === "string" ? styObj.styleFloat = val : styObj.cssFloat = val;
+						typeof styObj.styleFloat === "string" ? 
+						              styObj.styleFloat = val : styObj.cssFloat = val;
 						break;
 					case "opacity":
-						el.filters ? styObj.filter = (el.currentStyle.filter || "").replace(/alpha\([^)]*\)/, "") + "alpha(opacity=" + val + ")" : styObj.opacity = val / 100;
+						el.filters ? styObj.filter = (el.currentStyle.filter || "")
+							         .replace(/alpha\([^)]*\)/, "") + "alpha(opacity=" + val + ")"
+								   : styObj.opacity = val / 100;
 						break;
 					default:
 						styObj[sty] = val;
@@ -178,9 +181,11 @@
 				
 				switch (sty) {
 					case "float":
-						return typeof curStyObj.styleFloat === "string" ? curStyObj.styleFloat : curStyObj.cssFloat;
+						return typeof curStyObj.styleFloat === "string" ? 
+						                           curStyObj.styleFloat : curStyObj.cssFloat;
 					case "opacity":
-						return el.filters ? (el.filters.alpha ? e.filters.alpha.opacity : 100) : curStyObj.opacity * 100;
+						return el.filters ? (el.filters.alpha ? e.filters.alpha.opacity : 100) 
+						                  : curStyObj.opacity * 100;
 					default:
 						return curStyObj[sty];
 				}				
@@ -246,10 +251,10 @@
 									val        = val[0];									
 								}
 								
-								m          = val.match(/((-=)?|(\+=)?)(-?\d+)(\D*)/);
-								arr[i + 1] = m[2] || m[3];
-								arr[i + 2] = m[4];
-								arr[i + 3] = m[5] || "px";								
+								m          = /(\+=|-=|-)?(\d+)(\D*)/.test(val);
+								arr[i + 1] = RegExp.$1;
+								arr[i + 2] = RegExp.$2;
+								arr[i + 3] = RegExp.$3 || "px";								
 							}
 							
 							
