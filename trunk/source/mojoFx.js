@@ -14,22 +14,7 @@
 		
 		//动画队列
 		animQue,
-		
-		//动画时间
-		dur,
-		
-		//回调函数
-		fn,
-		
-		//动画属性
-		animInfo,
-		
-		//动画是否进入队列
-		que,
-		
-		//动画效果
-		twn,
-		
+
 	    /**
  	 	 * 动画缓冲算法
 	     * 每个效果都分三个缓动方式:
@@ -53,18 +38,6 @@
 		 * 动画功能实现类
 		 */
 		mojoFx = {
-			/**
-			 * 配置动画参数
-			 * 
-			 * @param {Object}  ai	动画信息
-			 * @param {Number}  d	完成动画时间
-			 * @param {Boolean} q	是否队列动画
-			 */
-			animTo : function(ai, d, q) {
-				animInfo = ai; 
-				dur      = d;
-				que      = q || true;
-			},
 			
 			/**
 			 * 应用动画的元素
@@ -99,36 +72,34 @@
 				
 				return this;
 			},
-			
+
 			/**
-			 * 设置动画缓冲效果
+			 * 配置动画参数
 			 * 
-			 * @param {Object/String} twnObj
-			 * 
-			 * twn(Object)
-			 * twn(String)
 			 */
-			twn : function(twnObj) {
-				if(typeof twnObj === "sring") {
-					twn = {def : "swing"}
-					
-				// typeof twnObj === "object"
+			animTo : function(info, dur, fn, isQue, twn) {
+				var opt;
+				
+				//多参数形式
+				if(typeof dur === "number") {
+					dur   = dur   || 400;
+					fn    = fn    || null;
+					isQue = isQue || true;
+					twn   = twn   || "swing";
+				
+				//对象参数形式
 				} else {
-					twn = twnObj;
-					if(!twn.def) {
-						twn.def = "swing";
-					}
-				}			
-			},
-			
-			/**
-			 * 设置回调函数
-			 * 
-			 * @param {Object} f
-			 */
-			callback : function(f) {
-				fn = f;	
-			}						
+					opt   = dur;
+					dur   = opt.dur   || 400;
+					fn    = opt.fn    || null;
+					isQue = opt.isQue || true;
+					twn   = opt.twn   || "swing";
+				}
+				
+				opt = fxUtil.getOpt(info, dur, twn);
+
+			}			
+								
 		},
 		
 		
@@ -226,59 +197,113 @@
 				return rgb;				
 			},
 			
-			getInfo : function() {
+			/**
+			 * 计算动画信息
+			 * 
+			 * @param {Object} info
+			 * @param {Number} dur
+			 * @param {String} twn
+			 */
+			getOpt : function(info, dur, twn) {
 				var 
-					info  = animInfo,
-					tw    = twn,
-					//属性名,符号,属性值,单位,动画类型
-					arr = [],
+				    //属性名,符号,属性值,单位,动画时间,动画类型
+					opt = [],
 					i   = 0,
-					m, val, p;
-				
-					for(p in info) {
-						arr[i] = p;
-						arr[i + 4] = tw[p] || tw.def;
-						val = info[p];
-						//非颜色属性
-						if(p.toLowerCase().indexOf("color") === -1) {
-							if (typeof val === "number") {
-								arr[i + 1] = "";
-								arr[i + 2] = val;
-								arr[i + 3] = "px";
-							} else {
-								if(typeof val === "object") {
-									arr[i + 4] = tw[p] || val[1] || tw.def;
-									val        = val[0];									
-								}
+					p, val;
+
+				for(p in info) {
+					//属性名
+					opt[i]     = p;
+					//时间
+					opt[i + 4] = dur;
+					//动画类型
+					opt[i + 5] = twn;
+					val        = info[p];
+					
+					//非颜色属性
+					if (p.toLowerCase().indexOf("color") !== -1) {
+						if (typeof val === "number") {
+							//符号
+							opt[i + 1] = "";
+							//值
+							opt[i + 2] = val;
+							//单位
+							opt[i + 3] = "px";
+						} else {
+							//数组形式
+							if (fxUtil.isArray(val)) {
+								if(val.length === 2) {
+									typeof val[1] === "string" ?
+									       opt[i + 5] = val[1] : opt[i + 4] = val[1];
 								
-								m          = /(\+=|-=|-)?(\d+)(\D*)/.test(val);
-								arr[i + 1] = RegExp.$1;
-								arr[i + 2] = RegExp.$2;
-								arr[i + 3] = RegExp.$3 || "px";								
+								//val.length === 3	
+								}  else {
+									opt[i + 4] = val[1];
+									opt[i + 5] = val[2];
+								}
+								val = val[0];
 							}
 							
-							
-						//颜色属性
-						} else {
-							arr[i + 1] = "#";
-							arr[i + 2] = val;
+							//字符串形式
+							//解析符号单位
+							/(\+=|-=|-)?(\d+)(\D*)/.test(val);
+							//符号
+							opt[i + 1] = RegExp.$1;
+							//值
+							opt[i + 2] = RegExp.$2;
+							//单位
+							opt[i + 3] = RegExp.$3 || "px";							
 						}
-						
-						i += 5;
-					}
 					
-					return arr;
+					//颜色属性
+					} else {
+						//颜色符号位用"#"
+						opt[i + 1] = "#";
+						opt[i + 2] = val;
+					}
+					i += 6;
+				}
+								
+				return opt;	
 			},
 			
-			getStep : function() {
+			getStep : function(els, opt) {
 				var 
-					arr    = this.getInfo(),
-					els    = elems,
-					arrLen = arr.length,
-					elsLen = els.length;
+					len    = els.length,
+					l      = opt.length / 6,
+					props  = [],
+					pFloat = parseFloat,
+					isNan  = isNaN,
+					i, el, n, arr, val,
+					p, b;
 				
-					
-					
+				for(i = 0; i < len; i++) {
+					el = els[i];
+					for(n = 0; n < l; n += 6) {
+						//克隆每一条属性信息
+						arr = opt.slice(n, 6);
+						//属性名
+						p   = arr[1];
+						//非颜色属性
+						if(p !== "#") {
+							//属性为style的属性
+							if(!el[p]) {
+								//获得当前元素对应属性值
+								b = pFloat(this.getStyle(el, p));
+								if (isNan(b)) {
+									b = 0;
+								}
+								
+							} else {
+								
+							}
+						
+						//颜色属性	
+						} else {
+							
+						}
+					}				
+				}	
 			}
 		};
 		
