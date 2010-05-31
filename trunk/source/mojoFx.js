@@ -14,6 +14,9 @@
 		
 		//动画队列
 		animQue,
+		
+		//动画id
+		tid,
 
 	    /**
  	 	 * 动画缓冲算法
@@ -96,7 +99,14 @@
 					twn   = opt.twn   || "swing";
 				}
 				
-				opt = fxUtil.getOpt(info, dur, twn);
+				opt = fxUtil.getConfig(info, dur, twn);
+				alert(fxUtil.getStep(elems, opt));
+				
+				if(isQue) {
+					
+				} else {
+					
+				}
 
 			}			
 								
@@ -169,31 +179,30 @@
 			 * @return {Array} rgb
 			 */
 			colorTen : function(color) {
-				var rgb = [], 
-					i = 0, 
+				var rgb, i, 
 					pInt = parseInt;
-					
-				//#000000形式	
-				if (color.length === 7) {				
-					for (; i < 3; i++) {
-						rgb[i] = pInt(color.substring(2 * i + 1, 2 * i + 3), 16);
+				
+				if(color.indexOf("#") === 0) {
+					//#000形式
+					if(color.length === 4) {
+						color = color.replace(/\w{3}/, "$&$&");
 					}
 					
-				//#000形式	
-				} else if (color.length === 4) {
-					color = color.replace(/\w{3}/, "$&$&");
-					for (; i < 3; i++) {
+					rgb = [];
+					
+					//#000000形式
+					for (i = 0; i < 3; i++) {
 						rgb[i] = pInt(color.substring(2 * i + 1, 2 * i + 3), 16);
-					}
+					}					
 				
 				//rgb(0,0,0)形式	
 				} else {
-					if (color === "transparent" || color === "rgba(0, 0, 0, 0)") {
-						color = "rgb(255,255,255)";
-					}
-					rgb = color.match(/\d+/g);
+                   if (color === "transparent" || color === "rgba(0, 0, 0, 0)") {
+				   	    color = "rgb(255,255,255)";
+				   }		
+				   rgb = color.match(/\d+/g);		
 				}
-				
+
 				return rgb;				
 			},
 			
@@ -204,7 +213,7 @@
 			 * @param {Number} dur
 			 * @param {String} twn
 			 */
-			getOpt : function(info, dur, twn) {
+			getConfig : function(info, dur, twn) {
 				var 
 				    //属性名,符号,属性值,单位,动画时间,动画类型
 					opt = [],
@@ -220,74 +229,83 @@
 					opt[i + 5] = twn;
 					val        = info[p];
 					
-					//非颜色属性
-					if (p.toLowerCase().indexOf("color") !== -1) {
-						if (typeof val === "number") {
-							//符号
-							opt[i + 1] = "";
-							//值
-							opt[i + 2] = val;
-							//单位
-							opt[i + 3] = "px";
-						} else {
-							//数组形式
-							if (fxUtil.isArray(val)) {
-								if(val.length === 2) {
-									typeof val[1] === "string" ?
-									       opt[i + 5] = val[1] : opt[i + 4] = val[1];
+
+					if (typeof val === "number") {
+						//符号
+						opt[i + 1] = "";
+						//值
+						opt[i + 2] = val;
+						//单位
+						opt[i + 3] = "px";
+					} else {
+						//数组形式
+						if (fxUtil.isArray(val)) {
+							if (val.length === 2) {
+								typeof val[1] === "string" ? 
+								       opt[i + 5] = val[1] : opt[i + 4] = val[1];
 								
-								//val.length === 3	
-								}  else {
-									opt[i + 4] = val[1];
-									opt[i + 5] = val[2];
-								}
-								val = val[0];
+							//val.length === 3	
+							} else {
+								opt[i + 4] = val[1];
+								opt[i + 5] = val[2];
 							}
-							
+							val = val[0];
+						}
+						
+						//非颜色属性
+						if (p.toLowerCase().indexOf("color") === -1) {
 							//字符串形式
 							//解析符号单位
-							/(\+=|-=|-)?(\d+)(\D*)/.test(val);
+							/(\+=|-=)?(-?\d+)(\D*)/.test(val);
 							//符号
 							opt[i + 1] = RegExp.$1;
 							//值
 							opt[i + 2] = RegExp.$2;
 							//单位
-							opt[i + 3] = RegExp.$3 || "px";							
+							opt[i + 3] = RegExp.$3 || "px";
+							
+						//颜色属性							
+						} else {
+							//单位用"#"
+							opt[i + 3] = "#";
+							opt[i + 2] = val;
 						}
-					
-					//颜色属性
-					} else {
-						//颜色符号位用"#"
-						opt[i + 1] = "#";
-						opt[i + 2] = val;
 					}
+					
 					i += 6;
 				}
 								
 				return opt;	
 			},
 			
+			/**
+			 * 计算动画步骤
+			 * 
+			 * @param {Array} els
+			 * @param {Array} opt
+			 */
 			getStep : function(els, opt) {
 				var 
 					len    = els.length,
-					l      = opt.length / 6,
+					l      = opt.length,
 					props  = [],
 					pFloat = parseFloat,
 					isNan  = isNaN,
 					i, el, n, arr, val,
-					p, b;
+					p, b, c;
 				
 				for(i = 0; i < len; i++) {
 					el = els[i];
+					props[i] = [];
 					for(n = 0; n < l; n += 6) {
 						//克隆每一条属性信息
-						arr = opt.slice(n, 6);
+						arr = opt.slice(n, n + 6);
 						//属性名
-						p   = arr[1];
+						p   = arr[0];
 						//非颜色属性
-						if(p !== "#") {
+						if(arr[3] !== "#") {
 							//属性为style的属性
-							if(!el[p]) {
+							if(typeof el[p] === "undefined") {
 								//获得当前元素对应属性值
 								b = pFloat(this.getStyle(el, p));
 								if (isNan(b)) {
@@ -295,15 +313,37 @@
 								}
 								
 							} else {
-								
+								b = el[p];
+								arr[3] = "&";
 							}
 						
+							switch (arr[1]) {//判断符号,设置变化量
+								case "+=":
+									c = arr[2] * 1;
+									break;
+								case "-=":
+									c = arr[2] * 1 - arr[2] * 2;
+									break;
+								default:
+									c = arr[2] * 1 - b;
+							}
+							
+							arr[1] = b;
+							arr[2] = c;
+												
 						//颜色属性	
 						} else {
-							
+							arr[1] = this.colorTen(this.getStyle(el, p));
+							arr[2] = this.colorTen(arr[2]);
 						}
+						
+						//属性名,初始值,最终值,单位,时间,动画类型
+						props[i] = props[i].concat(arr);
 					}				
+					
 				}	
+				
+				return props;
 			}
 		};
 		
