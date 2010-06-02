@@ -12,6 +12,9 @@
 		//动画元素
 		elems,
 		
+		
+		animArr = [],
+		
 		//动画id
 		tid,
 
@@ -110,19 +113,9 @@
 					}
 				}
 				
+				fxUtil.addElStep(elems, fxUtil.getConfig(info, dur, twn));
 				
-				opt = fxUtil.getConfig(info, dur, twn);
-				//alert(opt)
-				fxUtil.addElStep(elems, opt);
-				
-				alert(elems[0].animQue)
-				
-				if(isQue) {
-					
-				} else {
-					
-				}
-
+				animArr.push([elems, isQue, fn]);
 			}			
 								
 		},
