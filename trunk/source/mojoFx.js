@@ -316,8 +316,9 @@
 								b = el[p];
 								arr[3] = "&";
 							}
-						
-							switch (arr[1]) {//判断符号,设置变化量
+							
+						    //判断符号,设置变化量
+							switch (arr[1]) {
 								case "+=":
 									c = arr[2] * 1;
 									break;
