@@ -12,9 +12,6 @@
 		//动画元素
 		elems,
 		
-		//动画队列
-		animQue,
-		
 		//动画id
 		tid,
 
@@ -80,27 +77,45 @@
 			 * 配置动画参数
 			 * 
 			 */
-			animTo : function(info, dur, fn, isQue, twn) {
-				var opt;
+			animTo : function(info) {
+				var args  = arguments, 
+					dur, fn, isQue, twn,
+				    opt, val, len;
 				
-				//多参数形式
-				if(typeof dur === "number") {
-					dur   = dur   || 400;
-					fn    = fn    || null;
-					isQue = isQue || true;
-					twn   = twn   || "swing";
+				opt   = args[1]   || "";
 				
-				//对象参数形式
-				} else {
-					opt   = dur;
-					dur   = opt.dur   || 400;
-					fn    = opt.fn    || null;
-					isQue = opt.isQue || true;
-					twn   = opt.twn   || "swing";
+				dur   = opt.dur   || 400;
+				fn    = opt.fn    || null;
+				isQue = opt.isQue || true;
+				twn   = opt.twn   || "swing";
+				
+				//不定参数形式
+				if (typeof opt !== "object") {
+					for (opt = 1, len = args.length; opt < len; opt++) {
+						val = args[opt];
+						switch (typeof val) {
+							case "number":
+								dur = val;
+								break;
+							case "function":
+								fn = val
+								break;
+							case "boolean":
+								isQue = val;
+								break;
+							case "string":
+								twn = val;
+								break;
+						}
+					}
 				}
 				
+				
 				opt = fxUtil.getConfig(info, dur, twn);
-				alert(fxUtil.getStep(elems, opt));
+				//alert(opt)
+				fxUtil.addElStep(elems, opt);
+				
+				alert(elems[0].animQue)
 				
 				if(isQue) {
 					
@@ -216,38 +231,38 @@
 			getConfig : function(info, dur, twn) {
 				var 
 				    //属性名,符号,属性值,单位,动画时间,动画类型
-					opt = [],
+					cfg = [],
 					i   = 0,
 					p, val;
 
 				for(p in info) {
 					//属性名
-					opt[i]     = p;
+					cfg[i]     = p;
 					//时间
-					opt[i + 4] = dur;
+					cfg[i + 4] = dur;
 					//动画类型
-					opt[i + 5] = twn;
+					cfg[i + 5] = twn;
 					val        = info[p];
 					
 
 					if (typeof val === "number") {
 						//符号
-						opt[i + 1] = "";
+						cfg[i + 1] = "";
 						//值
-						opt[i + 2] = val;
+						cfg[i + 2] = val;
 						//单位
-						opt[i + 3] = "px";
+						cfg[i + 3] = "px";
 					} else {
 						//数组形式
 						if (fxUtil.isArray(val)) {
 							if (val.length === 2) {
 								typeof val[1] === "string" ? 
-								       opt[i + 5] = val[1] : opt[i + 4] = val[1];
+								       cfg[i + 5] = val[1] : cfg[i + 4] = val[1];
 								
 							//val.length === 3	
 							} else {
-								opt[i + 4] = val[1];
-								opt[i + 5] = val[2];
+								cfg[i + 4] = val[1];
+								cfg[i + 5] = val[2];
 							}
 							val = val[0];
 						}
@@ -258,48 +273,48 @@
 							//解析符号单位
 							/(\+=|-=)?(-?\d+)(\D*)/.test(val);
 							//符号
-							opt[i + 1] = RegExp.$1;
+							cfg[i + 1] = RegExp.$1;
 							//值
-							opt[i + 2] = RegExp.$2;
+							cfg[i + 2] = RegExp.$2;
 							//单位
-							opt[i + 3] = RegExp.$3 || "px";
+							cfg[i + 3] = RegExp.$3 || "px";
 							
 						//颜色属性							
 						} else {
 							//单位用"#"
-							opt[i + 3] = "#";
-							opt[i + 2] = val;
+							cfg[i + 3] = "#";
+							cfg[i + 2] = val;
 						}
 					}
 					
 					i += 6;
 				}
 								
-				return opt;	
+				return cfg;	
 			},
 			
 			/**
 			 * 计算动画步骤
 			 * 
 			 * @param {Array} els
-			 * @param {Array} opt
+			 * @param {Array} cfg
 			 */
-			getStep : function(els, opt) {
+			addElStep : function(els, cfg) {
 				var 
 					len    = els.length,
-					l      = opt.length,
-					props  = [],
+					l      = cfg.length,
 					pFloat = parseFloat,
 					isNan  = isNaN,
+					prop,
 					i, el, n, arr, val,
 					p, b, c;
 				
 				for(i = 0; i < len; i++) {
-					el = els[i];
-					props[i] = [];
+					el   = els[i];
+					prop = [];
 					for(n = 0; n < l; n += 6) {
 						//克隆每一条属性信息
-						arr = opt.slice(n, n + 6);
+						arr = cfg.slice(n, n + 6);
 						//属性名
 						p   = arr[0];
 						//非颜色属性
@@ -339,12 +354,15 @@
 						}
 						
 						//属性名,初始值,最终值,单位,时间,动画类型
-						props[i] = props[i].concat(arr);
+						prop = prop.concat(arr);
 					}				
 					
+					if(el.animQue) {
+						el.animQue.push(prop);
+					} else {
+						el.animQue = [prop];
+					}
 				}	
-				
-				return props;
 			}
 		};
 		
