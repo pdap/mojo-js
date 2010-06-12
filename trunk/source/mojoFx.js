@@ -12,7 +12,7 @@
 		//动画元素
 		elems,
 		
-		
+		//
 		animArr = [],
 		
 		//动画id
@@ -84,7 +84,7 @@
 				var args  = arguments, 
 					dur, fn, isQue, twn,
 				    opt, val, len;
-				
+				 
 				opt   = args[1]   || "";
 				
 				dur   = opt.dur   || 400;
@@ -113,9 +113,9 @@
 					}
 				}
 				
-				fxUtil.addElStep(elems, fxUtil.getConfig(info, dur, twn));
-				
-				animArr.push([elems, isQue, fn]);
+				fxUtil.addElStep(elems, fxUtil.getConfig(info, dur, twn), isQue);
+
+				fxUtil.timer();
 			}			
 								
 		},
@@ -234,7 +234,7 @@
 					//时间
 					cfg[i + 4] = dur;
 					//动画类型
-					cfg[i + 5] = twn;
+					cfg[i + 5] = tween[twn];
 					val        = info[p];
 					
 
@@ -250,12 +250,12 @@
 						if (fxUtil.isArray(val)) {
 							if (val.length === 2) {
 								typeof val[1] === "string" ? 
-								       cfg[i + 5] = val[1] : cfg[i + 4] = val[1];
+								       cfg[i + 5] = tween[val[1]] : cfg[i + 4] = val[1];
 								
 							//val.length === 3	
 							} else {
 								cfg[i + 4] = val[1];
-								cfg[i + 5] = val[2];
+								cfg[i + 5] = tween[val[2]];
 							}
 							val = val[0];
 						}
@@ -291,8 +291,9 @@
 			 * 
 			 * @param {Array} els
 			 * @param {Array} cfg
+			 * @param {Boolean} isQue
 			 */
-			addElStep : function(els, cfg) {
+			addElStep : function(els, cfg, isQue) {
 				var 
 					len    = els.length,
 					l      = cfg.length,
@@ -350,12 +351,70 @@
 						prop = prop.concat(arr);
 					}				
 					
-					if(el.animQue) {
-						el.animQue.push(prop);
+					if(isQue) {
+						//队列动画
+						el.mojoFxQue ? el.mojoFxQue.push(prop) : el.mojoFxQue = [prop];
 					} else {
-						el.animQue = [prop];
+						//同步动画
+						el.mojoFxSyn ? el.mojoFxSyn = el.mojoFxSyn.concat(prop) 
+									 : el.mojoFxSyn = prop;						
+					}
+					
+					if(!el.isAnim) {
+						animArr.push(el);
 					}
 				}	
+			},
+			
+			
+			timer : function() {
+				var 
+				    ths   = this,
+					arr   = animArr,
+					start = new Date().getTime();	
+				
+				tid = setInterval(function(){
+					var end = new Date().getTime();
+					ths.updateEL(arr, end - start);
+					start = end;
+				}, 13);
+			},
+			
+			updateEL : function(arr, t) {
+				var 
+					len = arr.length,
+					i = 0,
+					el, fn, syn, que, cur;
+				
+				for(; i < len; i++) {
+					el = arr[i];
+					el.isAnim = true;
+					
+					syn = el.mojoFxSyn;
+					que = el.mojoFxQue;
+					cur = el.mojoFxCur;
+					
+					if(!cur.length && que.length) {
+						cur = que.shift();
+					}						
+					
+					if(!cur.length && !syn.length) {
+						el.isAnim = false;
+						arr.splice(i, 1);
+						len--;
+						i--;
+					} else {
+						this.step(el, cur, syn);
+					}
+					
+					if(len == 0) {
+						clearInterval(tid);
+					}
+				}					
+			},
+			
+			step : function(el, cur, syn) {
+				
 			}
 		};
 		
