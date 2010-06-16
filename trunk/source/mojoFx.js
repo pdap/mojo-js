@@ -113,13 +113,13 @@
 					}
 				}
 				
-				fxUtil.addElStep(elems, fxUtil.getConfig(info, dur, twn), isQue);
-
-				fxUtil.timer();
-			}			
-								
+				fxUtil.addElStep(elems, fxUtil.getConfig(info, dur, fn, twn), isQue);
+				
+				fxUtil.run();
+				
+				return this;
+			}				
 		},
-		
 		
 		/**
 		 * 辅助类
@@ -208,7 +208,10 @@
                    if (color === "transparent" || color === "rgba(0, 0, 0, 0)") {
 				   	    color = "rgb(255,255,255)";
 				   }		
-				   rgb = color.match(/\d+/g);		
+				   rgb = color.match(/\d+/g);
+				   for(i = 0; i < 3; i++) {
+				   	 rgb[i] = pInt(rgb[i]);
+				   }		
 				}
 
 				return rgb;				
@@ -221,9 +224,9 @@
 			 * @param {Number} dur
 			 * @param {String} twn
 			 */
-			getConfig : function(info, dur, twn) {
+			getConfig : function(info, dur, fn, twn) {
 				var 
-				    //属性名,符号,属性值,单位,动画时间,动画类型
+				    //属性名,符号,属性值,单位,动画持续时间,动画类型,当前动画时间,回调函数
 					cfg = [],
 					i   = 0,
 					p, val;
@@ -235,6 +238,11 @@
 					cfg[i + 4] = dur;
 					//动画类型
 					cfg[i + 5] = tween[twn];
+					//当前动画时间
+					cfg[i + 6] = 0;
+					//回调函数
+					cfg[i + 7] = fn;
+					
 					val        = info[p];
 					
 
@@ -280,7 +288,7 @@
 						}
 					}
 					
-					i += 6;
+					i += 8;
 				}
 								
 				return cfg;	
@@ -300,15 +308,15 @@
 					pFloat = parseFloat,
 					isNan  = isNaN,
 					prop,
-					i, el, n, arr, val,
+					i, el, n, arr,
 					p, b, c;
 				
 				for(i = 0; i < len; i++) {
 					el   = els[i];
 					prop = [];
-					for(n = 0; n < l; n += 6) {
+					for(n = 0; n < l; n += 8) {
 						//克隆每一条属性信息
-						arr = cfg.slice(n, n + 6);
+						arr = cfg.slice(n, n + 8);
 						//属性名
 						p   = arr[0];
 						//非颜色属性
@@ -320,7 +328,7 @@
 								if (isNan(b)) {
 									b = 0;
 								}
-								
+							//非style属性	
 							} else {
 								b = el[p];
 								arr[3] = "&";
@@ -343,11 +351,18 @@
 												
 						//颜色属性	
 						} else {
-							arr[1] = this.colorTen(this.getStyle(el, p));
-							arr[2] = this.colorTen(arr[2]);
+							arr[1] = b = this.colorTen(this.getStyle(el, p));
+							c      = this.colorTen(arr[2]);
+							
+							//计算颜色变化量
+							c[0] -= b[0];
+							c[1] -= b[1];
+							c[2] -= b[2];
+							
+							arr[2] = c;
 						}
 						
-						//属性名,初始值,最终值,单位,时间,动画类型
+						//属性名,初始值,变化值,单位,时间,动画类型
 						prop = prop.concat(arr);
 					}				
 					
@@ -367,10 +382,11 @@
 			},
 			
 			
-			timer : function() {
+			run : function() {
 				var 
 				    ths   = this,
 					arr   = animArr,
+					t     = 0,
 					start = new Date().getTime();	
 				
 				tid = setInterval(function(){
@@ -380,22 +396,24 @@
 				}, 13);
 			},
 			
-			updateEL : function(arr, t) {
+			updateEL : function(arr, stepTime) {
 				var 
 					len = arr.length,
-					i = 0,
+					i   = 0,
+					sty = [],
 					el, fn, syn, que, cur;
 				
 				for(; i < len; i++) {
 					el = arr[i];
 					el.isAnim = true;
 					
-					syn = el.mojoFxSyn;
+					syn = el.mojoFxSyn || [];
 					que = el.mojoFxQue;
-					cur = el.mojoFxCur;
+					cur = el.mojoFxCur || [];
+					
 					
 					if(!cur.length && que.length) {
-						cur = que.shift();
+						cur = el.mojoFxCur = que.shift();
 					}						
 					
 					if(!cur.length && !syn.length) {
@@ -404,7 +422,18 @@
 						len--;
 						i--;
 					} else {
-						this.step(el, cur, syn);
+						if(cur.length) {
+							this.step(el, cur, stepTime, sty);
+						}
+						
+						if(syn.length) {
+							this.step(el, syn, stepTime, sty);
+						}
+						
+						if(sty.length) {
+							el.style.cssText += sty.join("");
+							//document.getElementById("console").innerHTML += que[0][0] + "<br>";
+						}
 					}
 					
 					if(len == 0) {
@@ -413,8 +442,65 @@
 				}					
 			},
 			
-			step : function(el, cur, syn) {
+			step : function(el, prop, stepTime, sty) {
+				var 
+					j    = sty.length,
+					i, len, unit, dur, twn, p, b, c, t,
+					fn, n;
 				
+				for(i = 0, len = prop.length; i < len; i += 8) {
+					p    = prop[i];
+					b    = prop[i + 1];
+					c    = prop[i + 2];
+					unit = prop[i + 3];
+					dur  = prop[i + 4];
+					twn  = prop[i + 5];
+					t    = prop[i + 6] + stepTime;
+					fn   = prop[i + 7];
+					
+					
+					prop[i + 6] = t;
+					
+					//document.getElementById("console").innerHTML += t + "<br>";
+					
+					if(t > dur) {
+						t = dur;
+						prop.splice(i, 8);
+						len -= 8;
+						i   -= 8;
+					}
+					
+				    //非style属性
+					if(unit === "&") {
+						el[p] = twn(t, b, c, dur);
+					
+					//颜色属性
+					} else if(unit === "#") {
+						sty[j++] = p.replace(/[A-Z]/g, "-$&");
+						sty[j++] = ":#";
+											
+						for(n = 0; n < 3; n++) {
+							unit = Math.ceil(twn(t, b[n], c[n], dur)).toString(16); 
+							sty[j++] = unit.length === 1 ? "0" + unit : unit;
+						}
+						
+						sty[j++] = ";"
+					
+					//style属性	
+					} else {
+						//透明属性
+						if(p === "opacity") {
+							this.setStyle(el, p, twn(t, b, c, dur));
+							return;
+						}
+						
+						sty[j++] = p.replace(/[A-Z]/g, "-$&");
+						sty[j++] = ":";
+						sty[j++] = twn(t, b, c, dur);
+						sty[j++] = unit;
+						sty[j++] = ";";						
+					}
+				}	
 			}
 		};
 		
