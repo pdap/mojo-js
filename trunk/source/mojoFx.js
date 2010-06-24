@@ -13,7 +13,7 @@
 		elems,
 		
 		//
-		animArr = [],
+		animEls = [],
 		
 		//动画id
 		tid,
@@ -78,18 +78,17 @@
 
 			/**
 			 * 配置动画参数
-			 * 
+			 * @param info 动画信息
 			 */
 			animTo : function(info) {
 				var args  = arguments, 
-					dur, fn, isQue, twn,
+					dur, fn, twn,
 				    opt, val, len;
 				 
 				opt   = args[1]   || "";
 				
 				dur   = opt.dur   || 400;
 				fn    = opt.fn    || null;
-				isQue = opt.isQue || true;
 				twn   = opt.twn   || "swing";
 				
 				//不定参数形式
@@ -103,9 +102,6 @@
 							case "function":
 								fn = val
 								break;
-							case "boolean":
-								isQue = val;
-								break;
 							case "string":
 								twn = val;
 								break;
@@ -113,9 +109,11 @@
 					}
 				}
 				
-				fxUtil.addElStep(elems, fxUtil.getConfig(info, dur, fn, twn), isQue);
+				fxUtil.addElStep([info, dur, fn, twn]);
 				
-				fxUtil.run();
+				if(!tid) {
+					fxUtil.run();
+				} 
 				
 				return this;
 			}				
@@ -295,149 +293,139 @@
 			},
 			
 			/**
-			 * 计算动画步骤
 			 * 
-			 * @param {Array} els
-			 * @param {Array} cfg
-			 * @param {Boolean} isQue
+			 * @param {Array} arrInfo
 			 */
-			addElStep : function(els, cfg, isQue) {
-				var 
-					len    = els.length,
-					l      = cfg.length,
-					pFloat = parseFloat,
-					isNan  = isNaN,
-					prop,
-					i, el, n, arr,
-					p, b, c;
+			addElStep : function(arrInfo) {
+				var i = 0, el,
+					els = elems,
+					len = els.length;
 				
-				for(i = 0; i < len; i++) {
-					el   = els[i];
-					prop = [];
-					for(n = 0; n < l; n += 8) {
-						//克隆每一条属性信息
-						arr = cfg.slice(n, n + 8);
-						//属性名
-						p   = arr[0];
-						//非颜色属性
-						if(arr[3] !== "#") {
-							//属性为style的属性
-							if(typeof el[p] === "undefined") {
-								//获得当前元素对应属性值
-								b = pFloat(this.getStyle(el, p));
-								if (isNan(b)) {
-									b = 0;
-								}
-							//非style属性	
-							} else {
-								b = el[p];
-								arr[3] = "&";
-							}
-							
-						    //判断符号,设置变化量
-							switch (arr[1]) {
-								case "+=":
-									c = arr[2] * 1;
-									break;
-								case "-=":
-									c = arr[2] * 1 - arr[2] * 2;
-									break;
-								default:
-									c = arr[2] * 1 - b;
-							}
-							
-							arr[1] = b;
-							arr[2] = c;
-												
-						//颜色属性	
-						} else {
-							arr[1] = b = this.colorTen(this.getStyle(el, p));
-							c      = this.colorTen(arr[2]);
-							
-							//计算颜色变化量
-							c[0] -= b[0];
-							c[1] -= b[1];
-							c[2] -= b[2];
-							
-							arr[2] = c;
-						}
-						
-						//属性名,初始值,变化值,单位,时间,动画类型
-						prop = prop.concat(arr);
-					}				
-					
-					if(isQue) {
-						//队列动画
-						el.mojoFxQue ? el.mojoFxQue.push(prop) : el.mojoFxQue = [prop];
-					} else {
-						//同步动画
-						el.mojoFxSyn ? el.mojoFxSyn = el.mojoFxSyn.concat(prop) 
-									 : el.mojoFxSyn = prop;						
-					}
-					
-					if(!el.isAnim) {
-						animArr.push(el);
+				for(; i < len; i++) {
+					el = els[i];
+					el.mojoFxQue ? el.mojoFxQue.push(arrInfo) : el.mojoFxQue = [arrInfo];
+					if(!el.isInAnimEls) {
+						animEls.push(el);
+						el.isInAnimEls = true;
 					}
 				}	
+			},
+			
+			/**
+			 * 计算动画步骤
+			 * 
+			 * @param {HTMLElement} el
+			 * @param {Array} prop
+			 */
+			getElStep: function(el, prop) {
+				var 
+					len    = prop.length,
+					pFloat = parseFloat, 
+					isNan  = isNaN, 
+					prop, n, p, b, c;
+				
+				for (n = 0; n < len; n += 8) {
+					//属性名
+					p = prop[0 + n];
+					//非颜色属性
+					if (prop[3 + n] !== "#") {
+						//属性为style的属性
+						if (typeof el[p] === "undefined") {
+							//获得当前元素对应属性值
+							b = pFloat(this.getStyle(el, p));
+							if (isNan(b)) {
+								b = 0;
+							}
+						//非style属性	
+						} else {
+							b = el[p];
+							prop[3 + n] = "&";
+						}
+						
+						//判断符号,设置变化量
+						switch (prop[1 + n]) {
+							case "+=":
+								c = prop[2 + n] * 1;
+								break;
+							case "-=":
+								c = prop[2 + n] * 1 - prop[2 + n] * 2;
+								break;
+							default:
+								c = prop[2 + n] * 1 - b;
+						}
+						
+						prop[1 + n] = b;
+						prop[2 + n] = c;
+						
+					//颜色属性	
+					} else {
+						prop[1 + n] = b = this.colorTen(this.getStyle(el, p));
+						c = this.colorTen(prop[2 + n]);
+						
+						//计算颜色变化量
+						c[0] -= b[0];
+						c[1] -= b[1];
+						c[2] -= b[2];
+						
+						prop[2 + n] = c;
+					}
+				}
+				
+				return prop;
 			},
 			
 			
 			run : function() {
 				var 
 				    ths   = this,
-					arr   = animArr,
+					arr   = animEls,
 					t     = 0,
 					start = new Date().getTime();	
 				
 				tid = setInterval(function(){
 					var end = new Date().getTime();
-					ths.updateEL(arr, end - start);
+					ths.updateEl(arr, end - start);
 					start = end;
 				}, 13);
 			},
 			
-			updateEL : function(arr, stepTime) {
+			updateEl : function(arr, stepTime) {
 				var 
 					len = arr.length,
-					i   = 0,
 					sty = [],
-					el, fn, syn, que, cur;
+					i   = 0,
+					el, que, cur;
 				
 				for(; i < len; i++) {
 					el = arr[i];
-					el.isAnim = true;
 					
-					syn = el.mojoFxSyn || [];
 					que = el.mojoFxQue;
-					cur = el.mojoFxCur || [];
+					cur = el.mojoFxCurAnim || [];
 					
 					
 					if(!cur.length && que.length) {
-						cur = el.mojoFxCur = que.shift();
+						cur = el.mojoFxCurAnim = this.getElStep(el, 
+												 this.getConfig.apply(this, que.shift()));
 					}						
 					
-					if(!cur.length && !syn.length) {
-						el.isAnim = false;
+					if(!cur.length) {
 						arr.splice(i, 1);
+						el.isInAnimEls = false;
 						len--;
 						i--;
-					} else {
-						if(cur.length) {
-							this.step(el, cur, stepTime, sty);
-						}
 						
-						if(syn.length) {
-							this.step(el, syn, stepTime, sty);
-						}
+					} else {
+						this.step(el, cur, stepTime, sty);
 						
 						if(sty.length) {
-							el.style.cssText += sty.join("");
-							//document.getElementById("console").innerHTML += que[0][0] + "<br>";
+							el.style.cssText += ";" + sty.join("");
+							//document.getElementById("console").innerHTML += el.style.cssText + "<br>";
 						}
 					}
 					
 					if(len == 0) {
 						clearInterval(tid);
+						tid = 0;
 					}
 				}					
 			},
@@ -461,7 +449,7 @@
 					
 					prop[i + 6] = t;
 					
-					//document.getElementById("console").innerHTML += t + "<br>";
+					
 					
 					if(t > dur) {
 						t = dur;
@@ -469,6 +457,8 @@
 						len -= 8;
 						i   -= 8;
 					}
+					
+					//document.getElementById("console").innerHTML += t + "<br>";
 					
 				    //非style属性
 					if(unit === "&") {
