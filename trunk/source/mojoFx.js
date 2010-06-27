@@ -216,6 +216,25 @@
 			},
 			
 			/**
+			 * 
+			 * @param {Array} arrInfo
+			 */
+			addElStep : function(arrInfo) {
+				var i = 0, el,
+					els = elems,
+					len = els.length;
+				
+				for(; i < len; i++) {
+					el = els[i];
+					el.mojoFxQue ? el.mojoFxQue.push(arrInfo) : el.mojoFxQue = [arrInfo];
+					if(!el.isInAnimEls) {
+						animEls.push(el);
+						el.isInAnimEls = true;
+					}
+				}	
+			},
+						
+			/**
 			 * 计算动画信息
 			 * 
 			 * @param {Object} info
@@ -224,11 +243,14 @@
 			 */
 			getConfig : function(info, dur, fn, twn) {
 				var 
-				    //属性名,符号,属性值,单位,动画持续时间,动画类型,当前动画时间,回调函数
+				    //属性名,符号,属性值,单位,动画持续时间,动画类型,当前动画时间
 					cfg = [],
 					i   = 0,
 					p, val;
-
+				
+				cfg.len = 7;
+				cfg.fn  = fn;
+				
 				for(p in info) {
 					//属性名
 					cfg[i]     = p;
@@ -238,12 +260,9 @@
 					cfg[i + 5] = tween[twn];
 					//当前动画时间
 					cfg[i + 6] = 0;
-					//回调函数
-					cfg[i + 7] = fn;
 					
 					val        = info[p];
 					
-
 					if (typeof val === "number") {
 						//符号
 						cfg[i + 1] = "";
@@ -254,15 +273,14 @@
 					} else {
 						//数组形式
 						if (fxUtil.isArray(val)) {
-							if (val.length === 2) {
-								typeof val[1] === "string" ? 
-								       cfg[i + 5] = tween[val[1]] : cfg[i + 4] = val[1];
-								
-							//val.length === 3	
-							} else {
-								cfg[i + 4] = val[1];
-								cfg[i + 5] = tween[val[2]];
-							}
+							typeof val[1] === "string" ? 
+						    cfg[i + 5] = tween[val[1]] : cfg[i + 4] = val[1];			
+							
+							if(val.length === 3) {
+								typeof val[2] === "string" ? 
+						   	    cfg[i + 5] = tween[val[2]] : cfg[i + 4] = val[2];
+							}		
+
 							val = val[0];
 						}
 						
@@ -286,29 +304,10 @@
 						}
 					}
 					
-					i += 8;
+					i += cfg.len;
 				}
-								
+
 				return cfg;	
-			},
-			
-			/**
-			 * 
-			 * @param {Array} arrInfo
-			 */
-			addElStep : function(arrInfo) {
-				var i = 0, el,
-					els = elems,
-					len = els.length;
-				
-				for(; i < len; i++) {
-					el = els[i];
-					el.mojoFxQue ? el.mojoFxQue.push(arrInfo) : el.mojoFxQue = [arrInfo];
-					if(!el.isInAnimEls) {
-						animEls.push(el);
-						el.isInAnimEls = true;
-					}
-				}	
 			},
 			
 			/**
@@ -319,12 +318,13 @@
 			 */
 			getElStep: function(el, prop) {
 				var 
+					l      = prop.len,
 					len    = prop.length,
 					pFloat = parseFloat, 
 					isNan  = isNaN, 
 					prop, n, p, b, c;
 				
-				for (n = 0; n < len; n += 8) {
+				for (n = 0; n < len; n += l) {
 					//属性名
 					p = prop[0 + n];
 					//非颜色属性
@@ -378,30 +378,28 @@
 			run : function() {
 				var 
 				    ths   = this,
-					arr   = animEls,
-					t     = 0,
+					els   = animEls,
 					start = new Date().getTime();	
 				
 				tid = setInterval(function(){
 					var end = new Date().getTime();
-					ths.updateEl(arr, end - start);
+					ths.updateEl(els, end - start);
 					start = end;
 				}, 13);
 			},
 			
-			updateEl : function(arr, stepTime) {
+			updateEl : function(els, stepTime) {
 				var 
-					len = arr.length,
+					len = els.length,
 					sty = [],
 					i   = 0,
 					el, que, cur;
 				
 				for(; i < len; i++) {
-					el = arr[i];
+					el = els[i];
 					
 					que = el.mojoFxQue;
 					cur = el.mojoFxCurAnim || [];
-					
 					
 					if(!cur.length && que.length) {
 						cur = el.mojoFxCurAnim = this.getElStep(el, 
@@ -409,7 +407,7 @@
 					}						
 					
 					if(!cur.length) {
-						arr.splice(i, 1);
+						els.splice(i, 1);
 						el.isInAnimEls = false;
 						len--;
 						i--;
@@ -419,11 +417,16 @@
 						
 						if(sty.length) {
 							el.style.cssText += ";" + sty.join("");
-							//document.getElementById("console").innerHTML += el.style.cssText + "<br>";
+						}
+						
+						if(!cur.length) {
+							if(cur.fn) {
+								cur.fn.call(cur.fn.ths, el);
+							}
 						}
 					}
 					
-					if(len == 0) {
+					if(len === 0) {
 						clearInterval(tid);
 						tid = 0;
 					}
@@ -432,9 +435,10 @@
 			
 			step : function(el, prop, stepTime, sty) {
 				var 
-					j    = sty.length,
-					i, len, unit, dur, twn, p, b, c, t,
-					fn, n;
+					j = sty.length,
+					l = prop.len,
+					i, len, n,
+					p, b, c, unit, dur, twn, t, fn;
 				
 				for(i = 0, len = prop.length; i < len; i += 8) {
 					p    = prop[i];
@@ -442,23 +446,15 @@
 					c    = prop[i + 2];
 					unit = prop[i + 3];
 					dur  = prop[i + 4];
-					twn  = prop[i + 5];
-					t    = prop[i + 6] + stepTime;
-					fn   = prop[i + 7];
-					
-					
-					prop[i + 6] = t;
-					
-					
+					twn  = prop[i + 5]; 
+					t    = prop[i + 6] = prop[i + 6] + stepTime;
 					
 					if(t > dur) {
 						t = dur;
-						prop.splice(i, 8);
-						len -= 8;
-						i   -= 8;
+						prop.splice(i, l);
+						len -= l;
+						i   -= l;
 					}
-					
-					//document.getElementById("console").innerHTML += t + "<br>";
 					
 				    //非style属性
 					if(unit === "&") {
