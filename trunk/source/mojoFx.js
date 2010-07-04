@@ -55,16 +55,16 @@
 			 * on(Array, Object)
 			 */
 			on : function(els, init) {
-				var i, len, el, p;
+				var i, len, p;
 				
 				if(arguments.length === 2) {
 					if(fxUtil.isArray(els)) {
 						for(i = 0, len = els.length; i < len; i++) {
-							el = els[i];
 							for(p in init) {
-								fxUtil.setStyle(el, p, init[p]);
+								fxUtil.setStyle(els[i], p, init[p]);
 							}
 						}
+						
 					} else {
 						for(p in init) {
 							fxUtil.setStyle(els, p, init[p]);
@@ -116,7 +116,7 @@
 								break;
 						}
 					}
-				}
+				} 
 				
 				fxUtil.addElStep([info, dur, fn, twn]);
 				
@@ -124,6 +124,17 @@
 					fxUtil.animStart();
 				} 
 				
+				return this;
+			},
+			
+			/**
+			 * 动画队列延迟
+			 * 
+			 * @param  {Number} t  延迟时间
+			 * @return mojoFx
+			 */
+			delay : function(t) {
+				fxUtil.addElStep(t);
 				return this;
 			}				
 		},
@@ -143,7 +154,7 @@
 			},
 			
 			/**
-			 * 设置style对应属性
+			 * 设置el对应style属性
 			 * 
 			 * @param {HTMLElement} el   HTMLElement元素
 			 * @param {String}      p    style属性名
@@ -159,8 +170,8 @@
 						break;
 					case "opacity":
 						el.filters ? elSty.filter = (el.currentStyle.filter || "")
-							         .replace(/alpha\([^)]*\)/, "") + "alpha(opacity=" + val + ")"
-								   : elSty.opacity = val / 100;
+							         .replace(/alpha\([^)]*\)/, "") + "alpha(opacity=" + val*100 + ")"
+								   : elSty.opacity = val;
 						break;
 					default:
 						elSty[p] = val;
@@ -168,11 +179,11 @@
 			},
 			
 			/**
-			 * 获取style对应属性值
+			 * 获取el当前对应style属性值
 			 * 
 			 * @param  {HTMLElement} el HTMLElement元素
 			 * @param  {String}      p  style属性名
-			 * @return {String}      el元素style的p属性值
+			 * @return {String}      el 元素style的p属性值
 			 */
 			getStyle : function(el, p) {
 				var curElSty =  el.currentStyle || window.getComputedStyle(el, null);
@@ -182,8 +193,8 @@
 						return typeof curElSty.styleFloat === "string" ? 
 						                           curElSty.styleFloat : curElSty.cssFloat;
 					case "opacity":
-						return el.filters ? (el.filters.alpha ? e.filters.alpha.opacity : 100) 
-						                  : curElSty.opacity * 100;
+						return el.filters ? (el.filters.alpha ? el.filters.alpha.opacity : 100) / 100
+						                  : curElSty.opacity;
 					default:
 						return curElSty[p];
 				}				
@@ -193,7 +204,7 @@
 			 * 转换颜色属性为十进制
 			 * 
 			 * @param  {String} color 颜色字符串
-			 * @return {Array}  rgb   rgb十进制颜色值的数组
+			 * @return {Array}  rgb   三色十进制值的数组
 			 */
 			colorTen : function(color) {
 				var rgb, i, 
@@ -229,9 +240,9 @@
 			/**
 			 * 动画信息附加到el元素上
 			 * 
-			 * @param {Array} arrInfo
+			 * @param {Array} cfg
 			 */
-			addElStep : function(arrInfo) {
+			addElStep : function(cfg) {
 				var i = 0, el,
 					els = elems,
 					len = els.length;
@@ -239,162 +250,187 @@
 				for(; i < len; i++) {
 					el = els[i];
 					//el元素是否存在动画队列
-					el.mojoFxQue ? el.mojoFxQue.push(arrInfo) : el.mojoFxQue = [arrInfo];
+					el.mojoFxQue ? el.mojoFxQue.push(cfg) : el.mojoFxQue = [cfg];
 					//el元素是不存在于动画数组中
 					if(!el.isInAnimEls) {
 						animEls.push(el);
 						el.isInAnimEls = true;
 					}
-				}	
-			},
-						
-			/**
-			 * 计算动画信息
-			 * 
-			 * @param {Object} info 动画信息
-			 * @param {Number} dur  动画持续时间
-			 * @param {String} twn  动画缓冲效果
-			 * 
-			 * @return {Array} cfg  动画信息数组
-			 */
-			getConfig : function(info, dur, fn, twn) {
-				var 
-				    //存放属性名,符号,属性值,单位,动画持续时间,动画类型,当前动画时间
-					cfg = [],
-					i   = 0,
-					p, val, len;
-				
-				//存储每个动画属性相关信息的个数
-				cfg.len = len = 7;
-				cfg.fn  = fn;
-				
-				//计算每个动画属性
-				for(p in info) {
-					//属性名
-					cfg[i]     = p;
-					//动画持续时间
-					cfg[i + 4] = dur;
-					//动画类型
-					cfg[i + 5] = tween[twn];
-					//当前动画时间
-					cfg[i + 6] = 0;
-					//属性值
-					val        = info[p];
-					
-					//属性值是数字
-					if (typeof val === "number") {
-						//符号
-						cfg[i + 1] = "";
-						//值
-						cfg[i + 2] = val;
-						//单位
-						cfg[i + 3] = "px";
-						
-					} else {
-						//属性值是数组形式
-						if (fxUtil.isArray(val)) {
-							//数组形式至少需要2个元素,第二个元素是字符就是twn值,是数字就是dur值
-							typeof val[1] === "string" ? 
-						    cfg[i + 5] = tween[val[1]] : cfg[i + 4] = val[1];			
-							
-							//第三个元素同上判断
-							if(val.length === 3) {
-								typeof val[2] === "string" ? 
-						   	    cfg[i + 5] = tween[val[2]] : cfg[i + 4] = val[2];
-							}		
-							
-							val = val[0];
-						}
-						
-						//非颜色属性
-						if (p.toLowerCase().indexOf("color") === -1) {
-							//字符串形式
-							//解析符号单位
-							/(\+=|-=)?(-?\d+)(\D*)/.test(val);
-							//符号
-							cfg[i + 1] = RegExp.$1;
-							//值
-							cfg[i + 2] = RegExp.$2;
-							//单位
-							cfg[i + 3] = RegExp.$3 || "px";
-							
-						//颜色属性							
-						} else {
-							//单位用"#"
-							cfg[i + 3] = "#";
-							cfg[i + 2] = val;
-						}
-					}
-					
-					i += len;
 				}
-
-				return cfg;	
 			},
-			
+						
 			/**
 			 * 计算动画步骤
 			 * 
-			 * @param {HTMLElement} el   HTMLElement元素
-			 * @param {Array}       prop 动画信息数组
+			 * @param {Object} el   HTMLElement元素
+			 * @param {Object} cfg  动画信息对象
 			 */
-			getElStep: function(el, prop) {
+			getElStep : function(el, cfg) {
 				var 
-					l      = prop.len,
-					len    = prop.length,
-					pFloat = parseFloat, 
-					isNan  = isNaN, 
-					n, p, b, c;
+					prop = [],
+					fx, i = 0,
+					info = cfg[0],
+					dur  = cfg[1],
+					fn   = cfg[2],
+					twn  = cfg[3],
+					p, val, fxs;
 				
-				for (n = 0; n < len; n += l) {
-					//属性名
-					p = prop[0 + n];
-					//非颜色属性
-					if (prop[3 + n] !== "#") {
-						//属性为style的属性
-						if (typeof el[p] === "undefined") {
-							//获得当前元素对应属性值
-							b = pFloat(this.getStyle(el, p));
-							if (isNan(b)) {
-								b = 0;
-							}
-						//非style属性	
+				//一组属性动画的回调函数
+				prop.fn  = fn;
+				fxs = cfg.fxs;
+				
+				if (!fxs) {
+					//存放属性名,符号,属性值,单位,动画持续时间,动画类型
+					fxs = [];
+					
+					//计算每个动画属性
+					for (p in info) {
+						//属性名
+						fxs[i]     = p;
+						//动画持续时间
+						fxs[i + 4] = dur;
+						//动画类型
+						fxs[i + 5] = tween[twn];
+						//属性值
+						val = info[p]; 
+						
+						//属性值是数字
+						if (typeof val === "number") {
+							//符号
+							fxs[i + 1] = "";
+							//值
+							fxs[i + 2] = val;
+							//单位
+							fxs[i + 3] = "px";
+							
 						} else {
-							b = el[p];
-							//非style属性单位用"&"
-							prop[3 + n] = "&";
+							//属性值是数组形式
+							if (fxUtil.isArray(val)) {
+								//数组形式至少需要2个元素,第二个元素是字符就是twn值,是数字就是dur值
+								typeof val[1] === "string" ? 
+						    	fxs[i + 5] = tween[val[1]] : fxs[i + 4] = val[1];
+								
+								//第三个元素同上判断
+								if (val.length === 3) {
+									typeof val[2] === "string" ? 
+						   	    	fxs[i + 5] = tween[val[2]] : fxs[i + 4] = val[2];
+								}
+								
+								val = val[0];
+							}
+
+							//非颜色属性
+							if (p.toLowerCase().indexOf("color") === -1) {
+								//字符串形式
+								//解析符号单位
+								/(\+=|-=)?(-?\d+)(\D*)/.test(val);
+								//符号
+								fxs[i + 1] = RegExp.$1;
+								//值
+								fxs[i + 2] = RegExp.$2;
+								//单位
+								fxs[i + 3] = RegExp.$3 || "px";
+								
+							//颜色属性							
+							} else {
+								//单位用"#"
+								fxs[i + 3] = "#";
+								fxs[i + 2] = val;
+							}
 						}
 						
-						//判断符号,设置变化量
-						switch (prop[1 + n]) {
-							case "+=":
-								c = prop[2 + n] * 1;
-								break;
-							case "-=":
-								c = prop[2 + n] * 1 - prop[2 + n] * 2;
-								break;
-							default:
-								c = prop[2 + n] * 1 - b;
-						}
-						
-						prop[1 + n] = b;
-						prop[2 + n] = c;
-						
-					//颜色属性	
-					} else {
-						prop[1 + n] = b = this.colorTen(this.getStyle(el, p));
-						c = this.colorTen(prop[2 + n]);
-						
-						//计算颜色变化量
-						c[0] -= b[0];//red
-						c[1] -= b[1];//green
-						c[2] -= b[2];//blue
-						
-						prop[2 + n] = c;
+						i += 6;
 					}
+					
+					cfg.fxs = fxs;
 				}
 				
-				return prop;
+				for(i = 0, p = fxs.length; i < p; i += 6) {
+					fx = {
+						p    : fxs[i],
+						b    : fxs[i + 1],
+						c    : fxs[i + 2],
+						unit : fxs[i + 3],
+						dur  : fxs[i + 4],
+						twn  : fxs[i + 5],
+						t    : 0
+					};
+					if(this.setBc(el, fx)) {
+						prop.push(fx);
+					}
+				}
+
+				return prop;	
+			},
+			
+			/**
+			 * 设置fx的b,c值
+			 * 
+			 * @param {Object} el  HTMLElement元素
+			 * @param {Object} fx  存放动画步骤对象
+			 * 
+			 * @return b和c的值不同返回true
+			 */
+			setBc : function(el, fx) {
+				var 
+					p      = fx.p,
+					pFloat = parseFloat, 
+					isNan  = isNaN;
+				
+				//非颜色属性
+				if (fx.unit !== "#") {
+					//style属性
+					if (typeof el[p] === "undefined") {
+						//获得当前元素对应属性值
+						b = pFloat(this.getStyle(el, p));
+						if (isNan(b)) {
+							b = 0;
+						}
+						
+					//非style属性
+					} else {
+						b = el[p];
+						//非style属性单位用"&"
+						fx.unit = "&";
+					}
+					
+					//判断符号,设置变化量
+					switch (fx.b) {
+						case "+=":
+							c = fx.c * 1;
+							break;
+						case "-=":
+							c = fx.c * 1 - fx.c * 2;
+							break;
+						default:
+							c = fx.c * 1 - b;
+					}
+					
+					if(c === 0) {
+						return false;
+					}
+					
+					fx.b = b;
+					fx.c = c;
+					
+				//颜色属性
+				} else {
+					fx.b = b = this.colorTen(this.getStyle(el, p));
+					c = this.colorTen(fx.c);
+					
+					//计算颜色变化量
+					c[0] -= b[0];//red
+					c[1] -= b[1];//green
+					c[2] -= b[2];//blue
+					
+					if(c[0] === 0 && c[1] === 0 && c[2] === 0) {
+						return false;
+					}
+					
+					fx.c = c;
+				}
+				
+				return true;
 			},
 			
 			/**
@@ -417,7 +453,7 @@
 			 * 更新el动画属性
 			 * 
 			 * @param {Object} els       执行动画元素
-			 * @param {Object} stepTime  每次更新属性的时间
+			 * @param {Object} stepTime  每次更新属性消耗的时间
 			 */
 			updateEl : function(els, stepTime) {
 				var 
@@ -436,11 +472,23 @@
 					
 					//当前动画属性完成,从队列中取出一个
 					if(!cur.length && que.length) {
-						cur = el.mojoFxCurAnim = this.getElStep(el, 
-												 this.getConfig.apply(this, que.shift()));
+						cur = que.shift();
+						
+						if (typeof cur !== "number") {
+							cur = el.mojoFxCurAnim = this.getElStep(el, cur);
+							
+						//延迟动画
+						} else {
+							cur = el.mojoFxCurAnim = [{
+								dur: cur,
+								t: 0,
+								p: "delay"
+							}];
+						}
+						
 					}						
 					
-					//所有动画属性完成
+					//el所有动画属性完成
 					if(!cur.length) {
 						els.splice(i, 1);
 						el.isInAnimEls = false;
@@ -448,7 +496,7 @@
 						i--;
 						
 					} else {
-						//更新动画属性
+						//计算更新动画属性值
 						this.step(el, cur, stepTime, sty);
 						
 						if(sty.length) {
@@ -475,32 +523,35 @@
 			/**
 			 * 更新动画元素
 			 * 
-			 * @param {Object} el   HTMLElement元素
-			 * @param {Object} prop 动画属性信息数组
+			 * @param {Object} el       HTMLElement元素
+			 * @param {Object} prop     动画属性信息数组
 			 * @param {Object} stepTime 每次执行step的时间差
-			 * @param {Object} sty      更新后的cssText
+			 * @param {Object} sty      填充更新后的cssText值
 			 */
 			step : function(el, prop, stepTime, sty) {
 				var 
-					j = sty.length,
-					l = prop.len,
-					i, len, n,
-					p, b, c, unit, dur, twn, t, fn;
+					i   = 0,
+					j   = sty.length,
+					len = prop.length,
+					n, fx,
+					p, b, c, unit, dur, twn, t;
 				
-				for(i = 0, len = prop.length; i < len; i += l) {
-					p    = prop[i];
-					b    = prop[i + 1];
-					c    = prop[i + 2];
-					unit = prop[i + 3];
-					dur  = prop[i + 4];
-					twn  = prop[i + 5]; 
-					t    = prop[i + 6] = prop[i + 6] + stepTime;
+				for(; i < len; i++) {
+					fx   = prop[i];
+					
+					p    = fx.p;
+					b    = fx.b;
+					c    = fx.c;
+					unit = fx.unit;
+					dur  = fx.dur; 
+					twn  = fx.twn; 
+					t    = fx.t += stepTime;
 					
 					if(t > dur) {
 						t = dur;
-						prop.splice(i, l);
-						len -= l;
-						i   -= l;
+						prop.splice(i, 1);
+						len -= 1;
+						i   -= 1;
 					}
 					
 				    //非style属性
@@ -524,6 +575,11 @@
 						//透明属性
 						if(p === "opacity") {
 							this.setStyle(el, p, twn(t, b, c, dur));
+							return;
+						}
+						
+						//延迟动画
+						if(p === "delay") {
 							return;
 						}
 						
