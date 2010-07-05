@@ -118,7 +118,12 @@
 					}
 				} 
 				
-				fxUtil.addElStep([info, dur, fn, twn]);
+				fxUtil.addElStep({
+					info : info,
+					dur  : dur,
+					fn   : fn,
+					twn  : twn
+				});
 				
 				if(!tid) {
 					fxUtil.animStart();
@@ -269,14 +274,13 @@
 				var 
 					prop = [],
 					fx, i = 0,
-					info = cfg[0],
-					dur  = cfg[1],
-					fn   = cfg[2],
-					twn  = cfg[3],
+					info = cfg.info,
+					dur  = cfg.dur,
+					twn  = cfg.twn,
 					p, val, fxs;
 				
 				//一组属性动画的回调函数
-				prop.fn  = fn;
+				prop.fn  = cfg.fn;
 				fxs = cfg.fxs;
 				
 				if (!fxs) {
