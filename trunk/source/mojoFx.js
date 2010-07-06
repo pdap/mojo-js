@@ -139,7 +139,13 @@
 			 * @return mojoFx
 			 */
 			delay : function(t) {
-				fxUtil.addElStep(t);
+				fxUtil.addElStep({
+					isDelay : true,
+					dur     : t,
+					p   	: "delay",
+					t       : 0
+				});
+				
 				return this;
 			}				
 		},
@@ -462,7 +468,6 @@
 			updateEl : function(els, stepTime) {
 				var 
 					len = els.length,
-					sty = [],
 					i   = 0,
 					el, que, cur;
 				
@@ -477,49 +482,26 @@
 					//当前动画属性完成,从队列中取出一个
 					if(!cur.length && que.length) {
 						cur = que.shift();
-						
-						if (typeof cur !== "number") {
-							cur = el.mojoFxCurAnim = this.getElStep(el, cur);
-							
-						//延迟动画
-						} else {
-							cur = el.mojoFxCurAnim = [{
-								dur: cur,
-								t: 0,
-								p: "delay"
-							}];
-						}
-						
+						cur = el.mojoFxCurAnim = cur.isDelay ? [cur] 
+															 : this.getElStep(el, cur);
 					}						
 					
-					//el所有动画属性完成
-					if(!cur.length) {
+					if(cur.length) {
+						//计算更新动画属性值
+						this.step(el, cur, stepTime);	
+					
+					//el所有动画属性完成						
+					} else {
 						els.splice(i, 1);
 						el.isInAnimEls = false;
 						len--;
-						i--;
+						i--;		
 						
-					} else {
-						//计算更新动画属性值
-						this.step(el, cur, stepTime, sty);
-						
-						if(sty.length) {
-							el.style.cssText += ";" + sty.join("");
-						}
-						
-						//当前动画属性完成
-						if(!cur.length) {
-							if(cur.fn) {
-								//执行回调函数
-								cur.fn.call(el);
-							}
-						}
-					}
-					
-					//动画元素数组执行完成
-					if(len === 0) {
-						clearInterval(tid);
-						tid = 0;
+						//动画元素数组执行完成
+						if (len === 0) {
+							clearInterval(tid);
+							tid = 0;
+						}										
 					}
 				}					
 			},
@@ -530,12 +512,12 @@
 			 * @param {Object} el       HTMLElement元素
 			 * @param {Object} prop     动画属性信息数组
 			 * @param {Object} stepTime 每次执行step的时间差
-			 * @param {Object} sty      填充更新后的cssText值
 			 */
-			step : function(el, prop, stepTime, sty) {
+			step : function(el, prop, stepTime) {
 				var 
 					i   = 0,
-					j   = sty.length,
+					j   = 0,
+					sty = [],
 					len = prop.length,
 					n, fx,
 					p, b, c, unit, dur, twn, t;
@@ -561,9 +543,11 @@
 				    //非style属性
 					if(unit === "&") {
 						el[p] = twn(t, b, c, dur);
+						continue;
+					}
 					
 					//颜色属性
-					} else if(unit === "#") {
+					if(unit === "#") {
 						sty[j++] = p.replace(/[A-Z]/g, "-$&");
 						sty[j++] = ":#";
 											
@@ -579,7 +563,7 @@
 						//透明属性
 						if(p === "opacity") {
 							this.setStyle(el, p, twn(t, b, c, dur));
-							return;
+							continue;
 						}
 						
 						//延迟动画
@@ -594,6 +578,16 @@
 						sty[j++] = ";";						
 					}
 				}	
+				
+				el.style.cssText += ";" + sty.join("");
+				
+				//当前动画属性完成
+				if (!prop.length) {
+					if (prop.fn) {
+						//执行回调函数
+						prop.fn.call(el);
+					}
+				}				
 			}
 		};
 		
