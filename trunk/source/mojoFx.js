@@ -365,11 +365,12 @@
 						twn  : fxs[i + 5],
 						t    : 0
 					};
+					
 					if(this.setBc(el, fx)) {
 						prop.push(fx);
 					}
 				}
-
+				
 				return prop;	
 			},
 			
@@ -480,28 +481,36 @@
 					cur = el.mojoFxCurAnim || [];
 					
 					//当前动画属性完成,从队列中取出一个
-					if(!cur.length && que.length) {
+					while(!cur.length && que.length) {
 						cur = que.shift();
 						cur = el.mojoFxCurAnim = cur.isDelay ? [cur] 
 															 : this.getElStep(el, cur);
 					}						
 					
-					if(cur.length) {
+					if (cur.length) {
 						//计算更新动画属性值
-						this.step(el, cur, stepTime);	
-					
+						this.step(el, cur, stepTime);
+						
+						//当前动画属性完成
+						if (!cur.length) {
+							if (cur.fn) {
+								//执行回调函数
+								cur.fn.call(el);
+							}
+						}
+						
 					//el所有动画属性完成						
 					} else {
 						els.splice(i, 1);
 						el.isInAnimEls = false;
 						len--;
-						i--;		
+						i--;
 						
 						//动画元素数组执行完成
 						if (len === 0) {
 							clearInterval(tid);
 							tid = 0;
-						}										
+						}
 					}
 				}					
 			},
@@ -544,10 +553,9 @@
 					if(unit === "&") {
 						el[p] = twn(t, b, c, dur);
 						continue;
-					}
 					
 					//颜色属性
-					if(unit === "#") {
+					} else if(unit === "#") {
 						sty[j++] = p.replace(/[A-Z]/g, "-$&");
 						sty[j++] = ":#";
 											
@@ -561,33 +569,25 @@
 					//style属性	
 					} else {
 						//透明属性
-						if(p === "opacity") {
+						if (p === "opacity") {
 							this.setStyle(el, p, twn(t, b, c, dur));
 							continue;
-						}
-						
+							
 						//延迟动画
-						if(p === "delay") {
+						} else if (p === "delay") {
 							return;
+							
+						} else {
+							sty[j++] = p.replace(/[A-Z]/g, "-$&");
+							sty[j++] = ":";
+							sty[j++] = twn(t, b, c, dur);
+							sty[j++] = unit;
+							sty[j++] = ";";
 						}
-						
-						sty[j++] = p.replace(/[A-Z]/g, "-$&");
-						sty[j++] = ":";
-						sty[j++] = twn(t, b, c, dur);
-						sty[j++] = unit;
-						sty[j++] = ";";						
 					}
 				}	
 				
 				el.style.cssText += ";" + sty.join("");
-				
-				//当前动画属性完成
-				if (!prop.length) {
-					if (prop.fn) {
-						//执行回调函数
-						prop.fn.call(el);
-					}
-				}				
 			}
 		};
 		
