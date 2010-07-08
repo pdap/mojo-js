@@ -525,7 +525,7 @@
 			step : function(el, prop, stepTime) {
 				var 
 					i   = 0,
-					j   = 0,
+					j   = 2,
 					sty = [],
 					len = prop.length,
 					n, fx,
@@ -587,7 +587,9 @@
 					}
 				}	
 				
-				el.style.cssText += ";" + sty.join("");
+				sty[0] = el.style.cssText;
+				sty[1] = ";";
+				el.style.cssText = sty.join("");
 			}
 		};
 		
