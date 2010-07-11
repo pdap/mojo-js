@@ -6,7 +6,7 @@
  * Nightly Builds
  */
 
-(function(window, undefined){
+(function(window, global, undefined){
 	
 	var 
 		//需要动画的元素
@@ -29,12 +29,14 @@
 			/**
 		 	 * @param {Number} t current time    当前时间
 		 	 * @param {Number} b beginning value 初始值
-		 	 * @param {Number} c change in value 变化量
+		 	 * @param {Number} c change value    变化量
 		     * @param {Number} d duration        持续时间
 		 	 */
 			swing : function(t, b, c, d) {
-				return ((-Math.cos(t / d * Math.PI) / 2) + 0.5) * c + b;
-			}
+				return ((-this.Math.cos(t / d * this.Math.PI) / 2) + 0.5) * c + b;
+			},
+			
+			Math : global.Math
 		},
 		
 		/**
@@ -55,19 +57,23 @@
 			 * on(Array, Object)
 			 */
 			on : function(els, init) {
-				var i, len, p;
+				var 
+					util, setStyle,
+					i, len, p;
 				
-				if(arguments.length === 2) {
-					if(fxUtil.isArray(els)) {
+				if(init) {
+					util = fxUtil;
+					setStyle = util.setStyle;
+					if(util.isArray(els)) {
 						for(i = 0, len = els.length; i < len; i++) {
 							for(p in init) {
-								fxUtil.setStyle(els[i], p, init[p]);
+								setStyle(els[i], p, init[p]);
 							}
 						}
 						
 					} else {
 						for(p in init) {
-							fxUtil.setStyle(els, p, init[p]);
+							setStyle(els, p, init[p]);
 						}
 					}
 				} 
@@ -154,6 +160,18 @@
 		 * 辅助类
 		 */
 		fxUtil = {
+			toString   : global.Object.prototype.toString,
+			parseInt   : global.parseInt,
+			parseFloat : global.parseFloat,
+			isNaN      : global.isNaN,
+			
+			regExp   : {
+				CHAR : /\w/g,
+				NUMS : /\d+/g,
+				PROP_VAL : /(\+=|-=)?(-?\d+)(\D*)/,
+				FILTER_ALPHA : /alpha\([^)]*\)/,
+			},
+			
 			/**
 			 * 判断数组
 			 * 
@@ -161,7 +179,7 @@
 			 * @return {Boolean} true:对象为数组
 			 */
 			isArray : function(obj) {
-				return Object.prototype.toString.call(obj) === "[object Array]";
+				return this.toString.call(obj) === "[object Array]";
 			},
 			
 			/**
@@ -181,7 +199,7 @@
 						break;
 					case "opacity":
 						el.filters ? elSty.filter = (el.currentStyle.filter || "")
-							         .replace(/alpha\([^)]*\)/, "") + "alpha(opacity=" + val*100 + ")"
+							         .replace(this.regExp.FILTER_ALPHA, "") + "alpha(opacity=" + val*100 + ")"
 								   : elSty.opacity = val;
 						break;
 					default:
@@ -219,12 +237,12 @@
 			 */
 			colorTen : function(color) {
 				var rgb, i, 
-					pInt = parseInt;
+					pInt = this.parseInt;
 				
 				if(color.indexOf("#") === 0) {
 					//#000形式
 					if(color.length === 4) {
-						color = color.replace(/\w{3}/, "$&$&");
+						color = color.replace(this.regExp.CHAR, "$&$&");
 					}
 					
 					rgb = [];
@@ -239,7 +257,7 @@
                    if (color === "transparent" || color === "rgba(0, 0, 0, 0)") {
 				   	    color = "rgb(255,255,255)";
 				   }		
-				   rgb = color.match(/\d+/g);
+				   rgb = color.match(this.regExp.NUMS);
 				   for(i = 0; i < 3; i++) {
 				   	 rgb[i] = pInt(rgb[i]);
 				   }		
@@ -254,9 +272,10 @@
 			 * @param {Array} cfg
 			 */
 			addElStep : function(cfg) {
-				var i = 0, el,
+				var i   = 0,
 					els = elems,
-					len = els.length;
+					len = els.length,
+					el;
 				
 				for(; i < len; i++) {
 					el = els[i];
@@ -278,16 +297,17 @@
 			 */
 			getElStep : function(el, cfg) {
 				var 
+					i    = 0,
 					prop = [],
-					fx, i = 0,
+					util = fxUtil,
 					info = cfg.info,
 					dur  = cfg.dur,
 					twn  = cfg.twn,
-					p, val, fxs;
+					p, val, fx, fxs;
 				
 				//一组属性动画的回调函数
 				prop.fn  = cfg.fn;
-				fxs = cfg.fxs;
+				fxs      = cfg.fxs;
 				
 				if (!fxs) {
 					//存放属性名,符号,属性值,单位,动画持续时间,动画类型
@@ -315,7 +335,7 @@
 							
 						} else {
 							//属性值是数组形式
-							if (fxUtil.isArray(val)) {
+							if (util.isArray(val)) {
 								//数组形式至少需要2个元素,第二个元素是字符就是twn值,是数字就是dur值
 								typeof val[1] === "string" ? 
 						    	fxs[i + 5] = tween[val[1]] : fxs[i + 4] = val[1];
@@ -333,7 +353,7 @@
 							if (p.toLowerCase().indexOf("color") === -1) {
 								//字符串形式
 								//解析符号单位
-								/(\+=|-=)?(-?\d+)(\D*)/.test(val);
+								this.regExp.PROP_VAL.test(val);
 								//符号
 								fxs[i + 1] = RegExp.$1;
 								//值
@@ -385,8 +405,8 @@
 			setBc : function(el, fx) {
 				var 
 					p      = fx.p,
-					pFloat = parseFloat, 
-					isNan  = isNaN;
+					pFloat = this.parseFloat, 
+					isNan  = this.isNaN;
 				
 				//非颜色属性
 				if (fx.unit !== "#") {
@@ -434,7 +454,7 @@
 					c[1] -= b[1];//green
 					c[2] -= b[2];//blue
 					
-					if(c[0] === 0 && c[1] === 0 && c[2] === 0) {
+					if(c.join("") === "000") {
 						return false;
 					}
 					
@@ -596,4 +616,8 @@
 		//mojoFx注册到window对象上
 		window.mojoFx = mojoFx;	
 	
-})(window);
+})(window, {Math       : Math,
+			isNaN      : isNaN,
+			parseInt   : parseInt,
+			parseFloat : parseFloat,
+			Object     : Object});
