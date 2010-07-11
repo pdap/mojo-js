@@ -471,10 +471,10 @@
 				var 
 				    ths   = this,
 					els   = animEls,
-					start = new Date().getTime();	
+					start = +new Date();	
 				
 				tid = setInterval(function(){
-					var end = new Date().getTime();
+					var end = +new Date();
 					ths.updateEl(els, end - start);
 					start = end;
 				}, 13);
