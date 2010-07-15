@@ -6,7 +6,7 @@
  * Nightly Builds
  */
 
-(function(window, global, undefined){
+(function(window){ 
 	
 	var 
 		//需要动画的元素
@@ -32,11 +32,9 @@
 		 	 * @param {Number} c change value    变化量
 		     * @param {Number} d duration        持续时间
 		 	 */
-			swing : function(t, b, c, d) {
-				return ((-this.Math.cos(t / d * this.Math.PI) / 2) + 0.5) * c + b;
-			},
-			
-			Math : global.Math
+			swing : function(t, b, c, d) { 
+				return ((-Math.cos(t / d * Math.PI) / 2) + 0.5) * c + b;
+			}
 		},
 		
 		/**
@@ -48,35 +46,10 @@
 			 * 应用动画的元素
 			 * 
 			 * @param {HTMLElement/Array} els  应用动画的元素或元素数组
-			 * @param {Object} (optional) init 元素的初始化信息
 			 * @return mojoFx
 			 * 
-			 * on(HTMLElement)
-			 * on(Array)
-			 * on(HTMLElement, Object)
-			 * on(Array, Object)
 			 */
-			on : function(els, init) {
-				var 
-					util, setStyle,
-					i, len, p;
-				
-				if(init) {
-					util = fxUtil;
-					setStyle = util.setStyle;
-					if(util.isArray(els)) {
-						for(i = 0, len = els.length; i < len; i++) {
-							for(p in init) {
-								setStyle(els[i], p, init[p]);
-							}
-						}
-						
-					} else {
-						for(p in init) {
-							setStyle(els, p, init[p]);
-						}
-					}
-				} 
+			on : function(els) {
 				
 				elems = [].concat(els);
 				
@@ -153,34 +126,17 @@
 				});
 				
 				return this;
+			},
+			
+			stop : function() {
+				
 			}				
 		},
 		
 		/**
-		 * 辅助类
+		 * 辅助对象
 		 */
 		fxUtil = {
-			toString   : global.Object.prototype.toString,
-			parseInt   : global.parseInt,
-			parseFloat : global.parseFloat,
-			isNaN      : global.isNaN,
-			
-			regExp   : {
-				CHAR : /\w/g,
-				NUMS : /\d+/g,
-				PROP_VAL : /(\+=|-=)?(-?\d+)(\D*)/,
-				FILTER_ALPHA : /alpha\([^)]*\)/,
-			},
-			
-			/**
-			 * 判断数组
-			 * 
-			 * @param  {Object}  obj  要判断的对象
-			 * @return {Boolean} true:对象为数组
-			 */
-			isArray : function(obj) {
-				return this.toString.call(obj) === "[object Array]";
-			},
 			
 			/**
 			 * 设置el对应style属性
@@ -189,7 +145,7 @@
 			 * @param {String}      p    style属性名
 			 * @param {Number}      val  style属性值
 			 */
-			setStyle : function(el, p, val) {
+			setElStyle : function(el, p, val) {
 				var elSty = el.style;
 
   				switch (p) {
@@ -199,7 +155,7 @@
 						break;
 					case "opacity":
 						el.filters ? elSty.filter = (el.currentStyle.filter || "")
-							         .replace(this.regExp.FILTER_ALPHA, "") + "alpha(opacity=" + val*100 + ")"
+							         .replace(/alpha\([^)]*\)/, "") + "alpha(opacity=" + val*100 + ")"
 								   : elSty.opacity = val;
 						break;
 					default:
@@ -214,7 +170,7 @@
 			 * @param  {String}      p  style属性名
 			 * @return {String}      el 元素style的p属性值
 			 */
-			getStyle : function(el, p) {
+			getElStyle : function(el, p) {
 				var curElSty =  el.currentStyle || window.getComputedStyle(el, null);
 				
 				switch (p) {
@@ -236,20 +192,20 @@
 			 * @return {Array}  rgb   三色十进制值的数组
 			 */
 			colorTen : function(color) {
-				var rgb, i, 
-					pInt = this.parseInt;
+				var 
+					rgb, i;
 				
 				if(color.indexOf("#") === 0) {
 					//#000形式
 					if(color.length === 4) {
-						color = color.replace(this.regExp.CHAR, "$&$&");
+						color = color.replace(/\w/g, "$&$&");
 					}
 					
 					rgb = [];
 					
 					//#000000形式
 					for (i = 0; i < 3; i++) {
-						rgb[i] = pInt(color.substring(2 * i + 1, 2 * i + 3), 16);
+						rgb[i] = parseInt(color.substring(2 * i + 1, 2 * i + 3), 16);
 					}					
 				
 				//rgb(0,0,0)形式	
@@ -257,9 +213,9 @@
                    if (color === "transparent" || color === "rgba(0, 0, 0, 0)") {
 				   	    color = "rgb(255,255,255)";
 				   }		
-				   rgb = color.match(this.regExp.NUMS);
+				   rgb = color.match(/\d+/g);
 				   for(i = 0; i < 3; i++) {
-				   	 rgb[i] = pInt(rgb[i]);
+				   	 rgb[i] = parseInt(rgb[i]);
 				   }		
 				}
 
@@ -272,7 +228,8 @@
 			 * @param {Array} cfg
 			 */
 			addElStep : function(cfg) {
-				var i   = 0,
+				var 
+					i   = 0,
 					els = elems,
 					len = els.length,
 					el;
@@ -282,9 +239,9 @@
 					//el元素是否存在动画队列
 					el.mojoFxQue ? el.mojoFxQue.push(cfg) : el.mojoFxQue = [cfg];
 					//el元素是不存在于动画数组中
-					if(!el.isInAnimEls) {
+					if(!el.isMojoFxAnim) {
 						animEls.push(el);
-						el.isInAnimEls = true;
+						el.isMojoFxAnim = true;
 					}
 				}
 			},
@@ -299,7 +256,6 @@
 				var 
 					i    = 0,
 					prop = [],
-					util = fxUtil,
 					info = cfg.info,
 					dur  = cfg.dur,
 					twn  = cfg.twn,
@@ -324,49 +280,45 @@
 						//属性值
 						val = info[p]; 
 						
-						//属性值是数字
-						if (typeof val === "number") {
-							//符号
-							fxs[i + 1] = "";
-							//值
-							fxs[i + 2] = val;
-							//单位
-							fxs[i + 3] = "px";
-							
-						} else {
-							//属性值是数组形式
-							if (util.isArray(val)) {
-								//数组形式至少需要2个元素,第二个元素是字符就是twn值,是数字就是dur值
-								typeof val[1] === "string" ? 
-						    	fxs[i + 5] = tween[val[1]] : fxs[i + 4] = val[1];
-								
-								//第三个元素同上判断
-								if (val.length === 3) {
-									typeof val[2] === "string" ? 
-						   	    	fxs[i + 5] = tween[val[2]] : fxs[i + 4] = val[2];
-								}
-								
-								val = val[0];
-							}
-
-							//非颜色属性
-							if (p.toLowerCase().indexOf("color") === -1) {
-								//字符串形式
-								//解析符号单位
-								this.regExp.PROP_VAL.test(val);
+						switch (typeof val) {
+							//属性值是数字
+							case "number":
 								//符号
-								fxs[i + 1] = RegExp.$1;
+								fxs[i + 1] = "";
 								//值
-								fxs[i + 2] = RegExp.$2;
-								//单位
-								fxs[i + 3] = RegExp.$3 || "px";
-								
-							//颜色属性							
-							} else {
-								//单位用"#"
-								fxs[i + 3] = "#";
 								fxs[i + 2] = val;
-							}
+								//单位
+								fxs[i + 3] = "px";
+								break;
+							//属性值是数组形式,是字符就是twn值,是数字就是dur值	
+							case "object":
+								fx = val.length;
+								while (fx !== 1) {
+									fx--;
+									typeof val[fx] === "string" ? 
+									fxs[i + 5] = tween[val[fx]] : fxs[i + 4] = val[fx];
+								}
+								val = val[0];
+							case "string":
+							
+								//非颜色属性
+								if (p.toLowerCase().indexOf("color") === -1) {
+									//字符串形式
+									//解析符号单位
+									/(\+=|-=)?(-?\d+)(\D*)/.test(val);
+									//符号
+									fxs[i + 1] = RegExp.$1;
+									//值
+									fxs[i + 2] = RegExp.$2;
+									//单位
+									fxs[i + 3] = RegExp.$3 || "px";
+									
+								//颜色属性							
+								} else {
+									//单位用"#"
+									fxs[i + 3] = "#";
+									fxs[i + 2] = val;
+								}
 						}
 						
 						i += 6;
@@ -404,17 +356,15 @@
 			 */
 			setBc : function(el, fx) {
 				var 
-					p      = fx.p,
-					pFloat = this.parseFloat, 
-					isNan  = this.isNaN;
+					p = fx.p;
 				
 				//非颜色属性
 				if (fx.unit !== "#") {
 					//style属性
 					if (typeof el[p] === "undefined") {
 						//获得当前元素对应属性值
-						b = pFloat(this.getStyle(el, p));
-						if (isNan(b)) {
+						b = parseFloat(this.getElStyle(el, p));
+						if (isNaN(b)) {
 							b = 0;
 						}
 						
@@ -446,7 +396,7 @@
 					
 				//颜色属性
 				} else {
-					fx.b = b = this.colorTen(this.getStyle(el, p));
+					fx.b = b = this.colorTen(this.getElStyle(el, p));
 					c = this.colorTen(fx.c);
 					
 					//计算颜色变化量
@@ -470,12 +420,12 @@
 			animStart : function() {
 				var 
 				    ths   = this,
-					els   = animEls,
+					aEls  = animEls,
 					start = +new Date();	
 				
 				tid = setInterval(function(){
 					var end = +new Date();
-					ths.updateEl(els, end - start);
+					ths.updateEl(aEls, end - start);
 					start = end;
 				}, 13);
 			},
@@ -483,70 +433,66 @@
 			/**
 			 * 更新el动画属性
 			 * 
-			 * @param {Object} els       执行动画元素
+			 * @param {Object} aEls       执行动画元素
 			 * @param {Object} stepTime  每次更新属性消耗的时间
 			 */
-			updateEl : function(els, stepTime) {
+			updateEl : function(aEls, stepTime) {
 				var 
-					len = els.length,
 					i   = 0,
+					len = aEls.length,
 					el, que, cur;
 				
 				for(; i < len; i++) {
-					el = els[i];
+					el = aEls[i];
 					
 					//el动画队列数组
 					que = el.mojoFxQue;
 					//el当前正在执行的动画属性
-					cur = el.mojoFxCurAnim || [];
+					cur = el.mojoFxCur || [];
 					
 					//当前动画属性完成,从队列中取出一个
-					while(!cur.length && que.length) {
-						cur = que.shift();
-						cur = el.mojoFxCurAnim = cur.isDelay ? [cur] 
-															 : this.getElStep(el, cur);
-					}						
-					
-					if (cur.length) {
-						//计算更新动画属性值
-						this.step(el, cur, stepTime);
+					while(!cur.length) {
+						if (cur.fn) {
+							//执行回调函数
+							cur.fn.call(el);
+						}
 						
-						//当前动画属性完成
-						if (!cur.length) {
-							if (cur.fn) {
-								//执行回调函数
-								cur.fn.call(el);
+						if (cur = que.shift()) {
+							cur = el.mojoFxCur = cur.isDelay ? [cur] : this.getElStep(el, cur);
+						
+						//el所有动画属性完成
+						} else {
+							aEls.splice(i, 1);
+							el.isMojoFxAnim = false;
+							delete el.mojoFxCur;
+							len--;
+							i--;
+							
+							//动画元素数组执行完成
+							if (len === 0) {
+								clearInterval(tid);
+								tid = 0;
 							}
+							
+							return;
 						}
-						
-					//el所有动画属性完成						
-					} else {
-						els.splice(i, 1);
-						el.isInAnimEls = false;
-						len--;
-						i--;
-						
-						//动画元素数组执行完成
-						if (len === 0) {
-							clearInterval(tid);
-							tid = 0;
-						}
-					}
+					}			
+								
+					this.step(el, cur, stepTime);
 				}					
 			},
 			
 			/**
 			 * 更新动画元素
 			 * 
-			 * @param {Object} el       HTMLElement元素
-			 * @param {Object} prop     动画属性信息数组
-			 * @param {Object} stepTime 每次执行step的时间差
+			 * @param {HTMLElement} el    HTMLElement元素
+			 * @param {Array} prop        动画属性信息数组
+			 * @param {Number} stepTime   每次执行step的时间差
 			 */
 			step : function(el, prop, stepTime) {
 				var 
 					i   = 0,
-					j   = 2,
-					sty = [],
+					sty = ";",
 					len = prop.length,
 					n, fx,
 					p, b, c, unit, dur, twn, t;
@@ -565,59 +511,50 @@
 					if(t > dur) {
 						t = dur;
 						prop.splice(i, 1);
-						len -= 1;
-						i   -= 1;
+						len--;
+						i--;
 					}
 					
-				    //非style属性
-					if(unit === "&") {
-						el[p] = twn(t, b, c, dur);
-						continue;
-					
-					//颜色属性
-					} else if(unit === "#") {
-						sty[j++] = p.replace(/[A-Z]/g, "-$&");
-						sty[j++] = ":#";
-											
-						for(n = 0; n < 3; n++) {
-							unit = Math.ceil(twn(t, b[n], c[n], dur)).toString(16); 
-							sty[j++] = unit.length === 1 ? "0" + unit : unit;
-						}
-						
-						sty[j++] = ";"
-					
-					//style属性	
-					} else {
-						//透明属性
-						if (p === "opacity") {
-							this.setStyle(el, p, twn(t, b, c, dur));
+					switch (unit) {
+						//非style属性
+						case "&" :
+							el[p] = twn(t, b, c, dur);
 							continue;
-							
-						//延迟动画
-						} else if (p === "delay") {
-							return;
-							
-						} else {
-							sty[j++] = p.replace(/[A-Z]/g, "-$&");
-							sty[j++] = ":";
-							sty[j++] = twn(t, b, c, dur);
-							sty[j++] = unit;
-							sty[j++] = ";";
-						}
+						//颜色属性	
+						case "#" :
+							sty += p.replace(/[A-Z]/g, "-$&") + ":#";
+											
+							for (n = 0; n < 3; n++) {
+								unit = Math.ceil(twn(t, b[n], c[n], dur)).toString(16);
+								sty += unit.length === 1 ? "0" + unit : unit;
+							}
+						
+							sty += ";"			
+							break;
+						//style属性	
+						default:
+							switch (p) {
+								//透明属性
+								case "opacity":
+									this.setElStyle(el, p, twn(t, b, c, dur));
+									continue;
+								case "delay":
+									return;
+								default:
+									sty += p.replace(/[A-Z]/g, "-$&") +
+									":" +
+									twn(t, b, c, dur) +
+									unit +
+									";";
+							}					
 					}
 				}	
-				
-				sty[0] = el.style.cssText;
-				sty[1] = ";";
-				el.style.cssText = sty.join("");
+
+				el.style.cssText += sty;
 			}
 		};
 		
 		//mojoFx注册到window对象上
 		window.mojoFx = mojoFx;	
 	
-})(window, {Math       : Math,
-			isNaN      : isNaN,
-			parseInt   : parseInt,
-			parseFloat : parseFloat,
-			Object     : Object});
+})(window);
