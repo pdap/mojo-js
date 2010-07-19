@@ -120,8 +120,16 @@
 				return this;
 			},
 			
-			addTween : function() {
+			/**
+			 * 
+			 * @param {Object} twnObj
+			 */
+			addTween : function(twnObj) {
+				var p;
 				
+				for(p in twnObj) {
+					tween[p] = twnObj[p];
+				}	
 				
 				return this;
 			}				
