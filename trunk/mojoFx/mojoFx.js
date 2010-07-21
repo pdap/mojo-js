@@ -60,17 +60,18 @@
 			 */
 			animTo : function(info) {
 				var 
-					args = arguments, 
-					opt  = args[1] || "",
+					opt  = arguments[1] || "",
 					dur  = opt.dur || 400,
 					fn   = opt.fn  || null,
-					twn  = opt.twn || "swing",				
+					twn  = opt.twn || "swing",		
+					ctx  = opt.ctx || null,
+					args = opt.args,
 				    val, len;
 				
 				//不定参数形式
 				if (typeof opt !== "object") {
-					for (opt = 1, len = args.length; opt < len; opt++) {
-						val = args[opt];
+					for (opt = 1, len = arguments.length; opt < len; opt++) {
+						val = arguments[opt];
 						switch (typeof val) {
 							case "number":
 								dur = val;
@@ -81,6 +82,9 @@
 							case "string":
 								twn = val;
 								break;
+							case "object":
+								ctx  = val.ctx;
+								args = val.args;	
 						}
 					}
 				} 
@@ -89,7 +93,9 @@
 					info : info,
 					dur  : dur,
 					fn   : fn,
-					twn  : twn
+					twn  : twn,
+					ctx  : ctx,
+					args : args
 				});
 				
 				if(!tid) {
@@ -117,6 +123,7 @@
 			},
 			
 			/**
+			 * 添加缓冲算法
 			 * 
 			 * @param {Object} twnObj
 			 */
@@ -249,11 +256,12 @@
 			 * 计算动画步骤
 			 * 
 			 * @param {Object} el   HTMLElement元素
-			 * @param {Object} cfg  动画信息对象
+			 * @param {Object} cfg  动画配置对象
 			 */
 			getElStep : function(el, cfg) {
 				var 
 					i    = 0,
+					prop = [],
 					info = cfg.info,
 					dur  = cfg.dur,
 					twn  = cfg.twn,
@@ -322,7 +330,14 @@
 					cfg.fxs = fxs;
 				}
 				
-				return this.setBc(el, fxs, cfg.fn);	
+				//回调函数
+				prop.fn = cfg.fn;
+				//回调函数上下文
+				prop.ctx = cfg.ctx;
+				//回调函数参数
+				prop.args = cfg.args;
+				
+				return this.setBc(el, fxs, prop);	
 			},
 			
 			/**
@@ -330,18 +345,14 @@
 			 * 
 			 * @param  {HTMLElement} el
 			 * @param  {Array}  fxs
-			 * @param  {Function} fn
+			 * @param  {Object} prop
 			 * @return {Array} prop 动画步骤数组
 			 */
-			setBc : function(el, fxs, fn) {
+			setBc : function(el, fxs, prop) {
 				var 
-					i    = 0,
-					prop = [],
-					len  = fxs.length,
+					i   = 0,
+					len = fxs.length,
 					b, c, p, s, unit;
-				
-				//回调函数	
-				prop.fn = fn;
 					
 				for(; i < len; i += 6) {
 					p    = fxs[i];//属性名
@@ -450,7 +461,7 @@
 					while(!cur.length) {
 						if (cur.fn) {
 							//执行回调函数
-							cur.fn.call(el);
+							cur.fn.apply(cur.ctx, [el].concat(cur.args));
 						}
 						
 						if (cur = que.shift()) {
