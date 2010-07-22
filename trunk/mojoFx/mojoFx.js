@@ -58,7 +58,7 @@
 			 * @param  info 动画信息
 			 * @return mojoFx
 			 */
-			animTo : function(info) {
+			anim : function(info) {
 				var 
 					opt  = arguments[1] || "",
 					dur  = opt.dur || 400,
@@ -81,10 +81,6 @@
 								break;
 							case "string":
 								twn = val;
-								break;
-							case "object":
-								ctx  = val.ctx;
-								args = val.args;	
 						}
 					}
 				} 
