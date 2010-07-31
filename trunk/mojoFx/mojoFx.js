@@ -291,11 +291,11 @@
 								break;
 							//属性值是数组形式,是字符就是twn值,是数字就是dur值	
 							case "object":
-								fx = val.length;
-								while (fx !== 1) {
-									fx--;
-									typeof val[fx] === "string" ? 
-									fxs[i + 5] = tween[val[fx]] : fxs[i + 4] = val[fx];
+								dur = val.length;
+								while (dur !== 1) {
+									dur--;
+									typeof val[dur] === "string" ? 
+									fxs[i + 5] = tween[val[dur]] : fxs[i + 4] = val[dur];
 								}
 								val = val[0];
 							case "string":
