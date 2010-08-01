@@ -262,7 +262,7 @@
 					dur  = cfg.dur,
 					twn  = cfg.twn,
 					fxs  = cfg.fxs,
-					p, val;
+					p, val, len;
 				
 				if (!fxs) {
 					//存放属性名,符号,属性值,单位,动画持续时间,动画类型
@@ -291,11 +291,11 @@
 								break;
 							//属性值是数组形式,是字符就是twn值,是数字就是dur值	
 							case "object":
-								dur = val.length;
-								while (dur !== 1) {
-									dur--;
-									typeof val[dur] === "string" ? 
-									fxs[i + 5] = tween[val[dur]] : fxs[i + 4] = val[dur];
+								len = val.length;
+								while (len !== 1) {
+									len--;
+									typeof val[len] === "string" ? 
+									fxs[i + 5] = tween[val[len]] : fxs[i + 4] = val[len];
 								}
 								val = val[0];
 							case "string":
