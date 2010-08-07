@@ -147,18 +147,22 @@
 			 * @param {Number}      val  style属性值
 			 */
 			setElStyle : function(el, p, val) {
-				var elSty = el.style;
+				var 
+					elSty = el.style;
 
   				switch (p) {
 					case "float":
 						typeof elSty.styleFloat === "string" ? 
-						              elSty.styleFloat = val : elSty.cssFloat = val;
+						              elSty.styleFloat = val : 
+									  elSty.cssFloat   = val;
 						break;
+						
 					case "opacity":
 						el.filters ? elSty.filter = (el.currentStyle.filter || "")
-							         .replace(/alpha\([^)]*\)/, "") + "alpha(opacity=" + val*100 + ")"
+							         .replace(/alpha\([^)]*\)/, "") + "alpha(opacity=" + val * 100 + ")"
 								   : elSty.opacity = val;
 						break;
+						
 					default:
 						elSty[p] = val;
 				}				
@@ -172,17 +176,21 @@
 			 * @return {String}      el 元素style的p属性值
 			 */
 			getElStyle : function(el, p) {
-				var curElSty =  el.currentStyle || window.getComputedStyle(el, null);
+				var 
+					curElSty = el.currentStyle || window.getComputedStyle(el, null),
+					elSty    = el.style;
 				
 				switch (p) {
 					case "float":
-						return typeof curElSty.styleFloat === "string" ? 
-						                           curElSty.styleFloat : curElSty.cssFloat;
+						return typeof elSty.styleFloat === "string" ? 
+						    elSty.styleFloat || curElSty.styleFloat : 
+							elSty.cssFloat   || curElSty.cssFloat;
+							
 					case "opacity":
 						return el.filters ? (el.filters.alpha ? el.filters.alpha.opacity : 100) / 100
-						                  : curElSty.opacity;
+						                  :  elSty.opacity || curElSty.opacity;
 					default:
-						return curElSty[p];
+						return elSty[p] || curElSty[p];
 				}				
 			},
 			
@@ -361,10 +369,7 @@
 						//style属性
 						if (typeof el[p] === "undefined") {
 							//获得当前元素对应属性值
-							b = parseFloat(this.getElStyle(el, p));
-							if (isNaN(b)) {
-								b = 0;
-							}
+							(b = this.getElStyle(el, p)) ? b = parseFloat(b) : b = 0;
 							
 						//非style属性
 						} else {
@@ -404,7 +409,7 @@
 					}
 					
 					prop.push({
-						p    : p,
+						p    : p.replace(/[A-Z]/g, "-$&"),
 						b    : b,
 						c    : c,
 						unit : unit,
@@ -528,7 +533,7 @@
 							continue;
 						//颜色属性	
 						case "#" :
-							sty += p.replace(/[A-Z]/g, "-$&") + ":#";
+							sty += p + ":#";
 											
 							for (n = 0; n < 3; n++) {
 								unit = Math.ceil(twn(t, b[n], c[n], dur)).toString(16);
@@ -547,7 +552,7 @@
 								case "delay":
 									return;
 								default:
-									sty += p.replace(/[A-Z]/g, "-$&") +
+									sty += p +
 									":" +
 									twn(t, b, c, dur) +
 									unit +
