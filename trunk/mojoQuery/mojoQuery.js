@@ -10,9 +10,11 @@
 	var 
 		document = window.document,
 		
+		// 标识计数器
+		cacheCount = 0,
+		
 		mojoQuery = {
 			toString : Object.prototype.toString,
-			cacheCount : 0,
 			
 			/**
 			 * 根据选择器和上下文,获得HTMLElement数组
@@ -78,7 +80,7 @@
 					
 					// 每次解析后的HTMLElement数组,作为下一次解析的上下文
 					for (n = 0, m = rules.length; n < m; n++) { 
-						contexts = this.parse(selector[n], contexts, rules[n], params);
+						contexts = joQuery.parse(selector[n], contexts, rules[n], params);
 					}
 				
 					// 连接逗号分隔选择器的结果
@@ -86,12 +88,15 @@
 				}
 				
 				if(j > 1) {
-					this.makeDiff(results);
+					joQuery.makeDiff(results);
 				}
 				
 				return results;
-			},
-			
+			}
+		},
+		
+		// 辅助对象
+		joQuery = {
 		   /**
 		 	* 解析选择器
 		 	* 
@@ -141,9 +146,112 @@
 						pseudos = null;
 					}
 					
-					arr = this.baseRules[rule](tag || "*", cls, contexts, attrs, pseudos, this);
+					arr = this.baseRules[rule](tag || "*", cls, contexts, attrs, pseudos);
 					
 					return arr;
+				}
+			},
+			
+			/**
+			 * 解析属性规则
+			 * 
+			 * @param  {Array} attrs 属性数组
+			 * @return {Array} arr   属性规则数组 
+			 */
+			getAttrRules : function(attrs) {
+				var
+					arr = [],
+					len = attrs.length,
+					i   = 0,
+					j   = 0,
+					attr, rule;
+				
+				for(; i < len; i++) {
+					attr = attrs[i];
+					//规则
+					rule = (attr.match(/=|!=|\^=|\$=|\*=/g) || [" "])[0];
+					//属性名值对
+					attr = attr.split(/=|!=|\^=|\$=|\*=/);					
+					
+					arr[j++] = rule;
+					arr[j++] = attr;					
+				}	
+				
+				return arr;
+			},		
+			
+			/**
+			 * 解析伪类规则
+			 * 
+			 * @param {Array} pseudos
+			 * @param {Array} params
+			 */
+			getPseudoRules : function(pseudos, params) {
+				var 
+					arr = [],
+					i   = 0,
+					j   = 0,
+					len = pseudos.length,
+					name, param, count;
+				
+				for(; i < len; i++) {
+					name = pseudos[i];
+					if(/\((.+)\)/.test(name)) {
+						//伪类参数
+						param = params[RegExp.$1];
+						name  = RegExp["$`"];
+						
+						if(name === "nth-child") { 
+							count = ++cacheCount;
+
+							if(/(-?\d*)n([+-]?\d*)/.test(param === "odd"  && "2n+1" || 
+														 param === "even" && "2n"   || param)) {
+								param = RegExp.$1;
+								param === ""  ? param =  1 :
+								param === "-" ? param = -1 :
+								param = RegExp.$1 * 1;
+								
+								param = [count, "n", param, RegExp.$2 * 1];
+							} else {
+								param = [count, param];
+							} 
+						}
+					}
+					
+					arr[j++] = this.pseudos[name];
+					arr[j++] = param;
+				}	
+
+				return arr;
+			},				
+
+		   /**
+		 	* 去除数组中重复的HTMLElment元素
+		 	* 
+		 	* @param {Array} arr
+		 	*/
+			makeDiff : function(arr){
+				var 
+					count = ++cacheCount,
+					len   = arr.length, 
+					temp  = [], 
+					i     = 0, 
+					j     = 0, 
+					el;
+				
+				for (; i < len; i++) {
+					el = arr[i];
+					if (el.mojoQueryCacheCount !== count) {
+						temp[j++] = el;
+						el.mojoQueryCacheCount = count;
+					}
+				}
+				
+				arr.length = len = 0;
+				
+				for (i = 0; i < j; i++) {
+					el = temp[i];
+					arr[len++] = el;
 				}
 			},
 			
@@ -157,15 +265,14 @@
 			  	* @param {Array}  contexts   上下文数组
 			  	* @param {Array}  attrs      属性数组
 			  	* @param {Array}  pseudos    伪类数组
-			  	* @param {Object} mojoQuery 
 	 			*/				
-				" " : function(tag, cls, contexts, attrs, pseudos, ths) {
+				" " : function(tag, cls, contexts, attrs, pseudos) {
 					var 
-						cacheCount = ++ths.cacheCount,
-						arr  = [],
-						n    = 0,
-						j    = 0,
-						m    = contexts.length,
+						count = ++cacheCount,
+						arr   = [],
+						n     = 0,
+						j     = 0,
+						m     = contexts.length,
 						nodes, len, el, i, pel;			
 					
 					// 按文档顺序排序
@@ -173,11 +280,11 @@
 					
 					for(; n < m; n++) {
 						el  = contexts[n];
-						if((pel = el.parentNode) && pel.mojoQueryCacheCount === cacheCount) {
+						if((pel = el.parentNode) && pel.mojoQueryCacheCount === count) {
 							continue;
 						}
 						
-						el.mojoQueryCacheCount = cacheCount;
+						el.mojoQueryCacheCount = count;
 						
 						nodes = el.getElementsByTagName(tag);	
 						for(i = 0, len = nodes.length; i < len; i++) {
@@ -264,15 +371,14 @@
 			  	* @param {Array}  contexts   上下文数组
 			  	* @param {Array}  attrs      属性数组
 			  	* @param {Array}  pseudos    伪类数组
-			  	* @param {Object} mojoQuery 
 	 			*/					
-				"~" : function(tag, cls, contexts, attrs, pseudos, ths) {
+				"~" : function(tag, cls, contexts, attrs, pseudos) {
 					var 
-						cacheCount = ++ths.cacheCount,
-						arr  = [], 
-						n    = 0,
-						j    = 0,
-						m    = contexts.length,
+						count = ++cacheCount,
+						arr   = [], 
+						n     = 0,
+						j     = 0,
+						m     = contexts.length,
 						el, pel;
 					
 					// 按文档顺序排序
@@ -280,7 +386,7 @@
 					
 					for (; n < m; n++) {
 						el = contexts[n];
-						if ((pel = el.parentNode) && pel.mojoQueryCacheCount === cacheCount) {
+						if ((pel = el.parentNode) && pel.mojoQueryCacheCount === count) {
 							continue;
 						}
 						
@@ -290,20 +396,20 @@
 							}
 						}
 						
-						pel.mojoQueryCacheCount = cacheCount;
+						pel.mojoQueryCacheCount = count;
 					}
 							
 					return arr;											
 				},
 				
 				/**
-				 * 过滤el
+				 * 过滤HTMLElement
 				 * 
 				 * @param {HTMLElement} el
-				 * @param {String} tag
-				 * @param {String} cls
-				 * @param {Array} attrs
-				 * @param {Array} pseudos
+				 * @param {String}      tag
+				 * @param {String}      cls
+				 * @param {Array}       attrs
+				 * @param {Array}       pseudos
 				 */
 				filterEl: function(el, tag, cls, attrs, pseudos){
 					if (tag !== "*" && el.nodeName.toLowerCase() !== tag) {
@@ -439,111 +545,6 @@
 					}
 				})()				
 			},
-
-//*************************************************************************************/	
-
-		   /**
-		 	* 去除数组中重复的HTMLElment元素
-		 	* 
-		 	* @param {Array} arr
-		 	*/
-			makeDiff: function(arr){
-				var 
-					cacheCount = ++this.cacheCount,
-					len        = arr.length, 
-					temp       = [], 
-					i          = 0, 
-					j          = 0, 
-					el;
-				
-				for (; i < len; i++) {
-					el = arr[i];
-					if (el.mojoQueryCacheCount !== cacheCount) {
-						temp[j++] = el;
-						el.mojoQueryCacheCount = cacheCount;
-					}
-				}
-				
-				arr.length = len = 0;
-				
-				for (i = 0; i < j; i++) {
-					el = temp[i];
-					arr[len++] = el;
-				}
-			},
-									
-			/**
-			 * 解析属性过滤规则
-			 * 
-			 * @param  {Array} attrs 属性数组
-			 * @return {Array} arr   属性规则数组 
-			 */
-			getAttrRules : function(attrs) {
-				var
-					arr = [],
-					len = attrs.length,
-					i   = 0,
-					j   = 0,
-					attr, rule;
-				
-				for(; i < len; i++) {
-					attr = attrs[i];
-					//规则
-					rule = (attr.match(/=|!=|\^=|\$=|\*=/g) || [" "])[0];
-					//属性名值对
-					attr = attr.split(/=|!=|\^=|\$=|\*=/);					
-					
-					arr[j++] = rule;
-					arr[j++] = attr;					
-				}	
-				
-				return arr;
-			},
-			
-			/**
-			 * 解析伪类规则
-			 * 
-			 * @param {Array} pseudos
-			 * @param {Array} params
-			 */
-			getPseudoRules : function(pseudos, params) {
-				var 
-					arr = [],
-					i   = 0,
-					j   = 0,
-					len = pseudos.length,
-					name, param, cacheCount;
-				
-				for(; i < len; i++) {
-					name = pseudos[i];
-					if(/\((.+)\)/.test(name)) {
-						//伪类参数
-						param = params[RegExp.$1];
-						name  = RegExp["$`"];
-						
-						if(name === "nth-child") { 
-							cacheCount = ++this.cacheCount;
-
-							if(/(-?\d*)n([+-]?\d*)/.test(param === "odd"  && "2n+1" || 
-														 param === "even" && "2n"   || param)) {
-								param = RegExp.$1;
-								param === ""  ? param =  1 :
-								param === "-" ? param = -1 :
-								param = RegExp.$1 * 1;
-								
-								param = [cacheCount, "n", param, RegExp.$2 * 1];
-							} else {
-								param = [cacheCount, param]
-							} 
-						}
-					}
-					
-					arr[j++] = this.pseudos[name];
-					arr[j++] = param;
-				}	
-
-				return arr;
-			},
 			
 			// 伪类规则
 			pseudos : {
@@ -553,6 +554,7 @@
 							return false; 
 						}
 					}
+					
 					return true;
 				},
 				
@@ -562,6 +564,7 @@
 							return false; 
 						}
 					}
+					
 					return true;					
 				},
 				
@@ -576,25 +579,27 @@
 						}
 						next = next.nextSibling;
 					}	
+					
 					while(pre) {
 						if(pre.nodeType === 1) {
 							return false;
 						}
 						pre = pre.previousSibling;
 					}			
+					
 					return true;		
 				},
 				
 				"nth-child" : function(el, param) {
 					var
-					    pel, index, node, count;
+					    pel, index, node, i;
 					
 					if ((pel = el.parentNode) && pel.mojoQueryCacheCount !== param[0]) { 
 						node = pel.firstChild;
-						count = 0;
+						i = 0;
 						while (node) {
 							if (node.nodeType === 1) {
-								node.mojoQueryNodeIndex = ++count;
+								node.mojoQueryNodeIndex = ++i;
 							}
 							node = node.nextSibling
 						}
@@ -611,8 +616,9 @@
 					
 					return index === param[2];
 				}
-			}			
+			}													
 		};
 		
+		// mojoQuery注册到window
 		window.mojoQuery = mojoQuery;
 })(window);	
