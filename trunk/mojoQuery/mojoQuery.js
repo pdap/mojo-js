@@ -24,8 +24,9 @@
 			 */
 			get : function(selector, context) {
 				var 
-					results = [], 
-					params  = [],
+					results     = [], 
+					attrParams  = [],
+					pseuParams  = [],
 					selectors, contexts, rules,
 					i, j, n, m;
 				
@@ -50,12 +51,16 @@
 									 
 				selectors = selector 
 							// 去除前后空格
-							.replace(/^\s+|\s+$/g, "") 
+							.replace(/^ +| +$/g, "") 
 							// 去除多余空格
 							.replace(/ +([ +>~]) +/g, "$1")
 							// 去除伪类参数
 							.replace(/\([^()]+\)/g, function(match){
-								return "(" + (params.push(match.replace(/[()]/g, "")) - 1) + ")";
+								return "(" + (pseuParams.push(match.replace(/[()]/g, "")) - 1) + ")";
+							})
+							// 去除属性参数
+							.replace(/\[[^\[\]]+\]/g, function(match){
+								return "[" + (attrParams.push(match.replace(/[\[\]]/g, "")) - 1) + "]";
 							})
 							.split(","); 
 				
@@ -80,7 +85,7 @@
 					
 					// 每次解析后的HTMLElement数组,作为下一次解析的上下文
 					for (n = 0, m = rules.length; n < m; n++) { 
-						contexts = joQuery.parse(selector[n], contexts, rules[n], params);
+						contexts = joQuery.parse(selector[n], contexts, rules[n], pseuParams, attrParams);
 					}
 				
 					// 连接逗号分隔选择器的结果
@@ -100,12 +105,13 @@
 		   /**
 		 	* 解析选择器
 		 	* 
-		 	* @param {String} selector  选择器
-		 	* @param {Array}  contexts  上下文
-		 	* @param {String} rule      规则
-		 	* @param {Array}  params    伪类参数
+		 	* @param {String} selector      选择器
+		 	* @param {Array}  contexts      上下文
+		 	* @param {String} rule          规则
+		 	* @param {Array}  pseuParams    伪类参数
+		 	* @param {Array}  attrParams    属性参数
 		 	*/
-			parse: function(selector, contexts, rule, params){
+			parse: function(selector, contexts, rule, pseuParams, attrParams){
 				var 
 					el, tag, cls, arr, attrs, pseudos;
 				
@@ -126,22 +132,21 @@
 					tag = RegExp.$1;
 					
 					// class
-					cls = RegExp.$2;
+					cls = RegExp.$2.replace(".", "");
 					
 					// 伪类和属性选择字符串
-					// IE6,7不支持class属性需要className
-					selector = RegExp["$'"].replace(/class/g, "className");
+					selector = RegExp["$'"];
 					
 					// 获得属性规则数组
 					if(attrs = selector.match(/[^\[]+(?=\])/g)) {
-						attrs = this.getAttrRules(attrs);
+						attrs = this.getAttrRules(attrs, attrParams);
 					}					
 					
 					// 获得伪类规则数组
 					pseudos = selector.split(":");
 					pseudos.shift();
 					if(pseudos.length) {
-						pseudos = this.getPseudoRules(pseudos, params);
+						pseudos = this.getPseudoRules(pseudos, pseuParams);
 					} else {
 						pseudos = null;
 					}
@@ -158,7 +163,7 @@
 			 * @param  {Array} attrs 属性数组
 			 * @return {Array} arr   属性规则数组 
 			 */
-			getAttrRules : function(attrs) {
+			getAttrRules : function(attrs, attrParams) {
 				var
 					arr = [],
 					len = attrs.length,
@@ -166,15 +171,15 @@
 					j   = 0,
 					attr, rule;
 				
-				for(; i < len; i++) {
-					attr = attrs[i];
+				for(; i < len; i++, j += 2) {
+					attr = attrParams[attrs[i]];
 					//规则
-					rule = (attr.match(/=|!=|\^=|\$=|\*=/g) || [" "])[0];
+					rule = attr.match(/=|!=|\^=|\$=|\*=|~=|\|=/) || " ";
 					//属性名值对
-					attr = attr.split(/=|!=|\^=|\$=|\*=/);					
+					attr = attr.split(/=|!=|\^=|\$=|\*=|~=|\|=/);					
 					
-					arr[j++] = rule;
-					arr[j++] = attr;					
+					arr[j] = this.attrs[rule];
+					arr[j + 1] = attr;					
 				}	
 				
 				return arr;
@@ -184,9 +189,9 @@
 			 * 解析伪类规则
 			 * 
 			 * @param {Array} pseudos
-			 * @param {Array} params
+			 * @param {Array} pseuParams
 			 */
-			getPseudoRules : function(pseudos, params) {
+			getPseudoRules : function(pseudos, pseuParams) {
 				var 
 					arr = [],
 					i   = 0,
@@ -194,11 +199,11 @@
 					len = pseudos.length,
 					name, param, count;
 				
-				for(; i < len; i++) {
+				for(; i < len; i++, j += 2) {
 					name = pseudos[i];
-					if(/\((.+)\)/.test(name)) {
+					if(/\((\d+)\)/.test(name)) {
 						//伪类参数
-						param = params[RegExp.$1];
+						param = pseuParams[RegExp.$1];
 						name  = RegExp["$`"];
 						
 						if(name === "nth-child") { 
@@ -209,17 +214,22 @@
 								param = RegExp.$1;
 								param === ""  ? param =  1 :
 								param === "-" ? param = -1 :
-								param = RegExp.$1 * 1;
+								param = param * 1;
 								
 								param = [count, "n", param, RegExp.$2 * 1];
+								
+								// 优化"nth:child(n)"形式
+								if(param[2] === 1 && param[3] === 0) {
+									continue;
+								}
 							} else {
 								param = [count, param];
 							} 
 						}
 					}
 					
-					arr[j++] = this.pseudos[name];
-					arr[j++] = param;
+					arr[j] = this.pseudos[name];
+					arr[j + 1] = param;
 				}	
 
 				return arr;
@@ -274,10 +284,7 @@
 						j     = 0,
 						m     = contexts.length,
 						nodes, len, el, i, pel;			
-					
-					// 按文档顺序排序
-					contexts.sort(this.sortEl);
-					
+						
 					for(; n < m; n++) {
 						el  = contexts[n];
 						if((pel = el.parentNode) && pel.mojoQueryCacheCount === count) {
@@ -289,9 +296,6 @@
 						nodes = el.getElementsByTagName(tag);	
 						for(i = 0, len = nodes.length; i < len; i++) {
 							el = nodes[i];
-							if(tag === "*" && el.nodeType !== 1) {
-								continue;
-							} 
 							if(this.filterEl(el, tag, cls, attrs, pseudos)) {
 								arr[j++] = el;
 							}
@@ -380,10 +384,7 @@
 						j     = 0,
 						m     = contexts.length,
 						el, pel;
-					
-					// 按文档顺序排序
-					contexts.sort(this.sortEl);
-					
+
 					for (; n < m; n++) {
 						el = contexts[n];
 						if ((pel = el.parentNode) && pel.mojoQueryCacheCount === count) {
@@ -463,47 +464,25 @@
 					var 
 						len = attrs.length,
 						i   = 0,
-						attr, rule, val;
+						attr, rule, val, name;
 					
 					for(; i < len; i += 2) {
 						rule = attrs[i];
 						attr = attrs[i + 1];
-						//计算元素的属性值,并转换成字符串
-						val  = String(el[attr[0]] || el.getAttribute(attr[0]) || "");	
+						name = attr[0];
 						
-						switch(rule) {
-							case " ": 
-								if(!val) {
-									return false;
-								}
-								break;
-								
-							case "=":
-								if(val !== attr[1]) {
-									return false;
-								}	
-								break;
-								
-							case "^=":
-								if(!new RegExp("^" + attr[1]).test(val)) {
-									return false;
-								}	
-								break;
-							
-							case "$=":
-								if(!new RegExp(attr[1] + "$").test(val)) {
-									return false;
-								}	
-								break;
-							
-							case "*=":
-								if(val.indexOf(attr[1]) === -1) {
-									return false;
-								}	
-						}									
+						if(!(val = el.getAttribute(name))) {
+							if(!(val = el[name.replace("class", "className")])) {
+								return false;
+							}
+						}
+						
+						if(!rule(String(val), attr[1])) {
+							return false;
+						}							
 					}			
 					
-					return true;		
+					return true;
 				},
 				
 		   		/**
@@ -512,38 +491,55 @@
 		 	     * @param {HTMLElement} el
 		 	     * @param {String}      cls
 		 	     */ 
-			    hasClass: function(el, cls){
+			    hasClass: function(el, cls){ 
 					var 
-						clsName = el.className.replace(/^\s+|\s+$/g, ""),
+						clsName = el.className.replace(/^ +| +$/g, ""),
 						re;
 					
 					if(clsName) {
 						re = new RegExp(clsName.replace(/ +/g, "|"), "gi");
-						if(/^\.+$/.test(cls.replace(re, ""))) {
+						if(!cls.replace(re, "")) {
 							return true;
 						}
 					} 
 					
 					return false;
+				}			
+			},
+			
+			// 属性规则
+			attrs : {
+				" " : function() { 
+					return true;
 				},
-		   		
-				/**
-				 * 按照文档顺序排序el
-				 */
-				sortEl : (function(){
-					if("sourceIndex" in document.documentElement) {
-						return function(a, b) {
-							return a.sourceIndex - b.sourceIndex;
-						};
-					} else {
-						return function(a, b) {
-							if(a === b) {
-								return 0;
-							}
-							return a.compareDocumentPosition(b) & 4 ? -1 : 1;
-						};
-					}
-				})()				
+				
+				"=" : function(attrVal, inputVal) {
+					return attrVal === inputVal;
+				},
+				
+				"!=" : function(attrVal, inputVal) {
+					return attrVal.indexOf(inputVal) === -1;
+				},
+				
+				"^=" : function(attrVal, inputVal) {
+					return new RegExp("^" + inputVal).test(attrVal);
+				},
+				
+				"$=" : function(attrVal, inputVal) {
+					return new RegExp(inputVal + "$").test(attrVal)
+				},
+				
+				"*=" : function(attrVal, inputVal) {
+					return attrVal.indexOf(inputVal) !== -1
+				},
+				
+				"~=" : function(attrVal, inputVal) {
+					return (" " + attrVal + " ").indexOf(" " + inputVal + " ") !== -1;
+				},
+				
+				"|=" : function(attrVal, inputVal) {
+					return new RegExp("^" + inputVal + "-?.*").test(attrVal);
+				}
 			},
 			
 			// 伪类规则
@@ -614,7 +610,7 @@
 						return index * param >= 0 && index % param === 0;
 					}
 					
-					return index === param[2];
+					return index === param[1] * 1;
 				}
 			}													
 		};
