@@ -126,7 +126,7 @@
 					
 				// 复杂情况	
 				} else {
-					arr = selector.match(/([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?:\:.+[^:])*)/);;
+					arr = selector.match(/([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?:\:.+[^:])*)/);
 					
 					// HTML tag
 					tag = arr[1];
@@ -605,7 +605,23 @@
 					}
 					
 					return index === param[1] * 1;
-				}
+				},
+				
+				enabled : function(el) {
+					return !el.disabled;
+				},
+				
+				disabled : function(el) {
+					return el.disabled;
+				},
+				
+				checked : function(el) {
+					return el.checked;
+				},
+				
+				empty : function(el){
+					return !el.firstChild;
+				}				
 			}													
 		};
 		
