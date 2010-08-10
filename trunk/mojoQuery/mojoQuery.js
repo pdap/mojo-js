@@ -10,9 +10,7 @@
 	var 
 		document = window.document,
 		
-		// 标识计数器
-		cacheCount = 0,
-		
+		// 局部作用域的mojoQuery对象
 		mojoQuery = {
 			toString : Object.prototype.toString,
 			
@@ -102,6 +100,9 @@
 		
 		// 辅助对象
 		joQuery = {
+			// HTMLElement对象标识计数器
+			cacheCount : 0,
+			
 		   /**
 		 	* 解析选择器
 		 	* 
@@ -129,7 +130,7 @@
 					arr = selector.match(/([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?:\:.+[^:])*)/);
 					
 					// HTML tag
-					tag = arr[1];
+					tag = arr[1] || "*";
 					
 					// class
 					(cls = arr[2]) && (cls = cls.replace(".", ""));
@@ -145,7 +146,7 @@
 						pseudos = this.getPseudoRules(pseudos, pseuParams);
 					} 
 
-					arr = this.baseRules[rule](tag || "*", cls, contexts, attrs, pseudos);
+					arr = this.baseRules[rule].call(this, tag, cls, contexts, attrs, pseudos);
 					
 					return arr;
 				}
@@ -201,7 +202,7 @@
 						name  = RegExp["$`"];
 						
 						if(name === "nth-child") { 
-							count = ++cacheCount;
+							count = ++this.cacheCount;
 
 							if(/(-?\d*)n([+-]?\d*)/.test(param === "odd"  && "2n+1" || 
 														 param === "even" && "2n"   || param)) {
@@ -227,7 +228,110 @@
 				}	
 
 				return arr;
+			},
+			
+			/**
+			 * 判断el是否符合伪类规则
+			 * 
+			 * @param {HTMLElement} el
+			 * @param {Array}       pseudos
+			 */
+			isPseudo: function(el, pseudos){
+				var 
+					len = pseudos.length, 
+					i   = 0, 
+					pseudo, param;
+				
+				for (; i < len; i++) {
+					pseudo = pseudos[i];
+					param = pseudos[i + 1];
+					
+					return pseudo(el, param);
+				}
+				
+				return true;
+			},	
+			
+			/**
+			 * 判断el是否符合属性规则
+			 * 
+			 * @param {HTMLElement} el
+			 * @param {Array}       attrs
+			 */
+			isAttr: function(el, attrs){
+				var 
+					len = attrs.length, 
+					i = 0, 
+					attr, rule, val, name;
+				
+				for (; i < len; i += 2) {
+					rule = attrs[i];
+					attr = attrs[i + 1];
+					name = attr[0];
+					
+					if (!(val = el.getAttribute(name))) {
+						if (!(val = el[name.replace("class", "className")])) {
+							return false;
+						}
+					}
+					
+					if (!rule(String(val), attr[1])) {
+						return false;
+					}
+				}
+				
+				return true;
+			},	
+			
+			/**
+			 * 过滤el
+			 * 
+			 * @param {HTMLElement} el
+			 * @param {String}      tag
+			 * @param {String}      cls
+			 * @param {Array}       attrs
+			 * @param {Array}       pseudos
+			 */
+			filterEl: function(el, tag, cls, attrs, pseudos){
+				if (tag !== "*" && el.nodeName.toLowerCase() !== tag) {
+					return false;
+				}
+				
+				if (cls && !this.hasClass(el, cls)) {
+					return false;
+				}
+				
+				if (attrs && !this.isAttr(el, attrs)) {
+					return false;
+				}
+				
+				if (pseudos && !this.isPseudo(el, pseudos)) {
+					return false;
+				}
+				
+				return true;
 			},				
+			
+		   	/**
+		 	 * 判断el是否含有class属性值
+		 	 * 
+		 	 * @param {HTMLElement} el
+		 	 * @param {String}      cls
+		 	 */ 
+		    hasClass: function(el, cls){
+				var 
+					clsName = el.className.replace(/^ +| +$/g, ""), 
+					re;
+				
+				if (clsName) {
+					re = new RegExp(clsName.replace(/ +/g, "|"), "gi");
+					if (!cls.replace(re, "")) {
+						return true;
+					}
+				}
+				
+				return false;
+			},										
 
 		   /**
 		 	* 去除数组中重复的HTMLElment元素
@@ -236,7 +340,7 @@
 		 	*/
 			makeDiff : function(arr){
 				var 
-					count = ++cacheCount,
+					count = ++this.cacheCount,
 					len   = arr.length, 
 					temp  = [], 
 					i     = 0, 
@@ -272,7 +376,7 @@
 	 			*/				
 				" " : function(tag, cls, contexts, attrs, pseudos) {
 					var 
-						count = ++cacheCount,
+						count = ++this.cacheCount,
 						arr   = [],
 						n     = 0,
 						j     = 0,
@@ -372,7 +476,7 @@
 	 			*/					
 				"~" : function(tag, cls, contexts, attrs, pseudos) {
 					var 
-						count = ++cacheCount,
+						count = ++this.cacheCount,
 						arr   = [], 
 						n     = 0,
 						j     = 0,
@@ -395,110 +499,7 @@
 					}
 							
 					return arr;											
-				},
-				
-				/**
-				 * 过滤HTMLElement
-				 * 
-				 * @param {HTMLElement} el
-				 * @param {String}      tag
-				 * @param {String}      cls
-				 * @param {Array}       attrs
-				 * @param {Array}       pseudos
-				 */
-				filterEl: function(el, tag, cls, attrs, pseudos){
-					if (tag !== "*" && el.nodeName.toLowerCase() !== tag) {
-						return false;
-					}
-					
-					if (cls && !this.hasClass(el, cls)) {
-						return false;
-					}
-					
-					if (attrs && !this.isAttr(el, attrs)) {
-						return false;
-					}
-					
-					if (pseudos && !this.isPseudo(el, pseudos)) {
-						return false;
-					}
-					
-					return true;
-				},
-				
-				/**
-				 * 判断el是否符合伪类规则
-				 * 
-				 * @param {HTMLElement} el
-				 * @param {Array}       pseudos
-				 */
-				isPseudo : function(el, pseudos) {
-					var
-						len = pseudos.length,
-						i   = 0,
-						pseudo,param;
-
-					for(; i < len; i++) {
-						pseudo = pseudos[i];
-						param  = pseudos[i + 1];
-						
-						return pseudo(el, param);
-					}	
-					
-					return true;
-				},
-				
-				/**
-				 * 判断el是否符合属性规则
-				 * 
-				 * @param {HTMLElement} el
-				 * @param {Array}       attrs
-				 */
-				isAttr : function(el, attrs) {
-					var 
-						len = attrs.length,
-						i   = 0,
-						attr, rule, val, name;
-					
-					for(; i < len; i += 2) {
-						rule = attrs[i];
-						attr = attrs[i + 1];
-						name = attr[0];
-						
-						if(!(val = el.getAttribute(name))) {
-							if(!(val = el[name.replace("class", "className")])) {
-								return false;
-							}
-						}
-						
-						if(!rule(String(val), attr[1])) {
-							return false;
-						}							
-					}			
-					
-					return true;
-				},
-				
-		   		/**
-		 		 * 判断是否含有class属性值
-		 		 * 
-		 	     * @param {HTMLElement} el
-		 	     * @param {String}      cls
-		 	     */ 
-			    hasClass: function(el, cls){ 
-					var 
-						clsName = el.className.replace(/^ +| +$/g, ""),
-						re;
-					
-					if(clsName) {
-						re = new RegExp(clsName.replace(/ +/g, "|"), "gi");
-						if(!cls.replace(re, "")) {
-							return true;
-						}
-					} 
-					
-					return false;
-				}			
+				}
 			},
 			
 			// 属性规则
