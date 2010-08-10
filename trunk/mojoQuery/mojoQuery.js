@@ -55,12 +55,12 @@
 							// 去除多余空格
 							.replace(/ +([ +>~]) +/g, "$1")
 							// 去除伪类参数
-							.replace(/\([^()]+\)/g, function(match){
-								return "(" + (pseuParams.push(match.replace(/[()]/g, "")) - 1) + ")";
+							.replace(/[^(]+(?=\))/g, function(match){
+								return pseuParams.push(match) - 1;
 							})
 							// 去除属性参数
-							.replace(/\[[^\[\]]+\]/g, function(match){
-								return "[" + (attrParams.push(match.replace(/[\[\]]/g, "")) - 1) + "]";
+							.replace(/[^\[]+(?=\])/g, function(match){
+								return attrParams.push(match) - 1;
 							})
 							.split(","); 
 				
@@ -126,31 +126,25 @@
 					
 				// 复杂情况	
 				} else {
-					/([a-zA-Z*]*)([^\[:]*)/.test(selector);
+					arr = selector.match(/([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?:\:.+[^:])*)/);;
 					
 					// HTML tag
-					tag = RegExp.$1;
+					tag = arr[1];
 					
 					// class
-					cls = RegExp.$2.replace(".", "");
-					
-					// 伪类和属性选择字符串
-					selector = RegExp["$'"];
-					
+					(cls = arr[2]) && (cls = cls.replace(".", ""));
+
 					// 获得属性规则数组
-					if(attrs = selector.match(/[^\[]+(?=\])/g)) {
-						attrs = this.getAttrRules(attrs, attrParams);
+					if(attrs = arr[3]) {
+						attrs = this.getAttrRules(attrs.match(/[^\[]+(?=\])/g), attrParams);
 					}					
 					
 					// 获得伪类规则数组
-					pseudos = selector.split(":");
-					pseudos.shift();
-					if(pseudos.length) {
+					if(pseudos = arr[4]) {
+						(pseudos = pseudos.split(":")).shift();
 						pseudos = this.getPseudoRules(pseudos, pseuParams);
-					} else {
-						pseudos = null;
-					}
-					
+					} 
+
 					arr = this.baseRules[rule](tag || "*", cls, contexts, attrs, pseudos);
 					
 					return arr;
@@ -173,9 +167,9 @@
 				
 				for(; i < len; i++, j += 2) {
 					attr = attrParams[attrs[i]];
-					//规则
+					// 规则
 					rule = attr.match(/=|!=|\^=|\$=|\*=|~=|\|=/) || " ";
-					//属性名值对
+					// 属性名值对
 					attr = attr.split(/=|!=|\^=|\$=|\*=|~=|\|=/);					
 					
 					arr[j] = this.attrs[rule];
