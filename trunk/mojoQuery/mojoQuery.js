@@ -10,10 +10,7 @@
 	var 
 		document = window.document,
 		
-		// 局部作用域的mojoQuery对象
 		mojoQuery = {
-			toString : Object.prototype.toString,
-			
 			/**
 			 * 根据选择器和上下文,获得HTMLElement数组
 			 * 
@@ -23,8 +20,6 @@
 			get : function(selector, context) {
 				var 
 					results     = [], 
-					attrParams  = [],
-					pseuParams  = [],
 					selectors, contexts, rules,
 					i, j, n, m;
 				
@@ -38,29 +33,16 @@
 						break;
 						
 					case "object":
-						// HTMLElement形式
-						if (this.toString.call(context) !== "[object Array]") {
-							contexts = [context];
-						} else {
-							// 数组形式
+						// HTMLElement列表形式,包括Array或NodeList
+						if (context.length) {
 							contexts = context;
+						} else {
+							// HTMLElement形式
+							contexts = [context];
 						}
 				}				
 									 
-				selectors = selector 
-							// 去除前后空格
-							.replace(/^ +| +$/g, "") 
-							// 去除多余空格
-							.replace(/ +([ +>~]) +/g, "$1")
-							// 去除伪类参数
-							.replace(/[^(]+(?=\))/g, function(match){
-								return pseuParams.push(match) - 1;
-							})
-							// 去除属性参数
-							.replace(/[^\[]+(?=\])/g, function(match){
-								return attrParams.push(match) - 1;
-							})
-							.split(","); 
+				selectors = joQuery.trim(selector);
 				
 				context = contexts;
 							
@@ -83,7 +65,7 @@
 					
 					// 每次解析后的HTMLElement数组,作为下一次解析的上下文
 					for (n = 0, m = rules.length; n < m; n++) { 
-						contexts = joQuery.parse(selector[n], contexts, rules[n], pseuParams, attrParams);
+						contexts = joQuery.parse(selector[n], contexts, rules[n]);
 					}
 				
 					// 连接逗号分隔选择器的结果
@@ -109,47 +91,87 @@
 		 	* @param {String} selector      选择器
 		 	* @param {Array}  contexts      上下文
 		 	* @param {String} rule          规则
-		 	* @param {Array}  pseuParams    伪类参数
-		 	* @param {Array}  attrParams    属性参数
 		 	*/
-			parse: function(selector, contexts, rule, pseuParams, attrParams){
+			parse: function(selector, contexts, rule){
 				var 
-					el, tag, cls, arr, attrs, pseudos;
+					arr, id;
 				
-				// 处理选择器为id的情况
-				if (/#(.+)/.test(selector)) {
-					el = document.getElementById(RegExp.$1);
-					if (el) {
-						return [el];
+				arr = this.getRules(selector);
+				
+				// 选择器为 id
+				if (id = arr[1]) { 
+					if (id = document.getElementById(id.substring(1))) {
+						return [id];
 					}
 					
 					return [];
-					
-				// 复杂情况	
-				} else {
-					arr = selector.match(/([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?:\:.+[^:])*)/);
-					
-					// HTML tag
-					tag = arr[1] || "*";
-					
-					// class
-					(cls = arr[2]) && (cls = cls.replace(".", ""));
-
-					// 获得属性规则数组
-					if(attrs = arr[3]) {
-						attrs = this.getAttrRules(attrs.match(/[^\[]+(?=\])/g), attrParams);
-					}					
-					
-					// 获得伪类规则数组
-					if(pseudos = arr[4]) {
-						(pseudos = pseudos.split(":")).shift();
-						pseudos = this.getPseudoRules(pseudos, pseuParams);
-					} 
-
-					arr = this.baseRules[rule].call(this, tag, cls, contexts, attrs, pseudos);
-					
-					return arr;
 				}
+				
+				arr = this.baseRules[rule].call(this, contexts, arr[2] || "*", arr[3], arr[4], arr[5]);
+				
+				return arr;
+			},
+			
+			/**
+			 * 预处理选择器
+			 * 
+			 * @param  {String} selector
+			 * @return {String} selectors
+			 */
+			trim: function(selector){
+				var 
+					pseuParams = [],
+					attrParams = [];
+				
+				this.pseuParams = pseuParams;
+				this.attrParams = attrParams;
+				
+				selector = selector
+								// 去除前后空格
+								.replace(/^ +| +$/g, "")	
+						
+								// 去除多余空格
+								.replace(/ +([ +>~]) +/g, "$1")	
+								
+								// 去除属性参数
+								.replace(/[^\[]+(?=\])/g, function(match){
+									return attrParams.push(match) - 1;
+								});
+				
+				// 去除伪类参数
+				while(selector.indexOf("(") !== -1) {
+					selector = selector.replace(/\([^()]+\)/g, function(match){
+						return "-param-" + (pseuParams.push(match.substring(1, match.length - 1)) - 1);
+					});
+				}
+				
+				return selector.split(",");					
+			},
+			
+			/**
+			 * 解析获得分类选择器
+			 * 
+			 * @param  {String} selector
+			 * @return {Array}  rules
+			 */
+			getRules : function(selector) {
+				var	
+					rules, attrs, pseudos; 
+					
+				rules = /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?:\:.+[^:])*)/.exec(selector);
+				
+				// 获得属性规则数组
+				if (attrs = rules[4]) {
+					rules[4] = this.getAttrRules(attrs.match(/[^\[]+(?=\])/g), this.attrParams);
+				}
+				
+				// 获得伪类规则数组
+				if (pseudos = rules[5]) {
+					(pseudos  = pseudos.split(":")).shift();
+					 rules[5] = this.getPseudoRules(pseudos, this.pseuParams);
+				}				
+				
+				return rules;	
 			},
 			
 			/**
@@ -162,6 +184,7 @@
 				var
 					arr = [],
 					len = attrs.length,
+					rex = /=|!=|\^=|\$=|\*=|~=|\|=/,
 					i   = 0,
 					j   = 0,
 					attr, rule;
@@ -169,9 +192,9 @@
 				for(; i < len; i++, j += 2) {
 					attr = attrParams[attrs[i]];
 					// 规则
-					rule = attr.match(/=|!=|\^=|\$=|\*=|~=|\|=/) || " ";
+					rule = attr.match(rex) || " ";
 					// 属性名值对
-					attr = attr.split(/=|!=|\^=|\$=|\*=|~=|\|=/);					
+					attr = attr.split(rex);					
 					
 					arr[j] = this.attrs[rule];
 					arr[j + 1] = attr;					
@@ -196,31 +219,37 @@
 				
 				for(; i < len; i++, j += 2) {
 					name = pseudos[i];
-					if(/\((\d+)\)/.test(name)) {
+					if(/-param-(\d+)/.test(name)) {
 						//伪类参数
 						param = pseuParams[RegExp.$1];
 						name  = RegExp["$`"];
 						
-						if(name === "nth-child") { 
-							count = ++this.cacheCount;
-
-							if(/(-?\d*)n([+-]?\d*)/.test(param === "odd"  && "2n+1" || 
-														 param === "even" && "2n"   || param)) {
-								param = RegExp.$1;
-								param === ""  ? param =  1 :
-								param === "-" ? param = -1 :
-								param = param * 1;
+						switch(name) {
+							case "nth-child":
+								count = ++this.cacheCount;
 								
-								param = [count, "n", param, RegExp.$2 * 1];
+								if (/(-?\d*)n([+-]?\d*)/.test(param === "odd" && "2n+1" ||
+															  param === "even" && "2n"  || param)) {
+									param = RegExp.$1;
+									param === "" ? param = 1 : param === "-" ? param = -1 : param = param * 1;
+									
+									param = [count, "n", param, RegExp.$2 * 1];
+									
+									// 优化"nth:child(n)"形式
+									if (param[2] === 1 && param[3] === 0) {
+										continue;
+									}
+								} else {
+									param = [count, param];
+								}						
 								
-								// 优化"nth:child(n)"形式
-								if(param[2] === 1 && param[3] === 0) {
-									continue;
-								}
-							} else {
-								param = [count, param];
-							} 
+								break;
+								
+						 	case "not" :
+								param = this.getRules(param);
+								param = ["", param[2] || "*", param[3], param[4], param[5]];				
 						}
+
 					}
 					
 					arr[j] = this.pseudos[name];
@@ -320,14 +349,18 @@
 		 	 */ 
 		    hasClass: function(el, cls){
 				var 
-					clsName = el.className.replace(/^ +| +$/g, ""), 
-					re;
+					clsName = el.className, 
+					i, len;
 				
 				if (clsName) {
-					re = new RegExp(clsName.replace(/ +/g, "|"), "gi");
-					if (!cls.replace(re, "")) {
-						return true;
+					cls = cls.split(".");
+					for (i = 1, len = cls.length; i < len; i++) {
+						if (clsName.indexOf(cls[i]) === -1) {
+							return false;
+						}
 					}
+					
+					return true;
 				}
 				
 				return false;
@@ -368,13 +401,13 @@
 			   /**
 	 			* 获得当前规则的HTMLElement数组
 	 			*
+	 			* @param {Array}  contexts   上下文数组
 	 			* @param {String} tag        HTML标签
 	 			* @param {String} cls        class属性
-			  	* @param {Array}  contexts   上下文数组
 			  	* @param {Array}  attrs      属性数组
 			  	* @param {Array}  pseudos    伪类数组
 	 			*/				
-				" " : function(tag, cls, contexts, attrs, pseudos) {
+				" " : function(contexts, tag, cls, attrs, pseudos) {
 					var 
 						count = ++this.cacheCount,
 						arr   = [],
@@ -406,13 +439,13 @@
 			   /**
 	 			* 获得当前规则的HTMLElement数组
 	 			*
-	 			* @param {String} tag       HTML标签
-	 			* @param {String} cls       class属性
-			  	* @param {Array}  contexts  上下文数组
-			  	* @param {Array}  attrs     属性数组
-			  	* @param {Array}  pseudos   伪类数组
+	 			* @param {Array}  contexts   上下文数组
+	 			* @param {String} tag        HTML标签
+	 			* @param {String} cls        class属性
+			  	* @param {Array}  attrs      属性数组
+			  	* @param {Array}  pseudos    伪类数组
 	 			*/				
-				">" : function(tag, cls, contexts, attrs, pseudos) {
+				">" : function(contexts, tag, cls, attrs, pseudos) {
 					var 
 						arr = [], 
 						n   = 0,
@@ -436,13 +469,13 @@
 			   /**
 	 			* 获得当前规则的HTMLElement数组
 	 			*
-	 			* @param {String} tag       HTML标签
-	 			* @param {String} cls       class属性
-			  	* @param {Array}  contexts  上下文数组
-			  	* @param {Array}  attrs     属性数组
-			  	* @param {Array}  pseudos   伪类数组
+	 			* @param {Array}  contexts   上下文数组
+	 			* @param {String} tag        HTML标签
+	 			* @param {String} cls        class属性
+			  	* @param {Array}  attrs      属性数组
+			  	* @param {Array}  pseudos    伪类数组
 	 			*/					
-				"+" : function(tag, cls, contexts, attrs, pseudos) {
+				"+" : function(contexts, tag, cls, attrs, pseudos) {
 					var 
 						arr = [], 
 						n   = 0,
@@ -468,13 +501,13 @@
 			   /**
 	 			* 获得当前规则的HTMLElement数组
 	 			*
+	 			* @param {Array}  contexts   上下文数组
 	 			* @param {String} tag        HTML标签
 	 			* @param {String} cls        class属性
-			  	* @param {Array}  contexts   上下文数组
 			  	* @param {Array}  attrs      属性数组
 			  	* @param {Array}  pseudos    伪类数组
 	 			*/					
-				"~" : function(tag, cls, contexts, attrs, pseudos) {
+				"~" : function(contexts, tag, cls, attrs, pseudos) {
 					var 
 						count = ++this.cacheCount,
 						arr   = [], 
@@ -606,6 +639,11 @@
 					}
 					
 					return index === param[1] * 1;
+				},
+				
+				not : function(el, param) {
+					param[0] = el;
+					return !joQuery.filterEl.apply(joQuery, param);	
 				},
 				
 				enabled : function(el) {
