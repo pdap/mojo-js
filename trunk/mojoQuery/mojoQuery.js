@@ -215,7 +215,7 @@
 					i   = 0,
 					j   = 0,
 					len = pseudos.length,
-					name, param, count;
+					name, param, count, arr;
 				
 				for(; i < len; i++, j += 2) {
 					name = pseudos[i];
@@ -231,7 +231,11 @@
 								if (/(-?\d*)n([+-]?\d*)/.test(param === "odd" && "2n+1" ||
 															  param === "even" && "2n"  || param)) {
 									param = RegExp.$1;
-									param === "" ? param = 1 : param === "-" ? param = -1 : param = param * 1;
+									param === "" ? 
+									param = 1 : 
+									param === "-" ? 
+									param = -1 : 
+									param = param * 1;
 									
 									param = [count, "n", param, RegExp.$2 * 1];
 									
@@ -246,8 +250,12 @@
 								break;
 								
 						 	case "not" :
-								param = this.getRules(param);
-								param = ["", param[2] || "*", param[3], param[4], param[5]];				
+								arr   = param.split(",");
+								param = [];
+								while(arr.length) {
+									count = this.getRules(arr.pop());
+									param.push(["", count[2] || "*", count[3], count[4], count[5]]);
+								}
 						}
 
 					}
@@ -641,9 +649,21 @@
 					return index === param[1] * 1;
 				},
 				
-				not : function(el, param) {
-					param[0] = el;
-					return !joQuery.filterEl.apply(joQuery, param);	
+				not : function(el, params) {
+					var 
+						i   = 0,
+						len = params.length,
+						param;
+						
+					for(; i < len; i++) {
+						param = params[i];
+						param[0] = el;
+						if(joQuery.filterEl.apply(joQuery, param)) {
+							return false;
+						}
+					}	
+					
+					return true;	
 				},
 				
 				enabled : function(el) {
