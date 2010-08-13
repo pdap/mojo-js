@@ -56,7 +56,7 @@
 					// 选择器基本规则分开存放到数组
 					selector = selector.match(/[^ +>~]+/g);
 					
-					// 以基本规则开始的选择器,如: [+div]
+					// 以基本规则开始的选择器,如:[+div]
 					if(rules.length > selector.length) {
 						rules.shift();
 					}
