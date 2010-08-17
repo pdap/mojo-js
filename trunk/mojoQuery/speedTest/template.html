@@ -11,10 +11,19 @@
 	<script type="text/javascript">
 		var params = location.search.replace("?","").split(",");
 		
-		if(params[0]) {
-			document.writeln("<script type='text/javascript' src=frameworks/" + params[0] + "></" + "script>");
+		if(params[0] !== "native") {
+			document.writeln("<script type='text/javascript' src=" + params[0] + "></" + "script>");
+		} else {
+			// 本地方法测试页面
+			document.writeln("<script type='text/javascript'></" + "script>");
 		}
+		
 		window.queryMethod = params[1];
+		
+		if(window.queryMethod !== "document.querySelectorAll") {
+			document.querySelectorAll = null;
+		}
+		
 	</script>	
 	
 	<script type="text/javascript">
@@ -41,7 +50,7 @@
 <body>
 
   <div class="head">
-   <p><a href="http://www.w3.org/"><img height=48 alt=W3C src="http://www.w3.org/Icons/w3c_home" width=72></a>
+   <p><a href="http://www.w3.org/"><img height=48 alt=W3C src="" width=72></a>
 
    <h1 id="title">Selectors</h1>
 
