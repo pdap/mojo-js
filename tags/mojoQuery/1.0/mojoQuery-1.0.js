@@ -1,9 +1,12 @@
 /**
- * Copyright (c) 2009 scott.cgi
+ * mojoQuery JavaScript Library
  * http://mojo-js.appspot.com
- * under MIT License
+ * 
+ * Copyright (c) 2010 scott.cgi
+ * Released under MIT License (http://mojo-js.appspot.com/MIT-License.txt)
+ * 
  * Since  2009-11-11
- * Nightly Builds
+ * Current Release Date: 2010-08-17 23:27 (UTC+08:00)
  */
 (function(window){
 	
@@ -11,6 +14,8 @@
 		document = window.document,
 		
 		mojoQuery = {
+			version : "1.0",
+			
 			/**
 			 * 根据选择器和上下文,获得HTMLElement数组
 			 * 
