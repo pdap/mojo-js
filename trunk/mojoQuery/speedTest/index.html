@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SlickSpeed Selectors Test</title>
+	<title>mojoQuery Selectors Test</title>
 	
 	<link rel="stylesheet" href="css/style.css" type="text/css" media="screen">
 	
@@ -24,7 +24,8 @@
 	</div>
 
 
-	<!-- header --><h1><span>SlickSpeed</span></h1>
+	<!-- header -->
+	<h1><span>SlickSpeed</span></h1>
 	<h2>speed/validity selectors test for frameworks.</h2>
 	<p>
 		Every framework runs in his own iFrame, thus no conflicts can happen. Tests are run selector by selector, with an interval to prevent the browser from freeezing.
@@ -37,59 +38,23 @@
 	</p>
 	<!-- header end -->
 
-	<!--
-	test framework add in frameworks.js
-	template.html?[fileName],[css query method]
-	-->
-	<script type="text/javascript">
-		for(var i = 0; i < frameworks.length; i++) {
-			document.writeln("<iframe name='" + frameworks[i][0] + "' src='template.html?" + frameworks[i][1] + "," + frameworks[i][2] + "'></iframe>");
-		}
-	</script>
-<table>
 
-<thead id="thead">
-	<tr>
-		<th class="selectors-title">
-			selectors
-		</th>
-		<script type="text/javascript">
-			for (var i = 0; i < frameworks.length; i++) {
-				document.writeln("<th class='framework'>" + frameworks[i][0] + "</th>");
-			}
-		</script>
-	</tr>
-</thead>		
+<div style="text-align:center;margin:10px">
+	<p>
+		Selector Type : 
+		<select onchange="selectorTypeChange(this)">
+			<option selected="selected" value="baseSelectors">base selector</option>
+			<option value="attrSelectors">attribute selector</option>
+			<option value="pseuSelectors">pseudo selector</option>
+			<option value="allSelector">all selector</option>
+		</select>
+	</p>
+</div>
+		
 
-<tbody id="tbody">
-	<script type="text/javascript">
-		var selector, tds = "";
-		for (var n = 0, m = frameworks.length; n < m; n++) {
-			tds += "<td class='empty'></td>";
-		}
-		for (var i = 0, len = selectors.length; i < len; i++) {
-			selector = selectors[i];
-			document.writeln("<tr><th class='selector'>" + selector + "</th>" + tds + "</tr>");
-		}
-	</script>
-</tbody>
- 
-<tfoot id="tfoot">
-	<tr>
-		<th class="score-title">
-			<strong>final time (less is better)</strong>
-		</th>
-		<script type="text/javascript">
-			var selector, tds = "";
-			for (var n = 0, m = frameworks.length; n < m; n++) {
-				tds += "<td class='score'>0</td>";
-			}
-			document.writeln(tds);
-		</script>
-	</tr>
-</tfoot>
-
-</table>
+<div id="tableDiv">
+	
+</div>
 
 <h2>Legend</h2>
 
@@ -120,4 +85,59 @@
 
 </div>
 </body>
+
+
+	<!--
+	test framework add in frameworks.js
+	template.html?[fileName],[css query method]
+	-->
+	<script type="text/javascript">
+		var 
+			tableDiv = document.getElementById("tableDiv"),
+			ths   = "", tds = "", trs = "",
+			table = "<table>",
+			tbody = "<tbody id='tbody'>",
+			thead = "<thead id='thead'><tr><th class='selectors-title'>selectors</th>",
+			tfoot = "<tfoot id='tfoot'><tr><th class='score-title'><strong>final time (less is better)</strong></th>";
+		
+		// 构建head,foot,iframe	
+		for (var i = 0, len = frameworks.length; i < len; i++) {
+			thead += "<th class='framework'>" + frameworks[i][0] + "</th>";
+			tds   += "<td class='empty'></td>";
+			tfoot += "<td class='score'>0</td>";
+			
+			document.writeln("<iframe name='" + frameworks[i][0] + "' src='template.html?" + frameworks[i][1] + "," + frameworks[i][2] + "'></iframe>");
+		}	
+		thead += "</tr></tfoot>";
+		tfoot += "</tr></tfoot>";
+		
+		// 构建body
+		for (var i = 0, len = selectors.length; i < len; i++) {
+			trs += "<tr><th class='selector'>" + selectors[i] + "</th>" + tds + "</tr>";
+		}		
+		
+		var 
+			table_thead_tbody = table + thead + tbody,
+			tbody_tfoot_table = "</body>" + tfoot + "</table>";
+		
+		tableDiv.innerHTML = table_thead_tbody + trs + tbody_tfoot_table;
+		
+		// 切换选择器
+		function selectorTypeChange(ths) {
+			var arr = window[ths.value];
+			if (!arr.cacheSelectors) {
+				var trs = "";
+				for (var i = 0, len = arr.length; i < len; i++) {
+					trs += "<tr><th class='selector'>" + arr[i] + "</th>" + tds + "</tr>";
+				}
+				arr.cacheSelectors = trs;
+			}
+			tableDiv.innerHTML = table_thead_tbody + arr.cacheSelectors + tbody_tfoot_table;
+			// 需要测试的选择器
+			window.selectors = arr;
+			// 初始化test数据
+			window.onload();
+		}
+	</script>
+
 </html>

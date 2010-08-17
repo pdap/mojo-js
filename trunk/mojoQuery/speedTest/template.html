@@ -27,11 +27,18 @@
 		var get_length = function(elements){
 			return (typeof elements.length == 'function') ? elements.length() : elements.length;
 		}
-
+		
 		function test(selector){ 
+			// 带有上下文 的选择器
+			if(typeof selector !== "string") {
+				selector = "('" + selector[0] + "','" + selector[1] + "')";
+			} else {
+				selector = "('" + selector + "')";
+			}
+		
 			try {
 				var start = new Date().getTime();
-				var elements = eval(window.queryMethod + "('" + selector + "')");
+				var elements = eval(window.queryMethod + selector);
 				var end = new Date().getTime() - start;
 				
 				return {'time': Math.round(end), 'found': get_length(elements)};

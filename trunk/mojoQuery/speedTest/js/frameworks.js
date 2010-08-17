@@ -4,10 +4,14 @@
 window.frameworks = [
 //[iframe name, file name, css query method]
 
-["mojoCss", "mojoCss.js", "mojoCss.get"],
+["mojoQuery-1.0", "frameworks/mojoQuery.js", "mojoQuery.get"],
 
-["jquery", "jquery-1.4.2.js", "$"],
+["jquery-1.4.2", "http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js", "$"],
 
-["native", "", "document.querySelectorAll"]
+["Ext-core-3.1.0", "http://ajax.googleapis.com/ajax/libs/ext-core/3.1.0/ext-core.js", "Ext.query"],
+
+["MooTools-1.2.4", "http://ajax.googleapis.com/ajax/libs/mootools/1.2.4/mootools-yui-compressed.js", "$$"],
+
+["native", "native", "document.querySelectorAll"]
 
 ];

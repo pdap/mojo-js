@@ -1,81 +1,131 @@
-window.selectors = [
-			'body', 
+
+window.baseSelectors = [
+
+'html',
+
+'body', 
+
+'body div',
+		
+'div', 
 			
-			'div', 
+'div p', 
 			
-			'body div', 
+'div a',
 			
-			'div p', 
+'div div',
 			
-			'div > p', 
+'div ~ div ~ p',
 			
-			'div + p', 
+'div > p', 
 			
-			'div ~ p', 
+'div + p', 
 			
-			'div[class^=exa][class$=mple]', 
+'div ~ p', 
 			
-			'div p a', 
+'div p a', 
+
+'div, p, a',
+
+'div, div, div',
+		
+'.note', 
 			
-			'div, p, a', 
+'div.example', 
 			
-			'.note', 
+'ul .tocline2', 
 			
-			'div.example', 
+'div.example, div.note', 
+
+'div.example.note',
+
+'#title', 
 			
-			'ul .tocline2', 
+'div #title', 
 			
-			'div.example, div.note', 
+'ul.toc li.tocline2', 
 			
-			'#title', 
-			
-			'h1#title', 
-			
-			'div #title', 
-			
-			'ul.toc li.tocline2', 
-			
-			'ul.toc > li.tocline2', 
-			
-			'h1#title + div > p', 
-			
-			'h1[id]:contains(Selectors)', 
-			
-			'a[href][lang][class]', 
-			
-			'div[class]', 
-			
-			'div[class=example]', 
-			
-			'div[class^=exa]', 
-			
-			'div[class$=mple]', 
-			
-			'div[class*=e]', 
-			
-			'div[class|=dialog]', 
-			
-			'div[class!=made_up]', 
-			
-			'div[class~=example]', 
-			
-			'div:not(.example)', 
-			
-			'p:contains(selectors)', 
-			
-			'p:nth-child(even)', 
-			
-			'p:nth-child(2n)', 
-			
-			'p:nth-child(odd)', 
-			
-			'p:nth-child(2n+1)', 
-			
-			'p:nth-child(n)', 
-			
-			'p:only-child', 
-			
-			'p:last-child', 
-			
-			'p:first-child'
+'ul.toc > li.tocline2'
+
 ];
+
+window.attrSelectors = [
+
+'a[href][lang][class]', 
+			
+'div[class]', 
+			
+'div[class=example]', 
+			
+'div[class^=exa]', 
+			
+'div[class$=mple]', 
+			
+'div[class*=e]', 
+			
+'div[class|=dialog]', 
+			
+'div[class!=made_up]',
+			
+'div[class^=exa][class$=mple]',
+			
+'div[class~=example]'
+
+];
+
+window.pseuSelectors = [
+
+'div:not(.example)', 
+			
+'div:not(:nth-child(odd))',
+			
+'div:not(a,p)',
+
+'div:not([class])',
+			
+'div:not(:not(.example))',
+			
+'div:not(:not(:not(.example)))',
+			
+':empty',
+			
+'p:nth-child(even)', 
+			
+'p:nth-child(n-4)',
+			
+//'p:nth-child(-2n+2)',
+			
+'p:nth-child(-n+6)',
+			
+'p:nth-child(3n+2)',
+			
+'p:nth-child(3n)',
+			
+'p:nth-child(2n)', 
+			
+'p:nth-child(odd)', 
+			
+'p:nth-child(2n+1)', 
+			
+'p:nth-child(n)', 
+			
+'p:nth-child(5)',
+			
+'p:only-child', 
+			
+'p:last-child', 
+
+'p:first-child'
+
+];
+
+window.contextSelector = [
+
+['div', 'div']
+
+];
+
+window.allSelector = baseSelectors.concat(attrSelectors).concat(pseuSelectors);
+
+// 页面第一次加载的选择器
+window.selectors = baseSelectors;
