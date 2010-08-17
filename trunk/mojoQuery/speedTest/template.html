@@ -12,6 +12,7 @@
 		var params = location.search.replace("?","").split(",");
 		
 		if(params[0] !== "native") {
+			document.querySelectorAll = null;
 			document.writeln("<script type='text/javascript' src=" + params[0] + "></" + "script>");
 		} else {
 			// 本地方法测试页面
@@ -19,10 +20,6 @@
 		}
 		
 		window.queryMethod = params[1];
-		
-		if(window.queryMethod !== "document.querySelectorAll") {
-			document.querySelectorAll = null;
-		}
 		
 	</script>	
 	
