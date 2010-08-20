@@ -11,6 +11,8 @@
 		document = window.document,
 		
 		mojoQuery = {
+			version : "1.0",
+			
 			/**
 			 * 根据选择器和上下文,获得HTMLElement数组
 			 * 
