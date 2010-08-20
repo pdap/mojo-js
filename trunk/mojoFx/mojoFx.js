@@ -9,63 +9,42 @@
 (function(window){ 
 	
 	var 
-		//需要动画的元素
-		elems,
+		document = window.document,
 		
-		//执行动画元素
-		animEls = [],
-		
-		//动画id
-		tid,
-
-	    /**
- 	 	 * 动画缓冲算法
-	     */
-	    tween = {
-			/**
-		 	 * @param {Number} t current time    当前时间
-		 	 * @param {Number} b beginning value 初始值
-		 	 * @param {Number} c change value    变化量
-		     * @param {Number} d duration        持续时间
-		 	 */
-			swing : function(t, b, c, d) { 
-				return ((-Math.cos(t / d * Math.PI) / 2) + 0.5) * c + b;
-			}
-		},
-		
-		/**
-		 * 动画功能实现类
-		 */
+		// 动画功能接口
 		mojoFx = {
 			
 			/**
-			 * 应用动画的元素
+			 * 添加动画的元素
 			 * 
-			 * @param {HTMLElement/Array} els  应用动画的元素或元素数组
-			 * @return mojoFx
+			 * @param  {HTMLElement/Array/NodeList} arg  应用动画的元素或元素数组
+			 * @return {Object}                     mojoFx
 			 * 
 			 */
-			on : function(els) {
-				
-				elems = [].concat(els);
-				
+			set : function(arg) {
+				joFx.elems = arg.length ? arg : [arg];
 				return this;
 			},
 
 			/**
-			 * 配置动画参数
+			 * 执行动画
 			 * 
-			 * @param  info 动画信息
-			 * @return mojoFx
+			 * @param  {Object} info 动画配置信息
+			 * @return {Object} mojoFx
 			 */
 			anim : function(info) {
 				var 
-					opt  = arguments[1] || "",
-					dur  = opt.dur || 400,
-					fn   = opt.fn  || null,
-					twn  = opt.twn || "swing",		
-					ctx  = opt.ctx || null,
-					args = opt.args,
+					opt      = arguments[1] || "",
+					// 动画时间
+					dur      = opt.dur || 400,
+					// 动画完成回调函数
+					complete = opt.complete  || null,
+					// 动画缓冲效果
+					easing   = opt.easing || "swing",		
+					// 回调函数上下文
+					ctx      = opt.ctx || null,
+					// 回调函数参数
+					args     = opt.args,
 				    val, len;
 				
 				//不定参数形式
@@ -77,38 +56,39 @@
 								dur = val;
 								break;
 							case "function":
-								fn = val
+								complete = val
 								break;
 							case "string":
-								twn = val;
+								easing = val;
 						}
 					}
 				} 
 				
-				fxUtil.addElStep({
-					info : info,
-					dur  : dur,
-					fn   : fn,
-					twn  : twn,
-					ctx  : ctx,
-					args : args
+				// 动画配置对象绑定到HTMLElement上
+				joFx.addElStep({
+					complete : complete,
+					easing   : easing,
+					info     : info,
+					args     : args,
+					dur      : dur,
+					ctx      : ctx
 				});
 				
-				if(!tid) {
-					fxUtil.animStart();
+				if(!joFx.tid) {
+					joFx.animStart();
 				} 
 				
-				return this;
+				return this;				
 			},
 			
 			/**
 			 * 动画队列延迟
 			 * 
 			 * @param  {Number} t  延迟时间
-			 * @return mojoFx
+			 * @return {Object} mojoFx
 			 */
 			delay : function(t) {
-				fxUtil.addElStep({
+				joFx.addElStep({
 					isDelay : true,
 					dur     : t,
 					p   	: "delay",
@@ -121,28 +101,51 @@
 			/**
 			 * 添加缓冲算法
 			 * 
-			 * @param {Object} twnObj
+			 * @param  {Object} tween
+			 * @return {Object} mojoFx
 			 */
-			addTween : function(twnObj) {
-				var p;
+			addTween : function(tween) {
+				var 
+					twn = joFx.tween,
+					p;
 				
-				for(p in twnObj) {
-					tween[p] = twnObj[p];
+				for(p in tween) {
+					twn[p] = tween[p];
 				}	
 				
 				return this;
 			}				
 		},
 		
-		/**
-		 * 辅助对象
-		 */
-		fxUtil = {
+		// 动画辅助对象
+		joFx = {
+			
+			// 动画缓冲算法
+			tween : {
+			   /**
+		 	    * @param {Number} t current time    当前时间
+		 	    * @param {Number} b beginning value 初始值
+		 	    * @param {Number} c change value    变化量
+		        * @param {Number} d duration        持续时间
+		 	    */
+				swing : function(t, b, c, d){
+					return ((-Math.cos(t / d * Math.PI) / 2) + 0.5) * c + b;
+				}				
+			},
+			
+			// 动画时钟句柄
+			tid : 0,
+			
+			// 需要动画的元素数组
+			elems : null,
+			
+			// 正在动画元素数组
+			animEls : [],
 			
 			/**
 			 * 设置el对应style属性
 			 * 
-			 * @param {HTMLElement} el   HTMLElement元素
+			 * @param {HTMLElement} el   
 			 * @param {String}      p    style属性名
 			 * @param {Number}      val  style属性值
 			 */
@@ -152,9 +155,8 @@
 
   				switch (p) {
 					case "float":
-						typeof elSty.styleFloat === "string" ? 
-						              elSty.styleFloat = val : 
-									  elSty.cssFloat   = val;
+						typeof elSty.styleFloat === "string" ? elSty.styleFloat = val 
+															 : elSty.cssFloat   = val;
 						break;
 						
 					case "opacity":
@@ -171,11 +173,10 @@
 			/**
 			 * 获取el当前对应style属性值
 			 * 
-			 * @param  {HTMLElement} el HTMLElement元素
+			 * @param  {HTMLElement} el 
 			 * @param  {String}      p  style属性名
-			 * @return {String}      el 元素style的p属性值
 			 */
-			getElStyle : function(el, p) {
+			getElStyle : function(el, p) { 
 				var 
 					curElSty = el.currentStyle || window.getComputedStyle(el, null),
 					elSty    = el.style;
@@ -195,12 +196,12 @@
 			},
 			
 			/**
-			 * 转换颜色属性为十进制
+			 * 转换颜色属性值为十进制
 			 * 
 			 * @param  {String} color 颜色字符串
 			 * @return {Array}  rgb   三色十进制值的数组
 			 */
-			colorTen : function(color) {
+			getColorTen : function(color) {
 				var 
 					rgb, i;
 				
@@ -218,10 +219,11 @@
 					}					
 				
 				//rgb(0,0,0)形式	
-				} else {
-                   if (color === "transparent" || color === "rgba(0, 0, 0, 0)") {
-				   	    color = "rgb(255,255,255)";
-				   }		
+				} else {	
+				   // 元素透明,没有颜色
+				   if(color === "transparent" || color === "rgba(0, 0, 0, 0)") {
+				   		color = "rgb(255,255,255)";			
+				   }
 				   rgb = color.match(/\d+/g);
 				   for(i = 0; i < 3; i++) {
 				   	 rgb[i] = parseInt(rgb[i]);
@@ -232,99 +234,101 @@
 			},
 			
 			/**
-			 * 动画信息附加到el元素上
+			 * 动画配置对象绑定到el上
 			 * 
-			 * @param {Object} cfg
+			 * @param {Array} cfg 动画配置信息数组
 			 */
 			addElStep : function(cfg) {
 				var 
-					i    = 0,
-					els  = elems,
-					aEls = animEls,
+					els  = this.elems,
+					aEls = this.animEls,
 					len  = els.length,
+					i    = 0,
 					el;
-				
+					
 				for(; i < len; i++) {
 					el = els[i];
-					//el元素是否存在动画队列
+					// el元素是否存在动画队列
 					el.mojoFxQue ? el.mojoFxQue.push(cfg) : el.mojoFxQue = [cfg];
-					//el元素是不存在于动画数组中
+					// el元素是否存在于动画数组中
 					if(!el.isMojoFxAnim) {
 						aEls.push(el);
 						el.isMojoFxAnim = true;
-					}
-				}
+					}					
+				}					
 			},
-						
+			
 			/**
 			 * 计算动画步骤
 			 * 
-			 * @param {Object} el   HTMLElement元素
-			 * @param {Object} cfg  动画配置对象
+			 * @param {HTMLElement} el   HTMLElement
+			 * @param {Object}      cfg  动画配置对象
 			 */
 			getElStep : function(el, cfg) {
 				var 
-					i    = 0,
-					prop = [],
-					info = cfg.info,
-					dur  = cfg.dur,
-					twn  = cfg.twn,
-					fxs  = cfg.fxs,
+					easing  = cfg.easing,
+					info    = cfg.info,
+					dur     = cfg.dur,
+					fxs     = cfg.fxs,
+					prop    = [],
+					i       = 0,
 					p, val, len;
 				
 				if (!fxs) {
-					//存放属性名,符号,属性值,单位,动画持续时间,动画类型
+					// 依次存放属性名,符号,属性值,单位,动画持续时间,动画类型
 					fxs = [];
 					
-					//计算每个动画属性
+					// 计算每个动画属性
 					for (p in info) {
-						//属性名
+						// 属性名
 						fxs[i]     = p;
-						//动画持续时间
+						// 动画持续时间
 						fxs[i + 4] = dur;
-						//动画类型
-						fxs[i + 5] = tween[twn];
-						//属性值
+						// 动画类型
+						fxs[i + 5] = this.tween[easing];
+						// 属性值
 						val = info[p]; 
 						
 						switch (typeof val) {
-							//属性值是数字
+							// 属性值是数字
 							case "number":
-								//符号
+								// 符号
 								fxs[i + 1] = "";
-								//值
+								// 值
 								fxs[i + 2] = val;
-								//单位
+								// 单位
 								fxs[i + 3] = "px";
 								break;
-							//属性值是数组形式,是字符就是twn值,是数字就是dur值	
+								
+							// 属性值是数组形式,第2,3个参数是字符就是easing值,是数字就是dur值	
 							case "object":
 								len = val.length;
 								while (len !== 1) {
 									len--;
 									typeof val[len] === "string" ? 
-									fxs[i + 5] = tween[val[len]] : fxs[i + 4] = val[len];
+									fxs[i + 5] = this.tween[val[len]] : fxs[i + 4] = val[len];
 								}
 								val = val[0];
+								// 这里没有break
+								
 							case "string":
-							
-								//非颜色属性
+								// 非颜色属性
 								if (p.toLowerCase().indexOf("color") === -1) {
-									//字符串形式
-									//解析符号单位
-									/(\+=|-=)?(-?\d+)(\D*)/.test(val);
-									//符号
-									fxs[i + 1] = RegExp.$1;
-									//值
-									fxs[i + 2] = RegExp.$2;
-									//单位
-									fxs[i + 3] = RegExp.$3 || "px";
+									// 字符串形式
+									// 解析符号单位
+									len = /(\+=|-=)?(-?\d+)(\D*)/.exec(val);
+									// 符号
+									fxs[i + 1] = len[1];
+									// 值
+									fxs[i + 2] = len[2];
+									// 单位
+									fxs[i + 3] = len[3] || "px";
 									
 								//颜色属性							
 								} else {
 									//单位用"#"
-									fxs[i + 3] = "#";
 									fxs[i + 2] = val;
+									fxs[i + 3] = "#";
 								}
 						}
 						
@@ -334,28 +338,27 @@
 					cfg.fxs = fxs;
 				}
 				
-				//回调函数
-				prop.fn = cfg.fn;
-				//回调函数上下文
+				// 回调函数
+				prop.complete = cfg.complete;
+				// 回调函数上下文
 				prop.ctx = cfg.ctx;
-				//回调函数参数
+				// 回调函数参数
 				prop.args = cfg.args;
 				
 				return this.setBc(el, fxs, prop);	
 			},
-			
+
 			/**
 			 * 计算动画步骤的初始值和变化值
 			 * 
 			 * @param  {HTMLElement} el
-			 * @param  {Array}  fxs
-			 * @param  {Object} prop
-			 * @return {Array} prop 动画步骤数组
+			 * @param  {Array}       fxs  动画步骤信息数组
+			 * @return {Array}       prop 动画步骤对象数组
 			 */
 			setBc : function(el, fxs, prop) {
 				var 
-					i   = 0,
 					len = fxs.length,
+					i   = 0,
 					b, c, p, s, unit;
 					
 				for(; i < len; i += 6) {
@@ -371,7 +374,6 @@
 							//获得当前元素对应属性值
 							(b = this.getElStyle(el, p)) ? b = parseFloat(b) : b = 0;
 							
-						//非style属性
 						} else {
 							b = el[p];
 							//非style属性单位用"&"
@@ -383,9 +385,11 @@
 							case "+=":
 								c = c * 1;
 								break;
+								
 							case "-=":
 								c = c * 1 - c * 2;
 								break;
+								
 							default:
 								c = c * 1 - b;
 						}
@@ -395,8 +399,8 @@
 						}
 						
 					} else {
-						b = this.colorTen(this.getElStyle(el, p));
-						c = this.colorTen(c);
+						b = this.getColorTen(this.getElStyle(el, p));
+						c = this.getColorTen(c);
 						
 						//计算颜色变化量
 						c[0] -= b[0];//red
@@ -423,17 +427,16 @@
 			},
 			
 			/**
-			 * 开始执行动画
+			 * 启动动画时钟
 			 */
 			animStart : function() {
 				var 
 				    ths   = this,
-					aEls  = animEls,
-					start = +new Date();	
+					start = new Date().getTime();	
 				
-				tid = setInterval(function(){
-					var end = +new Date();
-					ths.updateEl(aEls, end - start);
+				this.tid = window.setInterval(function(){
+					var end = new Date().getTime();
+					ths.updateEl(end - start);
 					start = end;
 				}, 13);
 			},
@@ -441,45 +444,46 @@
 			/**
 			 * 更新el动画属性
 			 * 
-			 * @param {Array} aEls       执行动画元素
 			 * @param {Number} stepTime  每次更新属性消耗的时间
 			 */
-			updateEl : function(aEls, stepTime) {
+			updateEl : function(stepTime) {
 				var 
-					i   = 0,
-					len = aEls.length,
+					aEls = this.animEls,
+					len  = aEls.length,
+					i    = 0,
 					el, que, cur;
-				
+			
 				for(; i < len; i++) {
 					el = aEls[i];
 					
-					//el动画队列数组
+					// el动画队列数组
 					que = el.mojoFxQue;
-					//el当前正在执行的动画属性
+					// el当前正在执行的动画属性数组
 					cur = el.mojoFxCur || [];
 					
-					//当前动画属性完成,从队列中取出一个
+					// 当前动画属性完成,从队列中取出一个
 					while(!cur.length) {
-						if (cur.fn) {
-							//执行回调函数
-							cur.fn.apply(cur.ctx, [el].concat(cur.args));
+						if (cur.complete) {
+							// 执行回调函数
+							cur.complete.apply(cur.ctx, [el].concat(cur.args));
 						}
 						
-						if (cur = que.shift()) {
+						if (cur = que.shift()) { 
 							cur = el.mojoFxCur = cur.isDelay ? [cur] : this.getElStep(el, cur);
 							
-						//el所有动画属性完成
+						// el所有动画属性完成
 						} else {
 							aEls.splice(i, 1);
 							el.isMojoFxAnim = false;
-							delete el.mojoFxCur;
+							el.mojoFxCur = [];
+							el.mojoFxQue = [];
 							len--;
 							i--;
 							
-							//动画元素数组执行完成
+							// 动画元素数组执行完成
 							if (len === 0) {
-								clearInterval(tid);
-								tid = 0;
+								window.clearInterval(this.tid);
+								this.tid = 0;
 								return;
 							}
 							
@@ -487,7 +491,7 @@
 						}
 					}			
 					
-					if(cur) {
+					if(cur) { 
 						this.step(el, cur, stepTime);
 					}
 				}					
@@ -496,15 +500,15 @@
 			/**
 			 * 更新动画元素
 			 * 
-			 * @param {HTMLElement} el    HTMLElement元素
-			 * @param {Array} prop        动画属性信息数组
-			 * @param {Number} stepTime   每次执行step的时间差
+			 * @param {HTMLElement} el    
+			 * @param {Array}       prop        动画配置对象数组
+			 * @param {Number}      stepTime    每次更新的时间差
 			 */
 			step : function(el, prop, stepTime) {
 				var 
-					i   = 0,
-					sty = ";",
 					len = prop.length,
+					sty = ";",
+					i   = 0,
 					n, fx,
 					p, b, c, unit, dur, twn, t;
 				
@@ -527,11 +531,12 @@
 					}
 					
 					switch (unit) {
-						//非style属性
+						// 非style属性
 						case "&" :
 							el[p] = twn(t, b, c, dur);
 							continue;
-						//颜色属性	
+						
+						// 颜色属性	
 						case "#" :
 							sty += p + ":#";
 											
@@ -542,15 +547,17 @@
 						
 							sty += ";"			
 							break;
-						//style属性	
+							
+						// style属性	
 						default:
 							switch (p) {
-								//透明属性
 								case "opacity":
 									this.setElStyle(el, p, twn(t, b, c, dur));
 									continue;
+									
 								case "delay":
 									return;
+									
 								default:
 									sty += p +
 									":" +
@@ -562,10 +569,10 @@
 				}	
 
 				el.style.cssText += sty;
-			}
+			}															
 		};
 		
-		//mojoFx注册到window对象上
+		// mojoFx注册到window对象上
 		window.mojoFx = mojoFx;	
 	
 })(window);
