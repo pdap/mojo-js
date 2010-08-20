@@ -221,13 +221,14 @@
 				//rgb(0,0,0)形式	
 				} else {	
 				   // 元素透明,没有颜色
-				   if(color === "transparent" || color === "rgba(0, 0, 0, 0)") {
-				   		color = "rgb(255,255,255)";			
+				   if (color === "transparent" || color === "rgba(0, 0, 0, 0)") {
+				   		rgb = [255, 255, 255];
+				   } else {
+				   		rgb = color.match(/\d+/g);
+				   		for (i = 0; i < 3; i++) {
+				   			rgb[i] = parseInt(rgb[i]);
+				   		}
 				   }
-				   rgb = color.match(/\d+/g);
-				   for(i = 0; i < 3; i++) {
-				   	 rgb[i] = parseInt(rgb[i]);
-				   }		
 				}
 
 				return rgb;				
