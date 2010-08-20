@@ -9,8 +9,6 @@
 (function(window){ 
 	
 	var 
-		document = window.document,
-		
 		// 动画功能接口
 		mojoFx = {
 			
@@ -360,16 +358,16 @@
 				var 
 					len = fxs.length,
 					i   = 0,
-					b, c, p, s, unit;
+					b, c, p, s, u;
 					
 				for(; i < len; i += 6) {
 					p    = fxs[i];//属性名
 					s    = fxs[i + 1];//符号
 					c    = fxs[i + 2];//最终值
-					unit = fxs[i + 3];//单位
+					u    = fxs[i + 3];//单位
 					
 					//非颜色属性
-					if (unit !== "#") {
+					if (u !== "#") {
 						//style属性
 						if (typeof el[p] === "undefined") {
 							//获得当前元素对应属性值
@@ -378,7 +376,7 @@
 						} else {
 							b = el[p];
 							//非style属性单位用"&"
-							unit = "&";
+							u = "&";
 						}
 						
 						//判断符号,设置变化值
@@ -417,7 +415,7 @@
 						p    : p.replace(/[A-Z]/g, "-$&"),
 						b    : b,
 						c    : c,
-						unit : unit,
+						u    : u,
 						dur  : fxs[i + 4],
 						twn  : fxs[i + 5],
 						t    : 0						
@@ -510,8 +508,7 @@
 					len = prop.length,
 					sty = ";",
 					i   = 0,
-					n, fx,
-					p, b, c, unit, dur, twn, t;
+					fx, p, b, c, u, dur, twn, t;
 				
 				for(; i < len; i++) {
 					fx   = prop[i];
@@ -519,7 +516,7 @@
 					p    = fx.p;
 					b    = fx.b;
 					c    = fx.c;
-					unit = fx.unit;
+					u    = fx.u;
 					dur  = fx.dur; 
 					twn  = fx.twn; 
 					t    = fx.t += stepTime;
@@ -531,7 +528,7 @@
 						i--;
 					}
 					
-					switch (unit) {
+					switch (u) {
 						// 非style属性
 						case "&" :
 							el[p] = twn(t, b, c, dur);
@@ -539,14 +536,10 @@
 						
 						// 颜色属性	
 						case "#" :
-							sty += p + ":#";
-											
-							for (n = 0; n < 3; n++) {
-								unit = Math.ceil(twn(t, b[n], c[n], dur)).toString(16);
-								sty += unit.length === 1 ? "0" + unit : unit;
-							}
-						
-							sty += ";"			
+							sty += p + ":rgb(" +
+								   Math.ceil(twn(t, b[0], c[0], dur)) + "," +
+								   Math.ceil(twn(t, b[1], c[1], dur)) + "," +
+								   Math.ceil(twn(t, b[2], c[2], dur)) + ");";
 							break;
 							
 						// style属性	
@@ -563,7 +556,7 @@
 									sty += p +
 									":" +
 									twn(t, b, c, dur) +
-									unit +
+									u +
 									";";
 							}					
 					}
