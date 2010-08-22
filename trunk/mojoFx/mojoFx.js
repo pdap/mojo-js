@@ -480,7 +480,7 @@
 							i--;
 							
 							// 动画元素数组执行完成
-							if (len === 0) {
+							if ((len = aEls.length)  === 0) {
 								window.clearInterval(this.tid);
 								this.tid = 0;
 								return;
