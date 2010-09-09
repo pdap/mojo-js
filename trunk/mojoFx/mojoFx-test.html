@@ -85,15 +85,17 @@
 								ctx  : "aa",
 								complete : function(el, a, b) {
 									el.innerHTML = "test";
-									alert(a)
-									alert(b)
-									alert(this)
 								}
 							  })
 				  })
 				  .anim({fontSize:"+=20"},2000)
-				  .anim({fontSize:12},1000, function(el){
-				  	el.innerHTML = "my test"
+				  .anim({fontSize:12}, {
+							  	dur : 1000,
+							  	args : [1,2],
+								ctx  : "aa",
+								complete : function(el, a, b) {
+									el.innerHTML = a + "," + b + "," + this;
+								}				  	
 				  })
 		}
 		
