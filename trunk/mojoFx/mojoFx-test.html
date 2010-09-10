@@ -65,10 +65,10 @@
 	
 	<script type="text/javascript">
 		var target = document.getElementById("target");
-		mojoFx.set(target);
 		
 		function runTest() {
-			mojoFx.anim({height:100, width:"100"})
+			mojoFx.set(target)
+				  .anim({height:100, width:"100"})
 				  .anim({height:"+=100",width:["+=100"]},1000)
 				  .anim({height:[50,1000],width:"-=150"},2000)
 				  .anim({top:"+=200", left:"+=200"},800)
@@ -78,31 +78,30 @@
 				  .anim({borderWidth:10,left:"+=100"},1000)
 				  .anim({borderWidth:1, left:0, color:"#ccc"}, 2000)
 				  .anim({backgroundColor:"#fff", color:"#000"},function(){
-				  		mojoFx.anim({opacity:0},1000)
+				  		mojoFx.set(target).anim({opacity:0},1000)
 							  .anim({opacity:1},{
-							  	dur : 1000,
-							  	args : [1,2],
-								ctx  : "aa",
-								complete : function(el, a, b) {
+								fn : function(el, a, b) {
 									el.innerHTML = "test";
 								}
-							  })
+							  }, 1000)
 				  })
-				  .anim({fontSize:"+=20"},2000)
+				  .anim({fontSize:"+=20"},1000)
 				  .anim({fontSize:12}, {
-							  	dur : 1000,
 							  	args : [1,2],
-								ctx  : "aa",
-								complete : function(el, a, b) {
-									el.innerHTML = a + "," + b + "," + this;
-								}				  	
-				  })
+								ctx  : "aa"			  	
+				  },function(el, a, b) {
+						el.innerHTML = a + "," + b + "," + this;
+				  }, 1000)
 		}
 		
 		
 		function tweenTest() {
-			var el = target.cloneNode(true);
+			var el = target.cloneNode(false);
 			document.body.appendChild(el);
+			
+			el.isMojoFxAnim = false;
+			el.mojoFxQue = [];
+			el.mojoFxCur = [];
 			
 			mojoFx.set(el).anim({
 				left:["+=400","easeOutQuad"],
@@ -111,5 +110,6 @@
 				el.parentNode.removeChild(el);
 			})
 		}
+
 	</script>
 </html>
