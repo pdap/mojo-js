@@ -33,10 +33,9 @@
 			 */
 			each: function(fn, ctxArgs) {
 				var 
-					jo = this.jo,
 					args = [this.el, this.index];
 					
-				ctxArgs = jo.getCtxArgs(ctxArgs);
+				ctxArgs = this.jo.getCtxArgs(ctxArgs);
 				fn.apply(ctxArgs.ctx, ctxArgs.args.concat(args));
 			},
 			
@@ -45,12 +44,11 @@
 			 */
 			on: function() { 
 				var	
-					jo = this.jo,
 					x = arguments[0],
 					p, el, args, ctxArgs;
 					
 				if(typeof x === "string") {
-					ctxArgs = jo.getCtxArgs(arguments[2]);
+					ctxArgs = this.jo.getCtxArgs(arguments[2]);
 					el = this.el;
 					args = [null ,el, this.index];
 					p = arguments[1];
@@ -61,14 +59,106 @@
 					};			
 				} else if (typeof x === "object") {
 					args = arguments[1] || {};
-					ctxArgs = jo.getCtxArgs(args);
+					ctxArgs = this.jo.getCtxArgs(args);
 					
 					for(p in x) {
-						this.mo.on(p, x[p], args[p] || ctxArgs);
+						this.self.call(this, p, x[p], args[p] || ctxArgs);
 					}
 				}
 			},
 			
+			/**
+			 * 添加事件处理
+			 */
+			addEvent: function() {
+				var	
+					jo = this.jo,
+					x = arguments[0],
+					p, el, fn, args, ctxArgs;
+
+				if(typeof x === "string") {
+					ctxArgs = jo.getCtxArgs(arguments[2]);
+					el = this.el;
+					args = [null ,el, this.index];
+					p = arguments[1];
+					
+					fn = function(event){
+						args[0] = window.event || event;
+						p.apply(ctxArgs.ctx, ctxArgs.args.concat(args));
+					};			
+					
+					jo.addEvent(el, x, fn);
+					
+					// 缓存事件类型和函数
+					if(!el.mojoEventHandler) {
+						el.mojoEventHandler = {};
+					}
+					
+					if(!el.mojoEventHandler[x]) {
+						el.mojoEventHandler[x] = [];
+					}
+					
+					el.mojoEventHandler[x].push(fn);
+					
+				} else if (typeof x === "object") {
+					args = arguments[1] || {};
+					ctxArgs = jo.getCtxArgs(args);
+					
+					for(p in x) {
+						this.self.call(this, p, x[p], args[p] || ctxArgs);
+					}
+				}					
+			},
+			
+			removeEvent: function() {
+				var	
+					x = arguments[0],
+					el = this.el,
+					jo = this.jo,
+					handler = el.mojoEventHandler,
+					p, evtFn, i, len;
+				
+				if(!x) {
+					if(!handler) {
+						for(p in handler) {
+							evtFn = handler[p];
+							for(i = 0, len = evtFn.length; i < len; i++) {
+								jo.removeEvent(el, p, evtFn[i]);
+							}
+						}		
+						el.mojoEventHandler = null;
+					}
+				} else {
+					if(!handler) {
+						evtFn = handler[x];
+						if(evtFn) {
+							p = arguments[1];
+							if(p) {
+								for(i = 0, len = evtFn.length; i < len; i++) {
+									if(p === evtFn[i]) {
+										jo.removeEvent(el, p, evtFn[i]);
+										evtFn.splice(i, 1);
+										i--;
+										len--;
+									}
+								}								
+							} else {
+								for(i = 0, len = evtFn.length; i < len; i++) {
+									jo.removeEvent(el, p, evtFn[i]);
+								}		
+								evtFn.length = 0;						
+							}
+						}
+					}
+				}	
+			},
+			
+			/**
+			 * 触发事件
+			 * 
+			 * @param {String} evtName 事件名称
+			 * @param {Object} evtVal  事件值对象
+			 */
 			fire: function(evtName, evtVal) {
 				var
 					el = this.el,
@@ -77,7 +167,7 @@
 				
 				jo.initEvent(evtName, evt, evtVal || {});
 				jo.fireEvent(el, evt, evtName);
-			}		
+			}					
 		},
 		
 		jo = {
@@ -136,6 +226,36 @@
 			},
 			
 			/**
+			 * 添加事件处理
+			 * 
+			 * @param {HTMLElement} el
+			 * @param {String} evtName  事件名称
+			 * @param {Function} fn		事件处理函数
+			 */
+			addEvent: function(el, evtName, fn) {
+				if(el.addEventListener) {
+					el.addEventListener(evtName, fn, false);
+				} else if(el.attachEvent) {
+					el.attachEvent("on" + evtName, fn);
+				}
+			},
+			
+			/**
+			 * 移除事件处理
+			 * 
+			 * @param {HTMLElement} el
+			 * @param {String} evtName 事件名称
+			 * @param {Function} fn	   事件处理函数
+			 */
+			removeEvent: function(el, evtName, fn) {
+				if(el.removeEventListener) {
+					el.removeEventListener(evtName, fn, false);
+				} else if(el.detachEvent) {
+					el.detachEvent("on" + evtName, fn);
+				}
+			},
+			
+			/**
 			 * 获得包含有上下文和参数的对象
 			 * 
 			 * @param {Object} ctxArgs 含有上下文和参数的对象
@@ -184,7 +304,8 @@
 							mo: this,
 							jo: jo,
 							index: i,
-							retVal: retVal
+							retVal: retVal,
+							self: method
 						};
 						if (method.apply(ctx, arguments) === false) {
 							break;
