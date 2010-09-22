@@ -110,6 +110,9 @@
 				}					
 			},
 			
+			/**
+			 * 移除事件
+			 */
 			removeEvent: function() {
 				var	
 					x = arguments[0],
@@ -119,7 +122,7 @@
 					p, evtFn, i, len;
 				
 				if(!x) {
-					if(!handler) {
+					if(handler) {
 						for(p in handler) {
 							evtFn = handler[p];
 							for(i = 0, len = evtFn.length; i < len; i++) {
@@ -129,14 +132,14 @@
 						el.mojoEventHandler = null;
 					}
 				} else {
-					if(!handler) {
+					if(handler) {
 						evtFn = handler[x];
 						if(evtFn) {
 							p = arguments[1];
 							if(p) {
 								for(i = 0, len = evtFn.length; i < len; i++) {
 									if(p === evtFn[i]) {
-										jo.removeEvent(el, p, evtFn[i]);
+										jo.removeEvent(el, x, p);
 										evtFn.splice(i, 1);
 										i--;
 										len--;
@@ -144,7 +147,7 @@
 								}								
 							} else {
 								for(i = 0, len = evtFn.length; i < len; i++) {
-									jo.removeEvent(el, p, evtFn[i]);
+									jo.removeEvent(el, x, evtFn[i]);
 								}		
 								evtFn.length = 0;						
 							}
