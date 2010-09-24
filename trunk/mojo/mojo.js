@@ -90,15 +90,15 @@
 					jo.addEvent(el, x, fn);
 					
 					// 缓存事件类型和函数
-					if(!el.mojoEventHandler) {
-						el.mojoEventHandler = {};
+					if(!el.mojoEventFn) {
+						el.mojoEventFn = {};
 					}
 					
-					if(!el.mojoEventHandler[x]) {
-						el.mojoEventHandler[x] = [];
+					if(!el.mojoEventFn[x]) {
+						el.mojoEventFn[x] = [];
 					}
 					
-					el.mojoEventHandler[x].push(fn);
+					el.mojoEventFn[x].push(fn);
 					
 				} else if (typeof x === "object") {
 					args = arguments[1] || {};
@@ -118,7 +118,7 @@
 					x = arguments[0],
 					el = this.el,
 					jo = this.jo,
-					handler = el.mojoEventHandler,
+					handler = el.mojoEventFn,
 					p, evtFn, i, len;
 				
 				if(!x) {
@@ -129,7 +129,7 @@
 								jo.removeEvent(el, p, evtFn[i]);
 							}
 						}		
-						el.mojoEventHandler = null;
+						el.mojoEventFn = {};
 					}
 				} else {
 					if(handler) {
