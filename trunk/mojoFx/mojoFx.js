@@ -95,12 +95,17 @@
 			 * @return {Object} mojoFx
 			 */
 			delay: function(t) {
-				joFx.addElStep({
-					isDelay : true,
-					dur     : t,
-					p   	: "delay",
-					t       : 0
-				});
+				var 
+					cfg = {
+						info: {},
+						fxs: [],
+						ctx: this,
+						fn: function(el) {
+							
+						}
+					};
+				
+				joFx.addElStep(cfg);
 				
 				return this;
 			},
@@ -451,14 +456,12 @@
 						}
 						
 						if (cur = que.shift()) { 
-							cur = el.mojoFxCur = cur.isDelay ? [cur] : this.getElStep(el, cur);
+							cur = el.mojoFxCur = this.getElStep(el, cur);
 							
 						// el所有动画属性完成
 						} else {
 							aEls.splice(i, 1);
 							el.isMojoFxAnim = false;
-							el.mojoFxCur = [];
-							el.mojoFxQue = [];
 							len--;
 							i--;
 							
@@ -525,23 +528,13 @@
 							break;
 							
 						// style属性	
-						default:
-							switch (p) {
-								case "opacity":
-									p = twn(t, b, c, dur);
-									sty += "opacity:" + p + ";filter:alpha(opacity=" + p * 100 + ");";
-									break;
-									
-								case "delay":
-									return;
-									
-								default:
-									sty += p +
-									":" +
-									twn(t, b, c, dur) +
-									u +
-									";";
-							}					
+						default:				
+							if(p === "opacity") {
+								p = twn(t, b, c, dur);
+								sty += "opacity:" + p + ";filter:alpha(opacity=" + p * 100 + ");";								
+							} else {
+								sty += p + ":" + twn(t, b, c, dur) + u + ";";								
+							}
 					}
 				}	
 
