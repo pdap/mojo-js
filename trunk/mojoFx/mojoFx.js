@@ -150,34 +150,6 @@
 			animEls: [],
 			
 			/**
-			 * 设置HTMLElement对应style属性
-			 * 
-			 * @param {HTMLElement} el   
-			 * @param {String}      p    style属性名
-			 * @param {Number}      val  style属性值
-			 */
-			setElStyle: function(el, p, val) {
-				var 
-					elSty = el.style;
-
-  				switch (p) {
-					case "float":
-						typeof elSty.styleFloat === "string" ? elSty.styleFloat = val 
-															 : elSty.cssFloat   = val;
-						break;
-						
-					case "opacity":
-						el.filters ? elSty.filter = (el.currentStyle.filter || "")
-							         .replace(/alpha\([^)]*\)/, "") + "alpha(opacity=" + val * 100 + ")"
-								   : elSty.opacity = val;
-						break;
-						
-					default:
-						elSty[p] = val;
-				}				
-			},
-			
-			/**
 			 * 获取HTMLElement当前对应style属性值
 			 * 
 			 * @param  {HTMLElement} el 
@@ -188,18 +160,13 @@
 					curElSty = el.currentStyle || window.getComputedStyle(el, null),
 					elSty    = el.style;
 				
-				switch (p) {
-					case "float":
-						return typeof elSty.styleFloat === "string" ? 
-						    elSty.styleFloat || curElSty.styleFloat : 
-							elSty.cssFloat   || curElSty.cssFloat;
-							
-					case "opacity":
-						return el.filters ? (el.filters.alpha ? el.filters.alpha.opacity : 100) / 100
-						                  :  elSty.opacity || curElSty.opacity;
-					default:
-						return elSty[p] || curElSty[p];
-				}				
+				if(p === "opacity") {
+					return elSty.opacity || 
+						curElSty.opacity ||
+						(el.filters.alpha ? el.filters.alpha.opacity : 100) / 100;
+				}
+				
+				return elSty[p] || curElSty[p];
 			},
 			
 			/**
@@ -561,8 +528,9 @@
 						default:
 							switch (p) {
 								case "opacity":
-									this.setElStyle(el, p, twn(t, b, c, dur));
-									continue;
+									p = twn(t, b, c, dur);
+									sty += "opacity:" + p + ";filter:alpha(opacity=" + p * 100 + ");";
+									break;
 									
 								case "delay":
 									return;
