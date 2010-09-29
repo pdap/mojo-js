@@ -469,24 +469,25 @@
 							
 						// el所有动画属性完成
 						} else {
-							aEls.splice(i, 1);
-							el.isMojoFxAnim = false;
-							len--;
-							i--;
-							
-							// 动画元素数组执行完成
-							if ((len = aEls.length) === 0) {
-								window.clearInterval(this.tid);
-								this.tid = 0;
-								return;
-							}
 							break;
 						}
 					}			
 					
-					if(cur) {
+					if (cur) {
 						this.step(el, cur, stepTime);
-					} 
+					} else {
+						aEls.splice(i, 1);
+						el.isMojoFxAnim = false;
+						len--;
+						i--;
+						
+						// 动画元素数组执行完成
+						if ((len = aEls.length) === 0) {
+							window.clearInterval(this.tid);
+							this.tid = 0;
+							return;
+						}
+					}
 				}					
 			},
 			
