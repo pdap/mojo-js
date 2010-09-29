@@ -484,9 +484,9 @@
 						}
 					}			
 					
-					if(cur) { 
+					if(cur) {
 						this.step(el, cur, stepTime);
-					}
+					} 
 				}					
 			},
 			
