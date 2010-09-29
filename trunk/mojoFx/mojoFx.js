@@ -49,7 +49,7 @@
 						ctx: window,
 						
 						// 回调函数参数
-						args: null
+						args: []
 					},
 					len = arguments.length,
 					i   = 1,
@@ -95,17 +95,27 @@
 			 * @return {Object} mojoFx
 			 */
 			delay: function(t) {
+
+				return this;
+			},
+			
+			/**
+			 * 停止动画
+			 * 
+			 * @param isStopNow 是否立即停止
+			 */
+			stop: function(isStopNow) {
 				var 
-					cfg = {
-						info: {},
-						fxs: [],
-						ctx: this,
-						fn: function(el) {
-							
-						}
-					};
+					els = joFx.elems,
+					len = els.length,
+					i = 0;
 				
-				joFx.addElStep(cfg);
+				for(; i < len; i++) {
+					els[i].mojoFxQue = [];
+					if(isStopNow) {
+						els[i].mojoFxCur = [];
+					}
+				}	
 				
 				return this;
 			},
@@ -259,7 +269,7 @@
 					fxs  = cfg.fxs,
 					prop = [],
 					i    = 0,
-					p, val, len;
+					p, val;
 				
 				if (!fxs) {
 					// 依次存放属性名,符号,属性值,单位,动画持续时间,动画类型
@@ -285,15 +295,13 @@
 								fxs[i + 2] = val;
 								// 单位
 								fxs[i + 3] = "px";
+								
 								break;
 								
-							// 属性值是数组形式,第2,3个参数是字符就是ease值,是数字就是dur值	
+							// 属性值是数组形式,第2个参数是easing值	
 							case "object":
-								len = val.length;
-								while (len !== 1) {
-									len--;
-									typeof val[len] === "string" ? 
-									fxs[i + 5] = this.tween[val[len]] : fxs[i + 4] = val[len];
+								if (val.length > 1) {
+									fxs[i + 5] = this.tween[val[1]];
 								}
 								val = val[0];
 								// 这里没有break
@@ -303,13 +311,13 @@
 								if (p.toLowerCase().indexOf("color") === -1) {
 									// 字符串形式
 									// 解析符号单位
-									len = /(\+=|-=)?(-?\d+)(\D*)/.exec(val);
+									val = /(\+=|-=)?(-?\d+)(\D*)/.exec(val);
 									// 符号
-									fxs[i + 1] = len[1];
+									fxs[i + 1] = val[1];
 									// 值
-									fxs[i + 2] = len[2];
+									fxs[i + 2] = val[2];
 									// 单位
-									fxs[i + 3] = len[3] || "px";
+									fxs[i + 3] = val[3] || "px";
 									
 								//颜色属性							
 								} else {
@@ -451,8 +459,9 @@
 					// 当前动画属性完成,从队列中取出一个
 					while(!cur.length) {
 						if (cur.fn) {
+							cur.args.push(el);
 							// 执行回调函数
-							cur.fn.apply(cur.ctx, [el].concat(cur.args));
+							cur.fn.apply(cur.ctx, cur.args);
 						}
 						
 						if (cur = que.shift()) { 
