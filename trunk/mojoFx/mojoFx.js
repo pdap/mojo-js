@@ -319,9 +319,9 @@
 									// 单位
 									fxs[i + 3] = val[3] || "px";
 									
-								//颜色属性							
+								// 颜色属性							
 								} else {
-									//单位用"#"
+									// 单位用"#"
 									fxs[i + 2] = val;
 									fxs[i + 3] = "#";
 								}
@@ -357,25 +357,25 @@
 					b, c, p, s, u;
 					
 				for(; i < len; i += 6) {
-					p    = fxs[i];//属性名
-					s    = fxs[i + 1];//符号
-					c    = fxs[i + 2];//最终值
-					u    = fxs[i + 3];//单位
+					p    = fxs[i];// 属性名
+					s    = fxs[i + 1];// 符号
+					c    = fxs[i + 2];// 最终值
+					u    = fxs[i + 3];// 单位
 					
-					//非颜色属性
+					// 非颜色属性
 					if (u !== "#") {
-						//style属性
+						// style属性
 						if (typeof el[p] === "undefined") {
-							//获得当前元素对应属性值
+							// 获得当前元素对应属性值
 							(b = this.getElStyle(el, p)) ? b = parseFloat(b) : b = 0;
 							
 						} else {
 							b = el[p];
-							//非style属性单位用"&"
+							// 非style属性单位用"&"
 							u = "&";
 						}
 						
-						//判断符号,设置变化值
+						// 判断符号,设置变化值
 						switch (s) {
 							case "+=":
 								c = c * 1;
@@ -397,10 +397,10 @@
 						b = this.getColorTen(this.getElStyle(el, p));
 						c = this.getColorTen(c);
 						
-						//计算颜色变化量
-						c[0] -= b[0];//red
-						c[1] -= b[1];//green
-						c[2] -= b[2];//blue
+						// 计算颜色变化量
+						c[0] -= b[0];// red
+						c[1] -= b[1];// green
+						c[2] -= b[2];// blue
 						
 						if (c.join("") === "000") {
 							continue;
