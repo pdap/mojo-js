@@ -241,11 +241,7 @@
 
 					// HTMLElement元素是否存在动画队列
 					(arr = el.mojoFxQue) ? arr.push(cfg) : el.mojoFxQue = [cfg];
-					
-					if(!el.mojoFxCur) {
-						el.mojoFxCur = [];
-					}
-					
+
 					// HTMLElement元素是否存在于动画数组中
 					if(!el.isMojoFxAnim) {
 						aEls.push(el);
@@ -454,7 +450,7 @@
 					// HTMLElement动画队列数组
 					que = el.mojoFxQue;
 					// HTMLElement当前正在执行的动画属性数组
-					cur = el.mojoFxCur;
+					cur = el.mojoFxCur || (el.mojoFxCur = this.getElStep(el, que.shift()));
 					
 					// 当前动画属性完成,从队列中取出一个
 					while(!cur.length) {
