@@ -234,19 +234,19 @@
 					aEls  = this.animEls,
 					len   = els.length,
 					i     = 0,
-					el, arr;
+					el, que;
 					
 				for(; i < len; i++) {
 					el = els[i];
 
-					// HTMLElement元素是否存在动画队列
-					(arr = el.mojoFxQue) ? arr.push(cfg) : el.mojoFxQue = [cfg];
-
-					// HTMLElement元素是否存在于动画数组中
-					if(!el.isMojoFxAnim) {
+					que = el.mojoFxQue;
+					
+					if(que) {
+						que.push(cfg);
+					} else {
 						aEls.push(el);
-						el.isMojoFxAnim = true;
-					}						
+						el.mojoFxQue = [cfg];
+					}
 				}					
 				
 			},
@@ -450,7 +450,7 @@
 					// HTMLElement动画队列数组
 					que = el.mojoFxQue;
 					// HTMLElement当前正在执行的动画属性数组
-					cur = el.mojoFxCur || (el.mojoFxCur = this.getElStep(el, que.shift()));
+					cur = que.cur || (que.cur = this.getElStep(el, que.shift()));
 					
 					// 当前动画属性完成,从队列中取出一个
 					while(!cur.length) {
@@ -461,7 +461,7 @@
 						}
 						
 						if (cur = que.shift()) { 
-							cur = el.mojoFxCur = this.getElStep(el, cur);
+							cur = que.cur = this.getElStep(el, cur);
 							
 						// el所有动画属性完成
 						} else {
@@ -473,7 +473,7 @@
 						this.step(el, cur, stepTime);
 					} else {
 						aEls.splice(i, 1);
-						el.isMojoFxAnim = false;
+						el.mojoFxQue = null;
 						len--;
 						i--;
 						
