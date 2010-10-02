@@ -27,26 +27,26 @@
 			/**
 			 * 执行动画
 			 * 
-			 * @param  {Object} info 动画属性信息
+			 * @param  {Object} prop 动画属性信息
 			 * @return {Object} mojoFx
 			 */
-			anim: function(info) {
+			anim: function(prop) {
 				var 
 					// 动画配置信息
 					cfg = {
-						info: info,
+						prop: prop,
 						
 						// 动画时间
 						dur: 400,
 						
 						// 动画完成回调函数
-						fn: null,
+						callback: null,
 						
 						// 动画缓冲效果
-						ease: "swing",
+						easing: "swing",
 						
 						// 回调函数上下文
-						ctx: window,
+						context: window,
 						
 						// 回调函数参数
 						args: []
@@ -63,11 +63,11 @@
 							break;
 						
 						case "string":
-							cfg.ease = param;
+							cfg.easing = param;
 							break;
 							
 						case "function":
-							cfg.fn = param;
+							cfg.callback = param;
 							break;
 						
 						// 对象配置参数	
@@ -104,16 +104,18 @@
 			 * 
 			 * @param isStopNow 是否立即停止
 			 */
-			stop: function(isStopNow) {
+			stop: function(stopNow) {
 				var 
 					els = joFx.elems,
 					len = els.length,
-					i = 0;
+					i = 0, el;
 				
 				for(; i < len; i++) {
-					els[i].mojoFxQue = [];
-					if(isStopNow) {
-						els[i].mojoFxCur = [];
+					el = els[i];
+					
+					(el = el.mojoFxQue).length = 0;
+					if(stopNow) {
+						el.curStep.length = 0;
 					}
 				}	
 				
@@ -163,7 +165,7 @@
 			
 			// 正在动画元素数组
 			animEls: [],
-			
+
 			/**
 			 * 获取HTMLElement当前对应style属性值
 			 * 
@@ -259,45 +261,42 @@
 			 */
 			getElStep: function(el, cfg) {
 				var 
-					ease = cfg.ease,
-					info = cfg.info,
-					dur  = cfg.dur,
-					fxs  = cfg.fxs,
-					prop = [],
-					i    = 0,
-					p, val;
+					easing = cfg.easing,
+					prop   = cfg.prop,
+					fxs    = cfg.fxs,
+					step   = [],
+					p, val, fx;
 				
 				if (!fxs) {
-					// 依次存放属性名,符号,属性值,单位,动画持续时间,动画类型
 					fxs = [];
 					
 					// 计算每个动画属性
-					for (p in info) {
+					for (p in prop) {
+						fx  = {};
+						
 						// 属性名
-						fxs[i]     = p;
-						// 动画持续时间
-						fxs[i + 4] = dur;
+						fx.name = p;
 						// 动画类型
-						fxs[i + 5] = this.tween[ease];
+						fx.easing = this.tween[easing];
 						// 属性值
-						val = info[p]; 
+						val = prop[p]; 
 						
 						switch (typeof val) {
 							// 属性值是数字
 							case "number":
 								// 符号
-								fxs[i + 1] = "";
+								fx.symbol = "";
 								// 值
-								fxs[i + 2] = val;
+								fx.val = val;
 								// 单位
-								fxs[i + 3] = "px";
+								fx.unit = "px";
 								
 								break;
 								
 							// 属性值是数组形式,第2个参数是easing值	
 							case "object":
 								if (val.length > 1) {
-									fxs[i + 5] = this.tween[val[1]];
+									fx.easing = this.tween[val[1]];
 								}
 								val = val[0];
 								// 这里没有break
@@ -309,34 +308,39 @@
 									// 解析符号单位
 									val = /(\+=|-=)?(-?\d+)(\D*)/.exec(val);
 									// 符号
-									fxs[i + 1] = val[1];
+									fx.symbol = val[1];
 									// 值
-									fxs[i + 2] = val[2];
+									fx.val = val[2];
 									// 单位
-									fxs[i + 3] = val[3] || "px";
+									fx.unit = val[3] || "px";
 									
 								// 颜色属性							
 								} else {
+									fx.val = val;
 									// 单位用"#"
-									fxs[i + 2] = val;
-									fxs[i + 3] = "#";
+									fx.unit = "#";
 								}
 						}
 						
-						i += 6;
+						fxs.push(fx);
 					}
 					
 					cfg.fxs = fxs;
 				}
 				
 				// 回调函数
-				prop.fn = cfg.fn;
+				step.callback = cfg.callback;
 				// 回调函数上下文
-				prop.ctx = cfg.ctx;
+				step.context = cfg.context;
 				// 回调函数参数
-				prop.args = cfg.args;
+				step.args = cfg.args;
+				// 动画持续时间
+				step.dur = cfg.dur;
+				// 动画执行时间
+				step.t   = 0;
 				
-				return this.setBc(el, fxs, prop);	
+				
+				return this.setBc(el, fxs, step);	
 			},
 
 			/**
@@ -344,19 +348,25 @@
 			 * 
 			 * @param  {HTMLElement} el
 			 * @param  {Array}       fxs  动画步骤信息数组
-			 * @return {Array}       prop 动画步骤对象数组
+			 * @return {Array}       step 动画步骤对象数组
 			 */
-			setBc : function(el, fxs, prop) {
+			setBc : function(el, fxs, step) {
 				var 
 					len = fxs.length,
 					i   = 0,
-					b, c, p, s, u;
+					fx, b, c, p, s, u;
 					
-				for(; i < len; i += 6) {
-					p    = fxs[i];// 属性名
-					s    = fxs[i + 1];// 符号
-					c    = fxs[i + 2];// 最终值
-					u    = fxs[i + 3];// 单位
+				for(; i < len; i++) {
+					fx = fxs[i];
+					
+					// 属性名
+					p = fx.name;
+					// 符号
+					s = fx.symbol;
+					// 最终值
+					c = fx.val;
+					// 单位
+					u = fx.unit;
 					
 					// 非颜色属性
 					if (u !== "#") {
@@ -403,18 +413,16 @@
 						}
 					}
 					
-					prop.push({
+					step.push({
 						p    : p.replace(/[A-Z]/g, "-$&"),
 						b    : b,
 						c    : c,
 						u    : u,
-						dur  : fxs[i + 4],
-						twn  : fxs[i + 5],
-						t    : 0						
+						twn  : fx.easing
 					});
 				}
 				
-				return prop;
+				return step;
 			},
 			
 			/**
@@ -450,18 +458,12 @@
 					// HTMLElement动画队列数组
 					que = el.mojoFxQue;
 					// HTMLElement当前正在执行的动画属性数组
-					cur = que.cur || (que.cur = this.getElStep(el, que.shift()));
+					cur = que.curStep || (que.curStep = this.getElStep(el, que.shift()));
 					
 					// 当前动画属性完成,从队列中取出一个
 					while(!cur.length) {
-						if (cur.fn) {
-							cur.args.push(el);
-							// 执行回调函数
-							cur.fn.apply(cur.ctx, cur.args);
-						}
-						
 						if (cur = que.shift()) { 
-							cur = que.cur = this.getElStep(el, cur);
+							cur = que.curStep = this.getElStep(el, cur);
 							
 						// el所有动画属性完成
 						} else {
@@ -470,11 +472,22 @@
 					}			
 					
 					if (cur) {
-						this.step(el, cur, stepTime);
+						if((cur.t += stepTime) > cur.dur) {
+							cur.t = cur.dur;
+							this.step(el, cur);
+							cur.length = 0;
+							
+							if (cur.callback) {
+								cur.args.push(el);
+								cur.callback.apply(cur.context, cur.args);
+							}
+							
+							continue;
+						}
+						this.step(el, cur);
 					} else {
 						aEls.splice(i, 1);
 						el.mojoFxQue = null;
-						len--;
 						i--;
 						
 						// 动画元素数组执行完成
@@ -491,33 +504,25 @@
 			 * 更新动画元素
 			 * 
 			 * @param {HTMLElement} el    
-			 * @param {Array}       prop        动画配置对象数组
-			 * @param {Number}      stepTime    每次更新的时间差
+			 * @param {Array}       step 动画配置对象数组
 			 */
-			step : function(el, prop, stepTime) {
+			step: function(el, step) {
 				var 
-					len = prop.length,
+					len = step.length,
+					dur = step.dur,
+					t   = step.t,
 					sty = ";",
 					i   = 0,
-					fx, p, b, c, u, dur, twn, t;
-				
+					fx, p, b, c, u, twn;
+
 				for(; i < len; i++) {
-					fx   = prop[i];
+					fx  = step[i]; 
 					
-					p    = fx.p;
-					b    = fx.b;
-					c    = fx.c;
-					u    = fx.u;
-					dur  = fx.dur; 
-					twn  = fx.twn; 
-					t    = fx.t += stepTime;
-					
-					if(t > dur) {
-						t = dur;
-						prop.splice(i, 1);
-						len--;
-						i--;
-					}
+					p   = fx.p; 
+					b   = fx.b;
+					c   = fx.c;
+					u   = fx.u;
+					twn = fx.twn; 
 					
 					switch (u) {
 						// 非style属性
