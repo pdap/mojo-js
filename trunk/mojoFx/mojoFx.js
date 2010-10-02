@@ -102,7 +102,7 @@
 			/**
 			 * 停止动画
 			 * 
-			 * @param isStopNow 是否立即停止
+			 * @param stopNow 是否立即停止
 			 */
 			stop: function(stopNow) {
 				var 
@@ -130,14 +130,30 @@
 			 */
 			addTween: function(tween) {
 				var 
-					twn = joFx.tween,
-					p;
+					twn = joFx.tween, p;
 				
 				for(p in tween) {
 					twn[p] = tween[p];
 				}	
 				
 				return this;
+			},
+			
+			/**
+			 * 
+			 * @param {String} n
+			 * @param {Function} f
+			 */
+			setTween: function(n, f) {
+				joFx[n] = v;
+				return this;
+			},
+			
+			/**
+			 * 
+			 */
+			getTween: function() {
+				return joFx.tween;
 			}				
 		},
 		
