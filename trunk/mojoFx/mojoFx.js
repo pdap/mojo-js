@@ -347,8 +347,8 @@
 			 * set animation step begin and change value
 			 * 
 			 * @param  {HTMLElement} el
-			 * @param  {Array}       fxs  
-			 * @return {Array}       step 
+			 * @param  {Array}       fxs   animation configuration 
+			 * @return {Array}       step  animation step
 			 */
 			setBc : function(el, fxs, step) {
 				var 
