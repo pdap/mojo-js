@@ -92,7 +92,7 @@
 			 * @return {Object} mojoFx
 			 */
 			delay: function(t) {
-
+				
 				return this;
 			},
 			
@@ -266,7 +266,7 @@
 				}					
 				
 			},
-			
+
 			/**
 			 * get animation step array
 			 * 
@@ -467,7 +467,7 @@
 					}			
 					
 					if (cur) {
-						if((cur.t += stepTime) > cur.duration) {
+						if((cur.t += stepTime) >= cur.duration) {
 							cur.t = cur.duration;
 							this.step(el, cur);
 							cur.length = 0;
