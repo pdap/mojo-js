@@ -40,6 +40,8 @@
 						
 						easing: "swing",
 						
+						eachEasing: {},
+						
 						// context of callback function
 						context: window,
 						
@@ -275,6 +277,7 @@
 			 */
 			getElStep: function(el, cfg) {
 				var 
+					eachEasing = cfg.eachEasing,
 					easing = cfg.easing,
 					prop   = cfg.prop,
 					fxs    = cfg.fxs,
@@ -291,7 +294,7 @@
 						// property name
 						fx.name = p;
 						// easing type
-						fx.easing = easing;
+						fx.easing = eachEasing[p] || easing;
 						// property value
 						val = prop[p]; 
 						
