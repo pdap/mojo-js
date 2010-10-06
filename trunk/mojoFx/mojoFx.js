@@ -291,7 +291,7 @@
 						// property name
 						fx.name = p;
 						// easing type
-						fx.easing = this.easing[easing];
+						fx.easing = easing;
 						// property value
 						val = prop[p]; 
 						
@@ -306,7 +306,7 @@
 							// the 2nd parameter is easing	
 							case "object":
 								if (val.length > 1) {
-									fx.easing = this.easing[val[1]];
+									fx.easing = val[1];
 								}
 								val = val[0];
 								// here no break
@@ -354,7 +354,7 @@
 				var 
 					len = fxs.length,
 					i   = 0,
-					fx, b, c, p, s, u;
+					fx, b, c, p, s, u, e;
 					
 				for(; i < len; i++) {
 					fx = fxs[i];
@@ -363,6 +363,7 @@
 					s = fx.symbol;
 					c = fx.val;
 					u = fx.unit;
+					e = this.easing[fx.easing];
 					
 					if (u !== "#") {
 						// element style property
@@ -413,7 +414,7 @@
 						b: b,
 						c: c,
 						u: u,
-						e: fx.easing
+						e: e
 					});
 				}
 				
