@@ -203,7 +203,7 @@
 			},
 			
 			/**
-			 * get color property value to RGB decimal array
+			 * get color property value to decimal RGB array
 			 * 
 			 * @param  {String} color	property name
 			 * @return {Array}  rgb   	decimal RGB value array
@@ -213,19 +213,19 @@
 					rgb, i;
 				
 				if(color.indexOf("#") === 0) {
-					//#000
+					// #000
 					if(color.length === 4) {
 						color = color.replace(/\w/g, "$&$&");
 					}
 					
 					rgb = [];
 					
-					//#000000
+					// #000000
 					for (i = 0; i < 3; i++) {
 						rgb[i] = parseInt(color.substring(2 * i + 1, 2 * i + 3), 16);
 					}					
 				
-				//rgb(0,0,0)
+				// rgb(0,0,0)
 				} else {	
 				   if (color === "transparent" || color === "rgba(0, 0, 0, 0)") {
 				   		rgb = [255, 255, 255];
@@ -376,7 +376,7 @@
 							
 						} else {
 							b = el[p];
-							// unit use "& when not style property
+							// unit use "&" when not style property
  							u = "&";
 						}
 						
@@ -440,7 +440,7 @@
 			},
 			
 			/**
-			 * update element
+			 * update element style
 			 * 
 			 * @param {Number} stepTime	   each step interval 
 			 */
@@ -525,7 +525,7 @@
 					
 					switch (u) {
 						case "&" :
-							el[p] = twn(t, b, c, d);
+							el[p] = e(t, b, c, d);
 							continue;
 						
 						case "#" :
