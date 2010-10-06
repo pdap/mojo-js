@@ -456,46 +456,49 @@
 					
 					// element animation queue
 					que = el.mojoFxQue;
+					
 					// element current animation step
-					cur = que.curStep || (que.curStep = this.getElStep(el, que.shift()));
+					cur = que.curStep;
 					
-					// get next step
-					while(!cur.length) {
-						if (cur = que.shift()) { 
-							cur = que.curStep = this.getElStep(el, cur);
-							
-						// element animation complete
+					if(!cur) {
+						if (que.length) {
+							cur = que.curStep = this.getElStep(el, que.shift());
 						} else {
-							break;
+							aEls.splice(i, 1);
+							el.mojoFxQue = null;
+							i--;
+							
+							// global animation complete
+							if ((len = aEls.length) === 0) {
+								window.clearInterval(this.timeId);
+								this.timeId = 0;
+								return;
+							}
 						}
-					}			
+					} 
 					
-					if (cur) {
-						if((cur.t += stepTime) >= cur.duration) {
+					if (cur.length === 0) {
+						if (cur.callback) {
+							cur.arguments.push(el);
+							cur.callback.apply(cur.context, cur.arguments);
+						}
+						continue;
+					}
+						
+					if((cur.t += stepTime) >= cur.duration) {
 							cur.t = cur.duration;
 							this.step(el, cur);
-							cur.length = 0;
 							
 							if (cur.callback) {
 								cur.arguments.push(el);
 								cur.callback.apply(cur.context, cur.arguments);
 							}
 							
+							que.curStep = null;
 							continue;
-						}
-						this.step(el, cur);
-					} else {
-						aEls.splice(i, 1);
-						el.mojoFxQue = null;
-						i--;
-						
-						// global animation complete
-						if ((len = aEls.length) === 0) {
-							window.clearInterval(this.timeId);
-							this.timeId = 0;
-							return;
-						}
 					}
+					
+					this.step(el, cur);						
 				}					
 			},
 			
