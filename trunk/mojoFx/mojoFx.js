@@ -88,17 +88,6 @@
 			},
 			
 			/**
-			 * delay animation fire
-			 * 
-			 * @param  {Number} t	delay time
-			 * @return {Object} mojoFx
-			 */
-			delay: function(t) {
-				
-				return this;
-			},
-			
-			/**
 			 * stop element animation
 			 * 
 			 * @param {Boolean} clearQueue  clear element animation queue	 
