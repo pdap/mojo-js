@@ -36,7 +36,7 @@
 						
 						duration: 400,
 						
-						callback: null,
+						complete: null,
 						
 						easing: "swing",
 						
@@ -64,7 +64,7 @@
 							break;
 							
 						case "function":
-							cfg.callback = param;
+							cfg.complete = param;
 							break;
 						
 						// optional object configuration
@@ -335,13 +335,12 @@
 					cfg.fxs = fxs;
 				}
 				
-				step.callback  = cfg.callback;
+				step.complete  = cfg.complete;
 				step.context   = cfg.context;
 				step.arguments = cfg.arguments;
 				step.duration  = cfg.duration;
 				// element current animation time
 				step.t   = 0;
-				
 				
 				return this.setBc(el, fxs, step);	
 			},
@@ -458,12 +457,20 @@
 					que = el.mojoFxQue;
 					
 					// element current animation step
-					cur = que.curStep;
+					cur = que.curStep || (que.curStep = this.getElStep(el, que.shift()));
 					
-					if(!cur) {
-						if (que.length) {
-							cur = que.curStep = this.getElStep(el, que.shift());
+					
+					while(!cur.length) {
+						if (cur.complete) {
+							cur.arguments.push(el);
+							cur.complete.apply(cur.context, cur.arguments);
+						}
+						
+						if(cur = que.shift()) {
+							cur = que.curStep = this.getElStep(el, cur);
 						} else {
+							// element animation complete
+							
 							aEls.splice(i, 1);
 							el.mojoFxQue = null;
 							i--;
@@ -473,32 +480,21 @@
 								window.clearInterval(this.timeId);
 								this.timeId = 0;
 								return;
-							}
+							}			
+											
+							break;
 						}
-					} 
-					
-					if (cur.length === 0) {
-						if (cur.callback) {
-							cur.arguments.push(el);
-							cur.callback.apply(cur.context, cur.arguments);
-						}
-						continue;
 					}
-						
-					if((cur.t += stepTime) >= cur.duration) {
+					
+					if (cur) {
+						if ((cur.t += stepTime) >= cur.duration) {
 							cur.t = cur.duration;
 							this.step(el, cur);
-							
-							if (cur.callback) {
-								cur.arguments.push(el);
-								cur.callback.apply(cur.context, cur.arguments);
-							}
-							
-							que.curStep = null;
-							continue;
-					}
-					
-					this.step(el, cur);						
+							cur.length = 0;
+						} else {
+							this.step(el, cur);
+						}
+					} 
 				}					
 			},
 			
