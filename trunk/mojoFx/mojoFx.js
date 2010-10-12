@@ -102,7 +102,7 @@
 				for(; i < len; i++) {
 					el = els[i];
 					
-					(el = el.mojoFxQue).curStep.length = 0;
+					(el = el.mojo.mojoFx.queStep).curStep.length = 0;
 					if(clearQueue) {
 						el.length = 0;
 					}
@@ -241,19 +241,35 @@
 					aEls  = this.animEls,
 					len   = els.length,
 					i     = 0,
-					el, que;
+					el, x;
 					
 				for(; i < len; i++) {
 					el = els[i];
-
-					que = el.mojoFxQue;
 					
-					if(que) {
-						que.push(cfg);
-					} else {
-						aEls.push(el);
-						el.mojoFxQue = [cfg];
+					// register mojo namespace
+					if(!(x = el.mojo)) {
+						x = el.mojo = {};
 					}
+					
+					// register mojoFx namespace
+					if(!x.mojoFx) {
+						x.mojoFx = {
+							// animation queue
+							queStep: [],
+							
+							// whether the element in animation
+							isAnim: false
+						};
+					}
+					
+					x = x.mojoFx;
+					
+					if(!x.isAnim) {
+						aEls.push(el);
+						x.isAnim = true;
+					} 
+					
+					x.queStep.push(cfg);
 				}					
 				
 			},
@@ -443,7 +459,7 @@
 					el = aEls[i];
 					
 					// element animation queue
-					que = el.mojoFxQue;
+					que = el.mojo.mojoFx.queStep;
 					
 					// element current animation step
 					cur = que.curStep || (que.curStep = this.getElStep(el, que.shift()));
@@ -461,7 +477,7 @@
 							// element animation complete
 							
 							aEls.splice(i, 1);
-							el.mojoFxQue = null;
+							el.mojo.mojoFx.isAnim = false;
 							i--;
 							
 							// global animation complete
