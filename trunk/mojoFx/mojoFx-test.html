@@ -5,7 +5,8 @@
 		<title>mojoFx Test Page</title>
 		
 		<script type="text/javascript" src="mojoFx.js"></script>
-		<script type="text/javascript" src="mojoFx-tween.js"></script>
+		<script type="text/javascript" src="mojoFx.easing.js"></script>
+		
 		
 		<style>
 		body {
@@ -60,6 +61,9 @@
 		<div class="test-control">
 			<button onclick="runTest()">Run Test</button>
 			<button onclick="tweenTest()">Tween Test</button>
+			<button onclick="delayTest()">Delay Test</button>
+			<button onclick="stopTest()">Stop Test</button>
+			<button onclick="opacityTest()">Opacity Test</button>
 		</div>
 	</body>
 	
@@ -70,28 +74,29 @@
 			mojoFx.set(target)
 				  .anim({height:100, width:"100"})
 				  .anim({height:"+=100",width:["+=100"]},1000)
-				  .anim({height:[50,1000],width:"-=150"},2000)
+				  .anim({height:[50],width:"-=150"},2000)
 				  .anim({top:"+=200", left:"+=200"},800)
 				  .anim({backgroundColor:"#abc"},2000)
 				  .anim({color:"#fff",top:0},1000)
-				  .delay(1000)
 				  .anim({borderWidth:10,left:"+=100"},1000)
 				  .anim({borderWidth:1, left:0, color:"#ccc"}, 2000)
 				  .anim({backgroundColor:"#fff", color:"#000"},function(){
 				  		mojoFx.set(target).anim({opacity:0},1000)
 							  .anim({opacity:1},{
-								fn : function(el, a, b) {
+								complete : function(el) {
 									el.innerHTML = "test";
 								}
 							  }, 1000)
 				  })
 				  .anim({fontSize:"+=20"},1000)
 				  .anim({fontSize:12}, {
-							  	args : [1,2],
-								ctx  : "aa"			  	
-				  },function(el, a, b) {
+				  				duration: 1000,
+							  	arguments : [1,2],
+								context  : "aa",
+								easing : "easeOutBounce"			  	
+				  },function(a, b, el) {
 						el.innerHTML = a + "," + b + "," + this;
-				  }, 1000)
+				  })
 		}
 		
 		
@@ -99,15 +104,40 @@
 			var el = target.cloneNode(false);
 			document.body.appendChild(el);
 			
-			el.isMojoFxAnim = false;
-			el.mojoFxQue = [];
-			el.mojoFxCur = [];
+			el.mojo = null;
 			
 			mojoFx.set(el).anim({
-				left:["+=400","easeOutQuad"],
+				left:"+=400",
 				top:"+=400"
-			},2000,"easeOutBounce", function(el){
+			},2000, function(el){
 				el.parentNode.removeChild(el);
+			}, {
+				eachEasing: {
+					left: "easeOutQuad",
+					top: "easeOutBounce"
+				}
+			})
+		}
+		
+		function delayTest() {
+			mojoFx.set(target).anim({left:500}, 1000, {
+				eachEasing: {
+					left: "easeInOutElastic"
+				},
+				complete: function(){
+					mojoFx.anim({left:0},1000, "easeInOutElastic");
+				}
+			});
+		}
+		
+		
+		function stopTest() {
+			mojoFx.set(target).stop(true);
+		}
+		
+		function opacityTest() {
+			mojoFx.set(target).anim({opacity:0}, 1000, function(){
+				mojoFx.anim({opacity:1})
 			})
 		}
 
