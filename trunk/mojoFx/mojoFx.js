@@ -97,12 +97,13 @@
 				var 
 					els = joFx.arrEls,
 					len = els.length,
+					getElData = joFx.getElData,
 					i = 0, el;
 				
 				for(; i < len; i++) {
 					el = els[i];
 					
-					(el = el.mojo.mojoFx.queStep).curStep.length = 0;
+					(el = getElData(el).queStep).curStep.length = 0;
 					if(clearQueue) {
 						el.length = 0;
 					}
@@ -169,65 +170,6 @@
 			
 			// current animation elements
 			animEls: [],
-
-			/**
-			 * get property value of element style
-			 * 
-			 * @param  {HTMLElement} el 
-			 * @param  {String}      p	property name
-			 * @return {String} 	 property value			
-			 */
-			getElStyle: function(el, p) { 
-				var 
-					curElSty = el.currentStyle || window.getComputedStyle(el, null),
-					elSty    = el.style;
-				
-				if(p === "opacity") {
-					return elSty.opacity || 
-						curElSty.opacity ||
-						(el.filters.alpha ? el.filters.alpha.opacity : 100) / 100;
-				}
-				
-				return elSty[p] || curElSty[p];
-			},
-			
-			/**
-			 * get color property value to decimal RGB array
-			 * 
-			 * @param  {String} color	property name
-			 * @return {Array}  rgb   	decimal RGB value array
-			 */
-			getRgb: function(color) {
-				var 
-					rgb, i;
-				
-				if(color.indexOf("#") === 0) {
-					// #000
-					if(color.length === 4) {
-						color = color.replace(/\w/g, "$&$&");
-					}
-					
-					rgb = [];
-					
-					// #000000
-					for (i = 0; i < 3; i++) {
-						rgb[i] = parseInt(color.substring(2 * i + 1, 2 * i + 3), 16);
-					}					
-				
-				// rgb(0,0,0)
-				} else {	
-				   if (color === "transparent" || color === "rgba(0, 0, 0, 0)") {
-				   		rgb = [255, 255, 255];
-				   } else {
-				   		rgb = color.match(/\d+/g);
-				   		for (i = 0; i < 3; i++) {
-				   			rgb[i] = parseInt(rgb[i]);
-				   		}
-				   }
-				}
-
-				return rgb;				
-			},
 			
 			/**
 			 * bind configuration object to element
@@ -241,35 +183,19 @@
 					aEls  = this.animEls,
 					len   = els.length,
 					i     = 0,
-					el, x;
+					el, data;
 					
 				for(; i < len; i++) {
 					el = els[i];
 					
-					// register mojo namespace
-					if(!(x = el.mojo)) {
-						x = el.mojo = {};
-					}
+					data = this.getElData(el);
 					
-					// register mojoFx namespace
-					if(!x.mojoFx) {
-						x.mojoFx = {
-							// animation queue
-							queStep: [],
-							
-							// whether the element in animation
-							isAnim: false
-						};
-					}
-					
-					x = x.mojoFx;
-					
-					if(!x.isAnim) {
+					if(!data.isAnim) {
 						aEls.push(el);
-						x.isAnim = true;
+						data.isAnim = true;
 					} 
 					
-					x.queStep.push(cfg);
+					data.queStep.push(cfg);
 				}					
 				
 			},
@@ -453,13 +379,15 @@
 					aEls = this.animEls,
 					len  = aEls.length,
 					i    = 0,
-					el, que, cur;
+					el, que, cur, data;
 			
 				for(; i < len; i++) {
 					el = aEls[i];
 					
+					data = this.getElData(el);
+					
 					// element animation queue
-					que = el.mojo.mojoFx.queStep;
+					que = data.queStep;
 					
 					// element current animation step
 					cur = que.curStep || (que.curStep = this.getElStep(el, que.shift()));
@@ -477,7 +405,7 @@
 							// element animation complete
 							
 							aEls.splice(i, 1);
-							el.mojo.mojoFx.isAnim = false;
+							data.isAnim = false;
 							i--;
 							
 							// global animation complete
@@ -550,7 +478,93 @@
 				}	
 
 				el.style.cssText += sty;
-			}															
+			},
+			
+			/**
+			 * get the animation data on element
+			 * 
+			 * @param {HTMLElement} el
+			 * @return {Object}     mojoFx element animation data
+			 */
+			getElData: function(el) {
+				var x;
+				if(!(x = el.mojoData)) {
+					x = el.mojoData = {};
+				}
+				
+				if (!x.mojoFx) {
+					x.mojoFx = {
+						// animation queue
+						queStep: [],
+						
+						// whether the element in animation
+						isAnim: false
+					};
+				}
+				
+				return x.mojoFx;				
+			},
+			
+			
+			/**
+			 * get property value of element style
+			 * 
+			 * @param  {HTMLElement} el 
+			 * @param  {String}      p	property name
+			 * @return {String} 	 property value			
+			 */
+			getElStyle: function(el, p) { 
+				var 
+					curElSty = el.currentStyle || window.getComputedStyle(el, null),
+					elSty    = el.style;
+				
+				if(p === "opacity") {
+					return elSty.opacity || 
+						curElSty.opacity ||
+						(el.filters.alpha ? el.filters.alpha.opacity : 100) / 100;
+				}
+				
+				return elSty[p] || curElSty[p];
+			},
+			
+			/**
+			 * get color property value to decimal RGB array
+			 * 
+			 * @param  {String} color	property name
+			 * @return {Array}  rgb   	decimal RGB value array
+			 */
+			getRgb: function(color) {
+				var 
+					rgb, i;
+				
+				if(color.indexOf("#") === 0) {
+					// #000
+					if(color.length === 4) {
+						color = color.replace(/\w/g, "$&$&");
+					}
+					
+					rgb = [];
+					
+					// #000000
+					for (i = 0; i < 3; i++) {
+						rgb[i] = parseInt(color.substring(2 * i + 1, 2 * i + 3), 16);
+					}					
+				
+				// rgb(0,0,0)
+				} else {	
+				   if (color === "transparent" || color === "rgba(0, 0, 0, 0)") {
+				   		rgb = [255, 255, 255];
+				   } else {
+				   		rgb = color.match(/\d+/g);
+				   		for (i = 0; i < 3; i++) {
+				   			rgb[i] = parseInt(rgb[i]);
+				   		}
+				   }
+				}
+
+				return rgb;				
+			}											
+										
 		};
 		
 		// make mojoFx global
