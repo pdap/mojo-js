@@ -287,6 +287,7 @@
 				var 
 					len = fxs.length,
 					i   = 0,
+					undefined,
 					fx, b, c, p, s, u, e;
 					
 				for(; i < len; i++) {
@@ -300,7 +301,7 @@
 					
 					if (u !== "#") {
 						// element style property
-						if (typeof el[p] === "undefined") {
+						if (el[p] === undefined) {
 							// get current style value
 							(b = this.getElStyle(el, p)) ? b = parseFloat(b) : b = 0;
 							
