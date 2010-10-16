@@ -4,7 +4,7 @@
 window.frameworks = [
 //[iframe name, file name, css query method]
 
-["mojoQuery-1.0", "mojoQuery.js", "mojoQuery.get"],
+["mojoQuery-1.0", "frameworks/mojoQuery.js", "mojoQuery.get"],
 
 ["jquery-1.4.2", "http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js", "$"],
 
