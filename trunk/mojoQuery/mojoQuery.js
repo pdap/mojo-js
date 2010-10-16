@@ -14,10 +14,10 @@
 			version : "1.0",
 			
 			/**
-			 * 根据选择器和上下文,获得HTMLElement数组
+			 * get HTMLElement array by selector and context
 			 * 
-			 * @param {String}                             selector  选择器
-			 * @param {Undefined/String/HTMLElement/Array} context   选择器上下文
+			 * @param {String}                             selector  
+			 * @param {Undefined/String/HTMLElement/Array} context   
 			 */
 			get : function(selector, context) {
 				var 
@@ -35,11 +35,11 @@
 						break;
 						
 					case "object":
-						// HTMLElement列表形式,包括Array或NodeList
+						// HTMLElement Array or NodeList
 						if (context.length) {
 							contexts = context;
 						} else {
-							// HTMLElement形式
+							// HTMLElement
 							contexts = [context];
 						}
 				}				
@@ -48,33 +48,39 @@
 				
 				context = contexts;
 							
-				// 逗号分隔的选择器
+				// split selector by comma
 				for (i = 0, j = selectors.length; i < j; i++) {
 					selector = selectors[i];
 					
-					// 存放基本规则的数组
+					// base rule array 
+					// add defalut rule " "
 					rules = (" " + selector).match(/[ +>~]/g);
 										
-					// 选择器基本规则分开存放到数组
+					// selector of corresponding base rules 
 					selector = selector.match(/[^ +>~]+/g);
 					
-					// 以基本规则开始的选择器,如:[+div]
 					if(rules.length > selector.length) {
+						// if here, means selector begin with base rule
+						// example: "+div" or ">div" 
+						// remove defalut rule " "
 						rules.shift();
 					}
 					
+					// every time parse selector, use before parse result as this context
 					contexts = context;
 					
-					// 每次解析后的HTMLElement数组,作为下一次解析的上下文
+					// parse selector by each rule
 					for (n = 0, m = rules.length; n < m; n++) { 
 						contexts = joQuery.parse(selector[n], contexts, rules[n]);
 					}
 				
-					// 连接逗号分隔选择器的结果
+					// connect results of comma delimited selector
 					results = results.concat(contexts);
 				}
 				
 				if(j > 1) {
+					// if here, may hava duplicate HTMLElement
+					// remove duplicate
 					joQuery.makeDiff(results);
 				}
 				
@@ -82,17 +88,19 @@
 			}
 		},
 		
-		// 辅助对象
+		// assist object
 		joQuery = {
-			// HTMLElement对象标识计数器
-			cacheCount : 0,
+			// identifies HTMLElement whether matched in one query
+			// refresh each query
+			tagCount: 0,
 			
 		   /**
-		 	* 解析选择器
+		 	* parse selector
 		 	* 
-		 	* @param {String} selector      选择器
-		 	* @param {Array}  contexts      上下文
-		 	* @param {String} rule          规则
+		 	* @param  {String} selector      
+		 	* @param  {Array}  contexts      
+		 	* @param  {String} rule         
+		 	* @return {Array}  HTMLElement array
 		 	*/
 			parse: function(selector, contexts, rule){
 				var 
@@ -100,7 +108,7 @@
 				
 				arr = this.getRules(selector);
 				
-				// 选择器为 id
+				// id selector
 				if (id = arr[1]) { 
 					if (id = document.getElementById(id.substring(1))) {
 						return [id];
@@ -115,43 +123,7 @@
 			},
 			
 			/**
-			 * 预处理选择器
-			 * 
-			 * @param  {String} selector
-			 * @return {String} selectors
-			 */
-			trim: function(selector){
-				var 
-					pseuParams = [],
-					attrParams = [];
-				
-				this.pseuParams = pseuParams;
-				this.attrParams = attrParams;
-				
-				selector = selector
-								// 去除前后空格
-								.replace(/^ +| +$/g, "")	
-						
-								// 去除多余空格
-								.replace(/ +([ +>~]) +/g, "$1")	
-								
-								// 去除属性参数
-								.replace(/[^\[]+(?=\])/g, function(match){
-									return attrParams.push(match) - 1;
-								});
-				
-				// 去除伪类参数
-				while(selector.indexOf("(") !== -1) {
-					selector = selector.replace(/\([^()]+\)/g, function(match){
-						return "-param-" + (pseuParams.push(match.substring(1, match.length - 1)) - 1);
-					});
-				}
-				
-				return selector.split(",");					
-			},
-			
-			/**
-			 * 解析获得分类选择器
+			 * parse selector and  get complex selector
 			 * 
 			 * @param  {String} selector
 			 * @return {Array}  rules
@@ -159,17 +131,23 @@
 			getRules : function(selector) {
 				var	
 					rules, attrs, pseudos; 
-					
+				
+				
+				// rules[1]: id selector 
+				// rules[2]: tag selector
+				// rules[3]: class selecotr
+				// rules[4]: attribute selector
+				// rules[5]: pseudo selector  	
 				rules = /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?:\:.+[^:])*)/.exec(selector);
 				
-				// 获得属性规则数组
 				if (attrs = rules[4]) {
+					// get attribute rule array
 					rules[4] = this.getAttrRules(attrs.match(/[^\[]+(?=\])/g), this.attrParams);
 				}
 				
-				// 获得伪类规则数组
 				if (pseudos = rules[5]) {
 					(pseudos  = pseudos.split(":")).shift();
+					 // get pseudo rule array
 					 rules[5] = this.getPseudoRules(pseudos, this.pseuParams);
 				}				
 				
@@ -177,10 +155,11 @@
 			},
 			
 			/**
-			 * 解析属性规则
+			 * get attribute rule 
 			 * 
-			 * @param  {Array} attrs 属性数组
-			 * @return {Array} arr   属性规则数组 
+			 * @param  {Array} attrs       
+			 * @param  {Array} attrParams  
+			 * @return {Array}     
 			 */
 			getAttrRules : function(attrs, attrParams) {
 				var
@@ -193,9 +172,9 @@
 				
 				for(; i < len; i++, j += 2) {
 					attr = attrParams[attrs[i]];
-					// 规则
+					// rule
 					rule = attr.match(rex) || " ";
-					// 属性名值对
+					// attribute key-value
 					attr = attr.split(rex);					
 					
 					arr[j] = this.attrs[rule];
@@ -206,10 +185,11 @@
 			},		
 			
 			/**
-			 * 解析伪类规则
+			 * get pesudo rule array
 			 * 
-			 * @param {Array} pseudos
-			 * @param {Array} pseuParams
+			 * @param {Array}  pseudos
+			 * @param {Array}  pseuParams
+			 * @return {Array}
 			 */
 			getPseudoRules : function(pseudos, pseuParams) {
 				var 
@@ -222,13 +202,13 @@
 				for(; i < len; i++, j += 2) {
 					name = pseudos[i];
 					if(/-param-(\d+)/.test(name)) {
-						//伪类参数
+						// pesudo parameter
 						param = pseuParams[RegExp.$1];
 						name  = RegExp["$`"];
 						
 						switch(name) {
 							case "nth-child":
-								count = ++this.cacheCount;
+								count = ++this.tagCount;
 								
 								if (/(-?\d*)n([+-]?\d*)/.test(param === "odd" && "2n+1" ||
 															  param === "even" && "2n"  || param)) {
@@ -241,7 +221,7 @@
 									
 									param = [count, "n", param, RegExp.$2 * 1];
 									
-									// 优化"nth:child(n)"形式
+									// optimize "nth:child(n)" 
 									if (param[2] === 1 && param[3] === 0) {
 										continue;
 									}
@@ -270,10 +250,11 @@
 			},
 			
 			/**
-			 * 判断el是否符合伪类规则
+			 * whether HTMLElement matched pseudo rule
 			 * 
-			 * @param {HTMLElement} el
-			 * @param {Array}       pseudos
+			 * @param  {HTMLElement} el
+			 * @param  {Array}       pseudos
+			 * @return {Boolean}
 			 */
 			isPseudo: function(el, pseudos){
 				var 
@@ -285,17 +266,18 @@
 					pseudo = pseudos[i];
 					param = pseudos[i + 1];
 					
-					return pseudo(el, param);
+					return pseudo.call(this, el, param);
 				}
 				
 				return true;
 			},	
 			
 			/**
-			 * 判断el是否符合属性规则
+			 * whether HTMLElement matched attribute rule
 			 * 
-			 * @param {HTMLElement} el
-			 * @param {Array}       attrs
+			 * @param  {HTMLElement} el
+			 * @param  {Array}       attrs
+			 * @return {Boolean}
 			 */
 			isAttr: function(el, attrs){
 				var 
@@ -314,7 +296,7 @@
 						}
 					}
 					
-					if (!rule(String(val), attr[1])) {
+					if (!rule.call(this, String(val), attr[1])) {
 						return false;
 					}
 				}
@@ -323,7 +305,7 @@
 			},	
 			
 			/**
-			 * 过滤el
+			 * filter HTMLElement 
 			 * 
 			 * @param {HTMLElement} el
 			 * @param {String}      tag
@@ -351,11 +333,48 @@
 				return true;
 			},				
 			
+			/**
+			 * preprocessing selector
+			 * 
+			 * @param  {String} selector
+			 * @return {Array}  selector array
+			 */
+			trim: function(selector){
+				var 
+					pseuParams = [],
+					attrParams = [];
+				
+				this.pseuParams = pseuParams;
+				this.attrParams = attrParams;
+				
+				selector = selector
+								// trim space
+								.replace(/^ +| +$/g, "")	
+						
+								// trim base rule space
+								.replace(/ +([ +>~]) +/g, "$1")	
+								
+								// remove attribute selector parameter and put in array
+								.replace(/[^\[]+(?=\])/g, function(match){
+									return attrParams.push(match) - 1;
+								});
+				
+				// remove pseudo selector parameter and put in array
+				while(selector.indexOf("(") !== -1) {
+					selector = selector.replace(/\([^()]+\)/g, function(match){
+						return "-param-" + (pseuParams.push(match.substring(1, match.length - 1)) - 1);
+					});
+				}
+				
+				return selector.split(",");					
+			},			
+			
 		   	/**
-		 	 * 判断el是否含有class属性值
+		 	 * whether HTMLElement matched class attribute
 		 	 * 
-		 	 * @param {HTMLElement} el
-		 	 * @param {String}      cls
+		 	 * @param  {HTMLElement} el
+		 	 * @param  {String}      cls
+		 	 * @return {Boolean}
 		 	 */ 
 		    hasClass: function(el, cls){
 				var 
@@ -377,24 +396,25 @@
 			},										
 
 		   /**
-		 	* 去除数组中重复的HTMLElment元素
+		 	* reomve duplicate HTMLElement
 		 	* 
-		 	* @param {Array} arr
+		 	* @param  {Array} arr
 		 	*/
 			makeDiff : function(arr){
 				var 
-					count = ++this.cacheCount,
+					count = ++this.tagCount,
 					len   = arr.length, 
 					temp  = [], 
 					i     = 0, 
 					j     = 0, 
-					el;
+					el, data;
 				
 				for (; i < len; i++) {
 					el = arr[i];
-					if (el.mojoQueryCacheCount !== count) {
+					data = this.getElData(el);
+					if (data.tagCount !== count) {
 						temp[j++] = el;
-						el.mojoQueryCacheCount = count;
+						data.tagCount = count;
 					}
 				}
 				
@@ -406,20 +426,40 @@
 				}
 			},
 			
-			// 基本规则
+			/**
+			 * get the data bind in HTMLElement
+			 * 
+			 * @param {HTMLElement} el
+			 */
+			getElData: function(el) {
+				var x;
+				if(!(x = el.mojoData)) {
+					x = el.mojoData = {};
+				}
+				
+				if(!x.mojoQuery) {
+					x.mojoQuery = {
+						tagCount: 0
+					};
+				}
+				
+				return x.mojoQuery;
+			},
+			
 			baseRules : {
 			   /**
-	 			* 获得当前规则的HTMLElement数组
+	 			* get matched HTMLElement
 	 			*
-	 			* @param {Array}  contexts   上下文数组
-	 			* @param {String} tag        HTML标签
-	 			* @param {String} cls        class属性
-			  	* @param {Array}  attrs      属性数组
-			  	* @param {Array}  pseudos    伪类数组
+	 			* @param {Array}  contexts   
+	 			* @param {String} tag        
+	 			* @param {String} cls        
+			  	* @param {Array}  attrs      
+			  	* @param {Array}  pseudos    
+			  	* @return {Array}
 	 			*/				
 				" " : function(contexts, tag, cls, attrs, pseudos) {
 					var 
-						count = ++this.cacheCount,
+						count = ++this.tagCount,
 						arr   = [],
 						n     = 0,
 						j     = 0,
@@ -428,11 +468,11 @@
 						
 					for(; n < m; n++) {
 						el  = contexts[n];
-						if((pel = el.parentNode) && pel.mojoQueryCacheCount === count) {
+						if((pel = el.parentNode) && this.getElData(pel).tagCount === count) {
 							continue;
 						}
 						
-						el.mojoQueryCacheCount = count;
+						this.getElData(el).tagCount = count;
 						
 						nodes = el.getElementsByTagName(tag);	
 						for(i = 0, len = nodes.length; i < len; i++) {
@@ -447,13 +487,14 @@
 				},
 				
 			   /**
-	 			* 获得当前规则的HTMLElement数组
+	 			* get matched HTMLElement
 	 			*
-	 			* @param {Array}  contexts   上下文数组
-	 			* @param {String} tag        HTML标签
-	 			* @param {String} cls        class属性
-			  	* @param {Array}  attrs      属性数组
-			  	* @param {Array}  pseudos    伪类数组
+	 			* @param {Array}  contexts   
+	 			* @param {String} tag        
+	 			* @param {String} cls        
+			  	* @param {Array}  attrs      
+			  	* @param {Array}  pseudos    
+			  	* @return {Array}
 	 			*/				
 				">" : function(contexts, tag, cls, attrs, pseudos) {
 					var 
@@ -477,13 +518,14 @@
 				},
 				
 			   /**
-	 			* 获得当前规则的HTMLElement数组
+	 			* get matched HTMLElement
 	 			*
-	 			* @param {Array}  contexts   上下文数组
-	 			* @param {String} tag        HTML标签
-	 			* @param {String} cls        class属性
-			  	* @param {Array}  attrs      属性数组
-			  	* @param {Array}  pseudos    伪类数组
+	 			* @param {Array}  contexts   
+	 			* @param {String} tag        
+	 			* @param {String} cls        
+			  	* @param {Array}  attrs      
+			  	* @param {Array}  pseudos    
+			  	* @return {Array}
 	 			*/					
 				"+" : function(contexts, tag, cls, attrs, pseudos) {
 					var 
@@ -509,26 +551,27 @@
 				},
 				
 			   /**
-	 			* 获得当前规则的HTMLElement数组
+	 			* get matched HTMLElement
 	 			*
-	 			* @param {Array}  contexts   上下文数组
-	 			* @param {String} tag        HTML标签
-	 			* @param {String} cls        class属性
-			  	* @param {Array}  attrs      属性数组
-			  	* @param {Array}  pseudos    伪类数组
+	 			* @param {Array}  contexts   
+	 			* @param {String} tag        
+	 			* @param {String} cls        
+			  	* @param {Array}  attrs      
+			  	* @param {Array}  pseudos    
+			  	* @return {Array}
 	 			*/					
 				"~" : function(contexts, tag, cls, attrs, pseudos) {
 					var 
-						count = ++this.cacheCount,
+						count = ++this.tagCount,
 						arr   = [], 
 						n     = 0,
 						j     = 0,
 						m     = contexts.length,
-						el, pel;
+						el, pel, data;
 
 					for (; n < m; n++) {
 						el = contexts[n];
-						if ((pel = el.parentNode) && pel.mojoQueryCacheCount === count) {
+						if ((pel = el.parentNode) && (data = this.getElData(pel)).tagCount === count) {
 							continue;
 						}
 						
@@ -538,14 +581,14 @@
 							}
 						}
 						
-						pel.mojoQueryCacheCount = count;
+						data.tagCount = count;
 					}
 							
 					return arr;											
 				}
 			},
 			
-			// 属性规则
+			// attribute parameter relative
 			attrs : {
 				" " : function() { 
 					return true;
@@ -580,7 +623,7 @@
 				}
 			},
 			
-			// 伪类规则
+			// pseudo parameter
 			pseudos : {
 				"first-child" : function(el) {
 					while (el = el.previousSibling)	 {
@@ -626,21 +669,21 @@
 				
 				"nth-child" : function(el, param) {
 					var
-					    pel, index, node, i;
+					    pel, index, node, i, data;
 					
-					if ((pel = el.parentNode) && pel.mojoQueryCacheCount !== param[0]) { 
+					if ((pel = el.parentNode) && (data = this.getElData(pel)).tagCount !== param[0]) { 
 						node = pel.firstChild;
 						i = 0;
 						while (node) {
 							if (node.nodeType === 1) {
-								node.mojoQueryNodeIndex = ++i;
+								this.getElData(node).nodeIndex = ++i;
 							}
 							node = node.nextSibling
 						}
-						pel.mojoQueryCacheCount = param[0];
+						data.tagCount = param[0];
 					}
 						
-					index = el.mojoQueryNodeIndex;
+					index = this.getElData(el).nodeIndex;
 					
 					if (param[1] === "n") {
 						index = index - param[3];
@@ -660,7 +703,7 @@
 					for(; i < len; i++) {
 						param = params[i];
 						param[0] = el;
-						if(joQuery.filterEl.apply(joQuery, param)) {
+						if(this.filterEl.apply(this, param)) {
 							return false;
 						}
 					}	
@@ -686,6 +729,6 @@
 			}													
 		};
 		
-		// mojoQuery注册到window
+		// make mojoQuery globel
 		window.mojoQuery = mojoQuery;
 })(window);	
