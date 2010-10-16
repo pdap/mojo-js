@@ -11,7 +11,11 @@
 		document = window.document,
 		
 		mojoQuery = {
-			version : "1.0",
+			
+			info: {
+				author: "scott.cgi",
+				version: "1.1.0"
+			},
 			
 			/**
 			 * get HTMLElement array by selector and context
