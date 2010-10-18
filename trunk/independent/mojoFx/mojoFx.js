@@ -360,12 +360,12 @@
 			 */
 			animStart : function() {
 				var 
-				    ths   = this,
+				    self  = this,
 					start = new Date().getTime();	
 				
 				this.timeId = window.setInterval(function(){
 					var end = new Date().getTime();
-					ths.updateEl(end - start);
+					self.updateEl(end - start);
 					start = end;
 				}, 13);
 			},
