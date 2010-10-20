@@ -233,7 +233,6 @@
 							case "number":
 								fx.symbol = "";
 								fx.val = val;
-								fx.unit = "px";
 								break;
 								
 							// Property value is an array
@@ -250,7 +249,7 @@
 									val = /(\+=|-=)?(-?\d+)(\D*)/.exec(val);
 									fx.symbol = val[1];
 									fx.val = val[2];
-									fx.unit = val[3] || "px";
+									fx.unit = val[3];
 									
 								// color property					
 								} else {
@@ -303,7 +302,11 @@
 						// element style property
 						if (el[p] === undefined) {
 							// get current style value
-							(b = this.getElStyle(el, p)) ? b = parseFloat(b) : b = 0;
+							b = this.getElStyle(el, p);
+							if(!u) {
+								u = b.replace(/[\d.]/g, "") || "px";
+							}
+							b ? b = parseFloat(b) : b = 0;
 							
 						} else {
 							b = el[p];
