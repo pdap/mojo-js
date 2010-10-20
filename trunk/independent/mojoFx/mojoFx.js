@@ -302,11 +302,14 @@
 						// element style property
 						if (el[p] === undefined) {
 							// get current style value
-							b = this.getElStyle(el, p);
+							b = this.getElStyle(el, p); 
 							if(!u) {
-								u = b.replace(/[\d.]/g, "") || "px";
+								/\d/.test(b) ? u = b.replace(/[\d.]/g, "") : u = "px";
 							}
-							b ? b = parseFloat(b) : b = 0;
+							b = parseFloat(b); 
+							if(isNaN(b)) {
+								b = 0;
+							}
 							
 						} else {
 							b = el[p];
