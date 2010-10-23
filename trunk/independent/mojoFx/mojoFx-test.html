@@ -104,6 +104,7 @@
 		<div class="test-control" id="test-control">
 			<button  onclick="runTest()">Run test</button>
 			<button  onclick="easingTest()">Easing test</button>
+			<button onclick="backTest()">Back test</button>
 		</div>
 		
 	</body>
@@ -178,8 +179,8 @@
 			document.body.appendChild(el);
 			
 			$.set(el).anim({
-				top:"+=400px",
-				left:["+=400", "easeOutQuad"]
+				top:"+=550px",
+				left:["+=550", "easeOutQuad"]
 			}, 2000, {
 				eachEasing:{
 					top: "easeOutBounce"
@@ -187,6 +188,14 @@
 				complete: function(el) {
 					el.parentNode.removeChild(el);
 				}
+			})
+		}
+		
+		function backTest() {
+			$.set(target).anim({
+				left:"+=600"
+			}, 1000, "easeInOutBack",function(){
+				$.set(target).anim({left:"-=600"},2000,"easeInOutElastic")
 			})
 		}
 	</script>
