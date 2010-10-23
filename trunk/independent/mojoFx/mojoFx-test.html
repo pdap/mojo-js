@@ -105,6 +105,7 @@
 			<button  onclick="runTest()">Run test</button>
 			<button  onclick="easingTest()">Easing test</button>
 			<button onclick="backTest()">Back test</button>
+			<button onclick="colorTest()">Color test</button>
 		</div>
 		
 	</body>
@@ -197,6 +198,23 @@
 			}, 1000, "easeInOutBack",function(){
 				$.set(target).anim({left:"-=600"},2000,"easeInOutElastic")
 			})
+		}
+		
+		function colorTest() {
+			$.set(target).anim({
+				width:"100",
+				height:"100"
+			}, 600)
+			.anim({
+				backgroundColor:"#CCCCFF"
+			}, 1000)		
+			.anim({
+				backgroundColor:"rgb(99,99,99)"
+			}, 1000)	
+			.anim({
+				width:0,
+				height:0				
+			})			
 		}
 	</script>
 </html>
