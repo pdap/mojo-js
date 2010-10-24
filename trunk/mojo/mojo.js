@@ -5,16 +5,16 @@
  * Since  2009-9-1
  * Nightly Builds
  */ 
-(function(window, mojoQuery){ 
+(function(window){ 
 	var 
 		document = window.document,
 		
-		mojo = function(selector, context) {
-			return new mo(selector, mojoQuery.get(selector, context));
+		mojo = window.mojo = function(selector, context) {
+			return new mo(selector, mojo.querySelector(selector, context));
 		},
 		
 		/**
-		 * mojo构造返回的对象
+		 * the mojo return object
 		 * 
 		 * @param {String} selector
 		 * @param {Array} elements
@@ -23,275 +23,17 @@
 			this.selector = selector;
 			this.elements = elements;
 		},
-		
-		elFn = {
-			/**
-			 * 注册在每个HTMLElement上调用的函数
-			 * 
-			 * @param {Function} fn 调用函数
-			 * @param {Object} ctxArgs  设置调用函数的参数和上下文
-			 */
-			each: function(fn, ctxArgs) {
-				var 
-					args = [this.el, this.index];
-					
-				ctxArgs = this.jo.getCtxArgs(ctxArgs);
-				fn.apply(ctxArgs.ctx, ctxArgs.args.concat(args));
-			},
-			
-			/**
-			 * 绑定标签事件
-			 */
-			on: function() { 
-				var	
-					x = arguments[0],
-					p, el, args, ctxArgs;
-					
-				if(typeof x === "string") {
-					ctxArgs = this.jo.getCtxArgs(arguments[2]);
-					el = this.el;
-					args = [null ,el, this.index];
-					p = arguments[1];
-					
-					el["on" + x] = function(event){
-						args[0] = window.event || event;
-						p.apply(ctxArgs.ctx, ctxArgs.args.concat(args));
-					};			
-				} else if (typeof x === "object") {
-					args = arguments[1] || {};
-					ctxArgs = this.jo.getCtxArgs(args);
-					
-					for(p in x) {
-						this.self.call(this, p, x[p], args[p] || ctxArgs);
-					}
-				}
-			},
-			
-			/**
-			 * 添加事件处理
-			 */
-			addEvent: function() {
-				var	
-					jo = this.jo,
-					x = arguments[0],
-					p, el, fn, args, ctxArgs;
 
-				if(typeof x === "string") {
-					ctxArgs = jo.getCtxArgs(arguments[2]);
-					el = this.el;
-					args = [null ,el, this.index];
-					p = arguments[1];
-					
-					fn = function(event){
-						args[0] = window.event || event;
-						p.apply(ctxArgs.ctx, ctxArgs.args.concat(args));
-					};			
-					
-					jo.addEvent(el, x, fn);
-					
-					// 缓存事件类型和函数
-					if(!el.mojoEventFn) {
-						el.mojoEventFn = {};
-					}
-					
-					if(!el.mojoEventFn[x]) {
-						el.mojoEventFn[x] = [];
-					}
-					
-					el.mojoEventFn[x].push(fn);
-					
-				} else if (typeof x === "object") {
-					args = arguments[1] || {};
-					ctxArgs = jo.getCtxArgs(args);
-					
-					for(p in x) {
-						this.self.call(this, p, x[p], args[p] || ctxArgs);
-					}
-				}					
-			},
-			
-			/**
-			 * 移除事件
-			 */
-			removeEvent: function() {
-				var	
-					x = arguments[0],
-					el = this.el,
-					jo = this.jo,
-					handler = el.mojoEventFn,
-					p, evtFn, i, len;
-				
-				if(!x) {
-					if(handler) {
-						for(p in handler) {
-							evtFn = handler[p];
-							for(i = 0, len = evtFn.length; i < len; i++) {
-								jo.removeEvent(el, p, evtFn[i]);
-							}
-						}		
-						el.mojoEventFn = {};
-					}
-				} else {
-					if(handler) {
-						evtFn = handler[x];
-						if(evtFn) {
-							p = arguments[1];
-							if(p) {
-								for(i = 0, len = evtFn.length; i < len; i++) {
-									if(p === evtFn[i]) {
-										jo.removeEvent(el, x, p);
-										evtFn.splice(i, 1);
-										i--;
-										len--;
-									}
-								}								
-							} else {
-								for(i = 0, len = evtFn.length; i < len; i++) {
-									jo.removeEvent(el, x, evtFn[i]);
-								}		
-								evtFn.length = 0;						
-							}
-						}
-					}
-				}	
-			},
-			
-			/**
-			 * 触发事件
-			 * 
-			 * @param {String} evtName 事件名称
-			 * @param {Object} evtVal  事件值对象
-			 */
-			fire: function(evtName, evtVal) {
-				var
-					el = this.el,
-					jo = this.jo,
-					evt = jo.createEvent();
-				
-				jo.initEvent(evtName, evt, evtVal || {});
-				jo.fireEvent(el, evt, evtName);
-			}					
-		},
-		
 		jo = {
 			
 			/**
-			 * 创建事件对象
+			 * call the function on each element
 			 * 
-			 * @param {String} evtType 事件类型
-			 * @return {Object} event 事件对象
+			 * @param {Object}   target  
+			 * @param {String}   name   
+			 * @param {Function} method  
 			 */
-			createEvent: function(evtType){
-				if(document.createEvent) {
-					return document.createEvent(evtType || "HTMLEvents");
-				} else if(document.createEventObject) {
-					return document.createEventObject();
-				}
-			},
-			
-			/**
-			 * 初始化事件对象
-			 * 
-			 * @param {String} evtName 事件名称
-			 * @param {Object} evt	   事件对象
-			 * @param {Object} evtVal  事件值对象
-			 * @param {Object} initMethod 事件初始化方法
-			 */
-			initEvent: function(evtName, evt, evtVal, initMethod) {
-				var p;
-				initMethod = initMethod || "initEvent";
-				if(evt[initMethod]) {
-					switch(initMethod) {
-						case "initEvent":
-							evt.initEvent(evtName, evtVal.bubbles || true, evtVal.cancelable || false);
-							break;
-					}
-				} else {
-					for(p in evtVal) {
-						evt[p] = evtVal[p];
-					}
-				}
-			},
-			
-			/**
-			 * 触发事件
-			 * 
-			 * @param {HTMLElement} el
-			 * @param {Object} evt		事件对象
-			 * @param {String} evtName  事件名称
-			 */
-			fireEvent: function(el, evt, evtName) {
-				if(el.dispatchEvent) {
-					el.dispatchEvent(evt);
-				} else if(el.fireEvent) {
-					el.fireEvent("on" + evtName, evt);
-				}
-			},
-			
-			/**
-			 * 添加事件处理
-			 * 
-			 * @param {HTMLElement} el
-			 * @param {String} evtName  事件名称
-			 * @param {Function} fn		事件处理函数
-			 */
-			addEvent: function(el, evtName, fn) {
-				if(el.addEventListener) {
-					el.addEventListener(evtName, fn, false);
-				} else if(el.attachEvent) {
-					el.attachEvent("on" + evtName, fn);
-				}
-			},
-			
-			/**
-			 * 移除事件处理
-			 * 
-			 * @param {HTMLElement} el
-			 * @param {String} evtName 事件名称
-			 * @param {Function} fn	   事件处理函数
-			 */
-			removeEvent: function(el, evtName, fn) {
-				if(el.removeEventListener) {
-					el.removeEventListener(evtName, fn, false);
-				} else if(el.detachEvent) {
-					el.detachEvent("on" + evtName, fn);
-				}
-			},
-			
-			/**
-			 * 获得包含有上下文和参数的对象
-			 * 
-			 * @param {Object} ctxArgs 含有上下文和参数的对象
-			 * @return  包含有上下文和参数的对象
-			 */
-			getCtxArgs: function(ctxArgs) {
-				var 
-					obj = {
-						ctx: window,
-						args: []
-					};
-					
-				if (ctxArgs) {
-					if (typeof ctxArgs.ctx !== "undefined") {
-						obj.ctx = ctxArgs.ctx;
-					}
-					
-					if (ctxArgs.args) {
-						obj.args = ctxArgs.args;
-					}
-				}	
-				
-				return obj;
-			},
-			
-			/**
-			 * 对mo对象原型链上的方法切面处理
-			 * 
-			 * @param {Object} target 目标对象
-			 * @param {String} name   目标方法名
-			 * @param {Function} method  目标方法
-			 */
-			aspect: function(target, name, method) {
+			applyOnEach: function(target, name, method) {
 				target[name] = function() {
 					var 
 						els = this.elements, 
@@ -304,8 +46,6 @@
 						el = els[i];
 						ctx = {
 							el: el,
-							mo: this,
-							jo: jo,
 							index: i,
 							retVal: retVal,
 							self: method
@@ -320,20 +60,19 @@
 			}
 		};
 		
-	// 注册mo对象的原型链对象到mojo
 	mojo.fn = mo.prototype;
 	
 	/**
-	 * 扩展mo对象原型链和mojo对象上的方法
+	 * extend mojo and mo object 
 	 * 
-	 * @param {Object} o 扩展方法的对象
-	 * @param {Boolean} isEach 扩展方法是否在每一个HTMLElement上调用
+	 * @param {Object} o 
+	 * @param {Boolean} isEach 
 	 */
 	mojo.extend = mojo.fn.extend = function(o, isEach) {
 		var p;
 		if (isEach) {
 			for (p in o) {
-				jo.aspect(this, p, o[p]);
+				jo.applyOnEach(this, p, o[p]);
 			}
 		} else {
 			for (p in o) {
@@ -344,10 +83,4 @@
 		return this;
 	};
 	
-	// 注册mo对象方法
-	mojo.fn.extend(elFn, true);
-	
-	// 注册mojo到window对象
-	window.mojo = mojo;
-	
-})(window, mojoQuery);
+})(window);
