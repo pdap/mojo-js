@@ -103,7 +103,12 @@
 				for(; i < len; i++) {
 					el = els[i];
 					
-					(el = getElData(el).queStep).curStep.length = 0;
+					el = getElData(el).queStep;
+					
+					if(el.curStep) {
+						el.curStep.length = 0;
+					}
+					
 					if(clearQueue) {
 						el.length = 0;
 					}
