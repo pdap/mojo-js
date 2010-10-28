@@ -38,16 +38,36 @@
 	<!-- header end -->
 
 
-<div style="text-align:center;margin:10px">
+<div style="margin:10px">
 	<p>
 		Selector Type : 
 		<select onchange="selectorTypeChange(this)">
 			<option selected="selected" value="baseSelectors">base selector</option>
 			<option value="attrSelectors">attribute selector</option>
 			<option value="pseuSelectors">pseudo selector</option>
-			<option value="contextSelector">context selector</option>
-			<option value="allSelector">all selector</option>
+			<option value="contextSelectors">context selector</option>
+			<option value="allSelectors">all selector</option>
+			<option value="customSelectors">custom selector</option>
 		</select>
+	</p>
+	<p id="customSelector" style="display:none;">
+		Custom Selector :
+		<input type="text" value="" id="customText" />
+		<input type="button" value="add" onclick="(function(){
+			var selector = document.getElementById('customText').value;
+			var custom = window.customSelectors;
+			custom.push(selector); 
+			custom.cacheSelectors = null;
+			fillTableData(custom);
+			window.selectors = custom;
+			window.onload();
+		})()" />
+		<input type="button" value="clear" onclick="(function(){
+			var custom = window.customSelectors;
+			custom.length = 0;
+			custom.cacheSelectors = null;
+			alert('clear over');
+		})()" />
 	</p>
 </div>
 		
@@ -131,19 +151,31 @@
 		
 		// switch selector
 		function selectorTypeChange(ths) {
-			var arr = window[ths.value];
-			if (!arr.cacheSelectors) {
-				var trs = "";
-				for (var i = 0, len = arr.length; i < len; i++) {
-					trs += "<tr><th class='selector'>" + arr[i] + "</th>" + tds + "</tr>";
-				}
-				arr.cacheSelectors = trs;
+			if(ths.value === "customSelectors") {
+				document.getElementById("customSelector").style.display = "block";
+			} else {
+				document.getElementById("customSelector").style.display = "none";
 			}
-			tableDiv.innerHTML = table_thead_tbody + arr.cacheSelectors + tbody_tfoot_table;
+			
+			var arr = window[ths.value];
+			fillTableData(arr);
+			
 			// be tested seletors
 			window.selectors = arr;
 			// init data
 			window.onload();
+		}
+		
+		// fill selector
+		function fillTableData(selectorArr) {
+			if (!selectorArr.cacheSelectors) {
+				var trs = "";
+				for (var i = 0, len = selectorArr.length; i < len; i++) {
+					trs += "<tr><th class='selector'>" + selectorArr[i] + "</th>" + tds + "</tr>";
+				}
+				selectorArr.cacheSelectors = trs;
+			}
+			tableDiv.innerHTML = table_thead_tbody + selectorArr.cacheSelectors + tbody_tfoot_table;			
 		}
 	</script>
 

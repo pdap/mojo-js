@@ -125,7 +125,9 @@ window.contextSelectors = [
 
 ];
 
-window.allSelector = baseSelectors.concat(attrSelectors).concat(pseuSelectors).concat(contextSelectors);
+window.customSelectors = [];
+
+window.allSelectors = baseSelectors.concat(attrSelectors).concat(pseuSelectors).concat(contextSelectors);
 
 // default loaded selectors
 window.selectors = baseSelectors;
