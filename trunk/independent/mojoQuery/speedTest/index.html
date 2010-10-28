@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>mojoQuery Selectors Test</title>
+	<title>CSS Selector Test</title>
 	
 	<link rel="stylesheet" href="css/style.css" type="text/css" media="screen">
 	
@@ -21,9 +21,6 @@
 	<div id="controls">
 		<a class="stop" href="#">stop tests</a>
 		<a class="start" href="#">start tests</a>
-		<a class="" href="http://code.google.com/p/mojo-js/downloads/list" target="_blank">
-			Download mojoQuery
-		</a>
 	</div>
 
 
@@ -38,10 +35,6 @@
 	</p>
 	<p>
 		Tests are run against a local copy of <a href="http://www.w3.org/TR/2001/CR-css3-selectors-20011113/">this document</a>.
-	</p>
-	<p></p>
-	<p>
-		"mojoQuery是一个纯javascript的css选择器引擎 !"
 	</p>
 	<!-- header end -->
 
@@ -91,7 +84,6 @@
 	<p class="footer">
 		copyright &copy; 2007 <a href="http://mootools.net">http://mootools.net</a>
 		| MIT License | <a href="http://slickspeed.googlecode.com/svn/trunk">download from googlecode (PHP)</a>
-		| <label style="color:red">感谢您对mojoQuery的支持 !</label>
 	</p>
 </div>
 
@@ -112,7 +104,7 @@
 			thead = "<thead id='thead'><tr><th class='selectors-title'>selectors</th>",
 			tfoot = "<tfoot id='tfoot'><tr><th class='score-title'><strong>final time (less is better)</strong></th>";
 		
-		// 构建head,foot,iframe	
+		// build head,foot,iframe	
 		for (var i = 0, len = frameworks.length; i < len; i++) {
 			thead += "<th class='framework'>" + frameworks[i][0] + "</th>";
 			tds   += "<td class='empty'></td>";
@@ -123,7 +115,7 @@
 		thead += "</tr></tfoot>";
 		tfoot += "</tr></tfoot>";
 		
-		// 构建body
+		// build body
 		for (var i = 0, len = selectors.length; i < len; i++) {
 			trs += "<tr><th class='selector'>" + selectors[i] + "</th>" + tds + "</tr>";
 		}		
@@ -134,7 +126,7 @@
 		
 		tableDiv.innerHTML = table_thead_tbody + trs + tbody_tfoot_table;
 		
-		// 切换选择器
+		// switch selector
 		function selectorTypeChange(ths) {
 			var arr = window[ths.value];
 			if (!arr.cacheSelectors) {
@@ -145,9 +137,9 @@
 				arr.cacheSelectors = trs;
 			}
 			tableDiv.innerHTML = table_thead_tbody + arr.cacheSelectors + tbody_tfoot_table;
-			// 需要测试的选择器
+			// be tested seletors
 			window.selectors = arr;
-			// 初始化test数据
+			// init data
 			window.onload();
 		}
 	</script>
