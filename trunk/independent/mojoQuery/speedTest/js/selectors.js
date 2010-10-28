@@ -127,5 +127,5 @@ window.contextSelector = [
 
 window.allSelector = baseSelectors.concat(attrSelectors).concat(pseuSelectors);
 
-// 页面第一次加载的选择器
+// default loaded selectors
 window.selectors = baseSelectors;
