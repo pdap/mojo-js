@@ -93,7 +93,7 @@ window.pseuSelectors = [
 			
 'p:nth-child(n-4)',
 			
-//'p:nth-child(-2n+2)',
+//'p:nth-child(-2n+2)', this is cause some browser crush (not mojoQuery make)
 			
 'p:nth-child(-n+6)',
 			
