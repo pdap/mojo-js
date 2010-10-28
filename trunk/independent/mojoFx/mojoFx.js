@@ -421,6 +421,7 @@
 							if ((len = aEls.length) === 0) {
 								window.clearInterval(this.timeId);
 								this.timeId = 0;
+								que.curStep = null;
 								return;
 							}			
 											
