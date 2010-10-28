@@ -15,7 +15,7 @@
 			document.querySelectorAll = null;
 			document.writeln("<script type='text/javascript' src=" + params[0] + "></" + "script>");
 		} else {
-			// 本地方法测试页面
+			// native method querySelectorAll test page
 			document.writeln("<script type='text/javascript'></" + "script>");
 		}
 		
@@ -29,8 +29,9 @@
 		}
 		
 		function test(selector){ 
-			// 带有上下文 的选择器
+			
 			if(typeof selector !== "string") {
+				// with context
 				selector = "('" + selector[0] + "','" + selector[1] + "')";
 			} else {
 				selector = "('" + selector + "')";
@@ -50,7 +51,7 @@
 	</script>	
 </head>
 
-<!-- 后面不用看了  -->
+<!-- no need to look   -->
 <body>
 
   <div class="head">
