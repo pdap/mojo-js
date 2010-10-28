@@ -119,13 +119,13 @@ window.pseuSelectors = [
 
 ];
 
-window.contextSelector = [
+window.contextSelectors = [
 
 ['div', 'div']
 
 ];
 
-window.allSelector = baseSelectors.concat(attrSelectors).concat(pseuSelectors).concat(contextSelector);
+window.allSelector = baseSelectors.concat(attrSelectors).concat(pseuSelectors).concat(contextSelectors);
 
 // default loaded selectors
 window.selectors = baseSelectors;
