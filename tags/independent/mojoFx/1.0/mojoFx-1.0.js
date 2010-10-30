@@ -1,9 +1,12 @@
 /**
- * Copyright (c) 2010 scott.cgi
+ * mojoFx JavaScript Library
  * http://mojo-js.appspot.com
- * under MIT License
- * Since  2010-05-16
- * Nightly Builds
+ * 
+ * Copyright (c) 2010 scott.cgi
+ * Released under MIT License (http://mojo-js.appspot.com/MIT-License.txt)
+ * 
+ * Since  2009-11-11
+ * Current Release Date: 2010-10-30 15:58 (UTC+08:00)
  */
 
 (function(window){ 
