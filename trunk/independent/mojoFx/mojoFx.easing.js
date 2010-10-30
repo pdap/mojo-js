@@ -7,7 +7,7 @@
  * @param {Number} d duration        
  */
 (function($){
-	var easing = $.getEasing();
+	var easing = $.easing;
 	
 	$.addEasing({
 		/*Quad*/
