@@ -9,149 +9,20 @@
 (function(window){ 
 	
 	var 
-		mojoFx = {
-			
-			/**
-			 * set animation element
-			 * 
-			 * @param  {HTMLElement/Array/NodeList} arg  
-			 * @return {Object} mojoFx
-			 */
-			set: function(arg) {
-				joFx.arrEls = arg.length ? arg : [arg];
-				return this;
-			},
-
-			/**
-			 * custom animation property and fire it
-			 * 
-			 * @param  {Object} prop	element style configuration object
-			 * @return {Object} mojoFx
-			 */
-			anim: function(prop) {
-				var 
-					// animation configuration object
-					cfg = {
-						prop: prop,
-						
-						duration: 400,
-						
-						complete: null,
-						
-						easing: "swing",
-						
-						eachEasing: {},
-						
-						// context of callback function
-						context: window,
-						
-						// arguments of callback funtion
-						arguments: []
-					},
-					len = arguments.length,
-					i   = 1,
-					p, param;
-
-				for(; i < len; i++) {
-					param = arguments[i];
-					switch(typeof param) {
-						case "number":
-							cfg.duration = param;
-							break;
-						
-						case "string":
-							cfg.easing = param;
-							break;
-							
-						case "function":
-							cfg.complete = param;
-							break;
-						
-						// optional object configuration
-						case "object":
-							for(p in param) {
-								cfg[p] = param[p];
-							}			
-					}
-				}
-				
-				// bind configuration object to element
-				// set element into global animation array
-				joFx.addElStep(cfg);
-				
-				// start animation
-				if(!joFx.timeId) {
-					joFx.animStart();
-				} 
-				
-				return this;				
-			},
-			
-			/**
-			 * stop element animation
-			 * 
-			 * @param {Boolean} clearQueue  clear element animation queue	 
-			 * @return {Object} mojoFx
-			 */
-			stop: function(clearQueue) {
-				var 
-					els = joFx.arrEls,
-					len = els.length,
-					getElData = joFx.getElData,
-					i = 0, el;
-				
-				for(; i < len; i++) {
-					el = els[i];
-					
-					el = getElData(el).queStep;
-					
-					if(el.curStep) {
-						el.curStep.length = 0;
-					}
-					
-					if(clearQueue) {
-						el.length = 0;
-					}
-				}	
-				
-				return this;
-			},
-			
-			/**
-			 * add easing algorithm
-			 */
-			addEasing: function() {
-				var 
-					easing = joFx.easing,
-					p, o; 
-				
-				switch(arguments.length) {
-					case 1:
-						o = arguments[0];
-						for(p in o) {
-							easing[p] = o[p];
-						}
-						break;
-					
-					case 2:
-						p = arguments[0];
-						o = arguments[1];
-						easing[p] = o;	
-				}
-				
-				return this;
-			},
-			
-			/**
-			 * get easing object
-			 */
-			getEasing: function() {
-				return joFx.easing;
-			}
-						
+		
+		mojoFx = function(arg) {
+			return new moFx(arg);
 		},
 		
-	
+		/**
+		 * animation object inculde animation target HTMLElements and method
+		 * 
+		 * @param {Array/NodeList/HTMLElement} arg
+		 */
+		moFx = function(arg) {
+			this.elements = arg.length ? arg : [arg];
+		},		
+
 		joFx = {
 			
 			// easing algorithm
@@ -170,9 +41,6 @@
 			// animation executor time id
 			timeId: 0,
 			
-			// to perform the animation element array
-			arrEls: null,
-			
 			// current animation elements
 			animEls: [],
 			
@@ -180,11 +48,11 @@
 			 * bind configuration object to element
 			 * set element into global animation array
 			 * 
+			 * @param {Array}  els  to perform the animation element array
 			 * @param {Object} cfg	animation configuration object
 			 */
-			addElStep: function(cfg) {
+			addElStep: function(els, cfg) {
 				var 
-					els   = this.arrEls,
 					aEls  = this.animEls,
 					len   = els.length,
 					i     = 0,
@@ -576,6 +444,144 @@
 			}											
 										
 		};
+		
+		
+		moFx.prototype = {
+			/**
+			 * custom animation property and fire it
+			 * 
+			 * @param  {Object} prop	element style configuration object
+			 * @return {Object} moFx
+			 */
+			anim: function(prop) {
+				var 
+					// animation configuration object
+					cfg = {
+						prop: prop,
+						
+						duration: 400,
+						
+						complete: null,
+						
+						easing: "swing",
+						
+						eachEasing: {},
+						
+						// context of callback function
+						context: window,
+						
+						// arguments of callback funtion
+						arguments: []
+					},
+					len = arguments.length,
+					i   = 1,
+					p, param;
+
+				for(; i < len; i++) {
+					param = arguments[i];
+					switch(typeof param) {
+						case "number":
+							cfg.duration = param;
+							break;
+						
+						case "string":
+							cfg.easing = param;
+							break;
+							
+						case "function":
+							cfg.complete = param;
+							break;
+						
+						// optional object configuration
+						case "object":
+							for(p in param) {
+								cfg[p] = param[p];
+							}			
+					}
+				}
+				
+				// bind configuration object to element
+				// set element into global animation array
+				joFx.addElStep(this.elements, cfg);
+				
+				// start animation
+				if(!joFx.timeId) {
+					joFx.animStart();
+				} 
+				
+				return this;				
+			},
+			
+			/**
+			 * stop element animation
+			 * 
+			 * @param {Boolean} clearQueue  clear element animation queue	 
+			 * @return {Object} moFx
+			 */
+			stop: function(clearQueue) {
+				var 
+					els = this.elements,
+					len = els.length,
+					getElData = joFx.getElData,
+					i = 0, el;
+				
+				for(; i < len; i++) {
+					el = els[i];
+					
+					el = getElData(el).queStep;
+					
+					if(el.curStep) {
+						el.curStep.length = 0;
+					}
+					
+					if(clearQueue) {
+						el.length = 0;
+					}
+				}	
+				
+				return this;
+			}							
+		};
+		
+		
+		mojoFx.extend = function(o) {
+		 	var p;
+			for(p in o) {
+				this[p] = o[p];
+			}
+			
+			return this;
+		};
+		
+		
+		mojoFx.extend({
+			easing: joFx.easing,
+			
+			/**
+			 * add easing algorithm
+			 */
+			addEasing: function() {
+				var 
+					easing = this.easing,
+					p, o; 
+				
+				switch(arguments.length) {
+					case 1:
+						o = arguments[0];
+						for(p in o) {
+							easing[p] = o[p];
+						}
+						break;
+					
+					case 2:
+						p = arguments[0];
+						o = arguments[1];
+						easing[p] = o;	
+				}
+				
+				return this;
+			}			
+		});
 		
 		// make mojoFx global
 		window.mojoFx = mojoFx;	
