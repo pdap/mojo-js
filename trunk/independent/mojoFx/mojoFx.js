@@ -555,6 +555,11 @@
 		
 		
 		mojoFx.extend({
+			info: {
+				author: "scott.cgi",
+				version: "1.0"
+			},
+			
 			easing: joFx.easing,
 			
 			/**
