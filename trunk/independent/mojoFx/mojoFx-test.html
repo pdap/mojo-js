@@ -106,7 +106,7 @@
 			<button  onclick="easingTest()">Easing test</button>
 			<button onclick="backTest()">Back test</button>
 			<button onclick="colorTest()">Color test</button>
-			<button onclick="viewTest()">View test</button>
+			<button onclick="delayTest()">Delay test</button>
 		</div>
 		
 	</body>
@@ -219,8 +219,29 @@
 		}
 		
 		
-		function viewTest() {
+		function delayTest() {
+			
+			var arr = [], top = 150;
+			
+			for(var i = 0; i < 2; i++) {
+				var el = target.cloneNode(false);
+				el.mojoData = null;
+				
+				el.style.top = top + "px";
+				top += 100;
+				
+				document.body.appendChild(el);
+				arr.push(el);
+			}
+			
+			$(arr)
+			.anim({left: "+=500"}, 1000)
+			.delay(500)
+			.anim({left:"-=500"}, 1000, function(el){
+				 el.parentNode.removeChild(el);
+			})
 			
 		}
+
 	</script>
 </html>
