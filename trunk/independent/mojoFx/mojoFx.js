@@ -45,16 +45,18 @@
 			animEls: [],
 			
 			/**
-			 * bind configuration object to element
-			 * set element into global animation array
+			 * add element into global animation array
+			 * add element animation step
 			 * 
-			 * @param {Array}  els  to perform the animation element array
-			 * @param {Object} cfg	animation configuration object
+			 * @param {Array}  els  array of HTMLElement
+			 * @param {Object/Undefined} animation configuration object
+			 * @return joFx
 			 */
-			addElStep: function(els, cfg) {
+			add: function(els, cfg) {
 				var 
 					aEls  = this.animEls,
 					len   = els.length,
+					n     = arguments.length,
 					i     = 0,
 					el, data;
 					
@@ -64,13 +66,39 @@
 					data = this.getElData(el);
 					
 					if(!data.isAnim) {
-						aEls.push(el);
+						aEls.push(el); 
 						data.isAnim = true;
 					} 
 					
-					data.queStep.push(cfg);
+					if(n === 2) {
+						data.queStep.push(cfg);
+					}
 				}					
 				
+				return this;
+			},			
+			
+			/**
+			 * add elements animation callback step
+			 * 
+			 * @param {Array}  els  array of HTMLElement
+			 * @param {Object} cfg
+			 * @return joFx
+			 */
+			addCallback: function(els, cfg) {
+				var
+					callback = [],
+					obj = {
+						arguments: [],
+						context: window,
+						complete: null
+					}, p;
+				
+				for(p in obj) {
+					callback[p] = cfg[p] || obj[p];
+				}	
+				
+				return this.add(els, callback);
 			},
 
 			/**
@@ -81,15 +109,23 @@
 			 */
 			getElStep: function(el, cfg) {
 				var 
-					eachEasing = cfg.eachEasing,
-					easing = cfg.easing,
-					prop   = cfg.prop,
-					fxs    = cfg.fxs,
-					step   = [],
+					eachEasing, easing, prop,
+					fxs, step,
 					p, val, fx;
+				
+				if("length" in cfg) {
+					// only has complete function	
+					return cfg;
+				} else {
+					fxs = cfg.fxs;
+					step = [];					
+				}
 				
 				if (!fxs) {
 					fxs = [];
+					prop   = cfg.prop;
+					easing = cfg.easing;
+					eachEasing = cfg.eachEasing;
 					
 					for (p in prop) {
 						// each property animation object
@@ -236,14 +272,18 @@
 			 */
 			animStart : function() {
 				var 
-				    self  = this,
-					start = new Date().getTime();	
+				    self, start;	
 				
-				this.timeId = window.setInterval(function(){
-					var end = new Date().getTime();
-					self.updateEl(end - start);
-					start = end;
-				}, 13);
+				if (!this.timeId) {
+				    self  = this;
+					start = new Date().getTime();					
+					
+					this.timeId = window.setInterval(function(){
+						var end = new Date().getTime();
+						self.updateEl(end - start);
+						start = end;
+					}, 13);
+				}
 			},
 			
 			/**
@@ -269,11 +309,9 @@
 					// element current animation step
 					cur = que.curStep || (que.curStep = this.getElStep(el, que.shift()));
 					
-					
 					while(!cur.length) {
 						if (cur.complete) {
-							cur.arguments.push(el);
-							cur.complete.apply(cur.context, cur.arguments);
+							cur.complete.apply(cur.context, cur.arguments.concat(el));
 						}
 						
 						if(cur = que.shift()) {
@@ -283,13 +321,13 @@
 							
 							aEls.splice(i, 1);
 							data.isAnim = false;
+							que.curStep = null;
 							i--;
 							
 							// global animation complete
 							if ((len = aEls.length) === 0) {
 								window.clearInterval(this.timeId);
 								this.timeId = 0;
-								que.curStep = null;
 								return;
 							}			
 											
@@ -502,12 +540,8 @@
 				
 				// bind configuration object to element
 				// set element into global animation array
-				joFx.addElStep(this.elements, cfg);
-				
 				// start animation
-				if(!joFx.timeId) {
-					joFx.animStart();
-				} 
+				joFx.add(this.elements, cfg).animStart();
 				
 				return this;				
 			},
@@ -540,6 +574,31 @@
 				}	
 				
 				return this;
+			},
+			
+			/**
+			 * Set a timer to delay execution aniamtion queue
+			 * 
+			 * @param {Number} t delay times
+			 * @return{Object} moFx
+			 */
+			delay: function(t) {
+				var 
+				 	els = this.elements,
+					count = 0;
+				
+				joFx.addCallback(els, {
+					arguments: [els, els.length, t],
+					complete: function(els, len, t) {
+						if (++count === len) {
+							window.setTimeout(function(){
+								joFx.add(els).animStart();
+							}, t);
+						}
+					}
+				}).add(els, null);
+				
+				return this;
 			}							
 		};
 		
@@ -557,7 +616,7 @@
 		mojoFx.extend({
 			info: {
 				author: "scott.cgi",
-				version: "1.0"
+				version: "1.1"
 			},
 			
 			easing: joFx.easing,
