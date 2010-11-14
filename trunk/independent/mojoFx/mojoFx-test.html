@@ -237,7 +237,11 @@
 			$(arr)
 			.anim({left: "+=500"}, 1000)
 			.delay(500)
-			.anim({left:"-=500"}, 1000, function(el){
+			.anim({left:"-=500"}, 1000)
+			.delay(500)
+			.anim({top:"+=200"})
+			.delay(500)
+			.anim({top:"-=200"},function(el){
 				 el.parentNode.removeChild(el);
 			})
 			
