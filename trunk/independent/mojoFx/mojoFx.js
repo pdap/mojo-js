@@ -15,7 +15,7 @@
 		},
 		
 		/**
-		 * animation object inculde animation target HTMLElements and method
+		 * Animation object inculde animation target HTMLElements and method
 		 * 
 		 * @param {Array/NodeList/HTMLElement} arg
 		 */
@@ -45,11 +45,11 @@
 			animEls: [],
 			
 			/**
-			 * add element into global animation array
-			 * add element animation step
+			 * Add element into global animation array
+			 * Add element animation step
 			 * 
-			 * @param {Array}  els  array of HTMLElement
-			 * @param {Object/Undefined} animation configuration object
+			 * @param {Array}  els  Array of HTMLElement
+			 * @param {Object/Undefined} cfg  Animation configuration object
 			 * @return joFx
 			 */
 			add: function(els, cfg) {
@@ -79,10 +79,10 @@
 			},			
 			
 			/**
-			 * add elements animation callback step
+			 * Add elements animation callback step
 			 * 
-			 * @param {Array}  els  array of HTMLElement
-			 * @param {Object} cfg
+			 * @param {Array}  els  Array of HTMLElement
+			 * @param {Object} cfg  Callback function configuration object
 			 * @return joFx
 			 */
 			addCallback: function(els, cfg) {
@@ -102,10 +102,10 @@
 			},
 
 			/**
-			 * get animation step array
+			 * Get animation step array
 			 * 
-			 * @param {HTMLElement} el   
-			 * @param {Object} cfg  animation configuration object
+			 * @param {HTMLElement} el  HTMLElement
+			 * @param {Object}      cfg Animation configuration object
 			 */
 			getElStep: function(el, cfg) {
 				var 
@@ -186,11 +186,11 @@
 			},
 
 			/**
-			 * set animation step begin and change value
+			 * Set animation step begin and change value
 			 * 
-			 * @param  {HTMLElement} el
-			 * @param  {Array}       fxs   animation configuration 
-			 * @return {Array}       step  animation step
+			 * @param  {HTMLElement} el    HTMLElement
+			 * @param  {Array}       fxs   Animation configuration 
+			 * @return {Array}       step  Animation step
 			 */
 			setBc : function(el, fxs, step) {
 				var 
@@ -268,7 +268,7 @@
 			},
 			
 			/**
-			 * start global animation executor
+			 * Start global animation executor
 			 */
 			animStart : function() {
 				var 
@@ -287,9 +287,9 @@
 			},
 			
 			/**
-			 * update element style
+			 * Update element style
 			 * 
-			 * @param {Number} stepTime	   each step interval 
+			 * @param {Number} stepTime  Each step interval 
 			 */
 			updateEl : function(stepTime) {
 				var 
@@ -348,10 +348,10 @@
 			},
 			
 			/**
-			 * animation step
+			 * Animation step
 			 * 
-			 * @param {HTMLElement} el    
-			 * @param {Array}       step 
+			 * @param {HTMLElement} el    HTMLElement
+			 * @param {Array}       step  Animation step info object
 			 */
 			step: function(el, step) {
 				var 
@@ -397,10 +397,10 @@
 			},
 			
 			/**
-			 * get the animation data on element
+			 * Get the animation data on element
 			 * 
-			 * @param {HTMLElement} el
-			 * @return {Object}     mojoFx element animation data
+			 * @param {HTMLElement} el HLTMLElement
+			 * @return {Object}        mojoFx element animation data
 			 */
 			getElData: function(el) {
 				var x;
@@ -423,11 +423,11 @@
 			
 			
 			/**
-			 * get property value of element style
+			 * Get property value of element css style
 			 * 
-			 * @param  {HTMLElement} el 
-			 * @param  {String}      p	property name
-			 * @return {String} 	 property value			
+			 * @param  {HTMLElement} el HTMLElement
+			 * @param  {String}      p	Css property name
+			 * @return {String} 	    Css property value			
 			 */
 			getElStyle: function(el, p) { 
 				var 
@@ -444,10 +444,10 @@
 			},
 			
 			/**
-			 * get color property value to decimal RGB array
+			 * Get color property value to decimal RGB array
 			 * 
-			 * @param  {String} color	property name
-			 * @return {Array}  rgb   	decimal RGB value array
+			 * @param  {String} color Css color style value
+			 * @return {Array}     	  Decimal RGB value array
 			 */
 			getRgb: function(color) {
 				var 
@@ -486,9 +486,9 @@
 		
 		moFx.prototype = {
 			/**
-			 * custom animation property and fire it
+			 * Custom animation property and fire it
 			 * 
-			 * @param  {Object} prop	element style configuration object
+			 * @param  {Object} prop	Element style configuration object
 			 * @return {Object} moFx
 			 */
 			anim: function(prop) {
@@ -547,9 +547,9 @@
 			},
 			
 			/**
-			 * stop element animation
+			 * Stop element animation
 			 * 
-			 * @param {Boolean} clearQueue  clear element animation queue	 
+			 * @param {Boolean} clearQueue  Clear element animation queue	 
 			 * @return {Object} moFx
 			 */
 			stop: function(clearQueue) {
@@ -579,7 +579,7 @@
 			/**
 			 * Set a timer to delay execution aniamtion queue
 			 * 
-			 * @param {Number} t delay times
+			 * @param {Number} t     Delay times
 			 * @return{Object} moFx
 			 */
 			delay: function(t) {
@@ -622,7 +622,7 @@
 			easing: joFx.easing,
 			
 			/**
-			 * add easing algorithm
+			 * Add easing algorithm
 			 */
 			addEasing: function() {
 				var 
