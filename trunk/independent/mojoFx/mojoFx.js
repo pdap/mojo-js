@@ -15,7 +15,7 @@
 		},
 		
 		/**
-		 * Animation object inculde animation target HTMLElements and method
+		 * Animation object inculde HTMLElements and animation API
 		 * 
 		 * @param {Array/NodeList/HTMLElement} arg
 		 */
@@ -45,12 +45,12 @@
 			animEls: [],
 			
 			/**
-			 * Add element into global animation array
-			 * Add element animation step
+			 * Add elements into global animation array
+			 * Add elements animation step
 			 * 
 			 * @param {Array}  els  Array of HTMLElement
 			 * @param {Object/Undefined} cfg  Animation configuration object
-			 * @return joFx
+			 * @return {Object} joFx
 			 */
 			add: function(els, cfg) {
 				var 
@@ -71,7 +71,7 @@
 					} 
 					
 					if(n === 2) {
-						data.queStep.push(cfg);
+						data.queue.push(cfg);
 					}
 				}					
 				
@@ -81,24 +81,24 @@
 			/**
 			 * Add elements animation callback step
 			 * 
-			 * @param {Array}  els  Array of HTMLElement
+			 * @param {Array}  els  Array of HTMLElements
 			 * @param {Object} cfg  Callback function configuration object
-			 * @return joFx
+			 * @return {Object} joFx
 			 */
 			addCallback: function(els, cfg) {
 				var
-					callback = [],
-					obj = {
+					step = [],
+					obj  = {
 						arguments: [],
 						context: window,
-						complete: null
+						callback: null
 					}, p;
 				
 				for(p in obj) {
-					callback[p] = cfg[p] || obj[p];
+					step[p] = cfg[p] || obj[p];
 				}	
 				
-				return this.add(els, callback);
+				return this.add(els, step);
 			},
 
 			/**
@@ -106,6 +106,7 @@
 			 * 
 			 * @param {HTMLElement} el  HTMLElement
 			 * @param {Object}      cfg Animation configuration object
+			 * @return {Array} step
 			 */
 			getElStep: function(el, cfg) {
 				var 
@@ -114,7 +115,7 @@
 					p, val, fx;
 				
 				if("length" in cfg) {
-					// only has complete function	
+					// only has callback function	
 					return cfg;
 				} else {
 					fxs = cfg.fxs;
@@ -175,11 +176,11 @@
 					cfg.fxs = fxs;
 				}
 				
-				step.complete  = cfg.complete;
+				step.callback  = cfg.callback;
 				step.context   = cfg.context;
 				step.arguments = cfg.arguments;
 				step.duration  = cfg.duration;
-				// element current animation time
+				// element current step animation time
 				step.t   = 0;
 				
 				return this.setBc(el, fxs, step);	
@@ -304,14 +305,14 @@
 					data = this.getElData(el);
 					
 					// element animation queue
-					que = data.queStep;
+					que = data.queue;
 					
 					// element current animation step
 					cur = que.curStep || (que.curStep = this.getElStep(el, que.shift()));
 					
 					while(!cur.length) {
-						if (cur.complete) {
-							cur.complete.apply(cur.context, cur.arguments.concat(el));
+						if (cur.callback) {
+							cur.callback.apply(cur.context, cur.arguments.concat(el));
 						}
 						
 						if(cur = que.shift()) {
@@ -411,9 +412,9 @@
 				if (!x.mojoFx) {
 					x.mojoFx = {
 						// animation queue
-						queStep: [],
+						queue: [],
 						
-						// whether the element in animation
+						// whether the element in animation array
 						isAnim: false
 					};
 				}
@@ -431,15 +432,18 @@
 			 */
 			getElStyle: function(el, p) { 
 				var 
-					curElSty = el.currentStyle || window.getComputedStyle(el, null),
-					elSty    = el.style;
+					elSty = el.style,
+					curElSty;
 				
-				if(p === "opacity") {
-					return elSty.opacity || 
-						curElSty.opacity ||
-						(el.filters.alpha ? el.filters.alpha.opacity : 100) / 100;
+				if(window.getComputedStyle)	{
+					curElSty = window.getComputedStyle(el, null);
+				} else {
+					curElSty = el.currentStyle;
+					if(p === "opacity") {
+						return (el.filters.alpha ? el.filters.alpha.opacity : 100) / 100;
+					}
 				}
-				
+
 				return elSty[p] || curElSty[p];
 			},
 			
@@ -499,7 +503,7 @@
 						
 						duration: 400,
 						
-						complete: null,
+						callback: null,
 						
 						easing: "swing",
 						
@@ -527,7 +531,7 @@
 							break;
 							
 						case "function":
-							cfg.complete = param;
+							cfg.callback = param;
 							break;
 						
 						// optional object configuration
@@ -562,7 +566,7 @@
 				for(; i < len; i++) {
 					el = els[i];
 					
-					el = getElData(el).queStep;
+					el = getElData(el).queue;
 					
 					if(el.curStep) {
 						el.curStep.length = 0;
@@ -589,7 +593,7 @@
 				
 				joFx.addCallback(els, {
 					arguments: [els, els.length, t],
-					complete: function(els, len, t) {
+					callback: function(els, len, t) {
 						if (++count === len) {
 							window.setTimeout(function(){
 								joFx.add(els).animStart();
