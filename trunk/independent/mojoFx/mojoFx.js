@@ -71,7 +71,7 @@
 					} 
 					
 					if(n === 2) {
-						data.queue.push(cfg);
+						cfg.queue ? data.queue.push(cfg) : data.current.push(this.getElStep(el, cfg));
 					}
 				}					
 				
@@ -79,7 +79,7 @@
 			},			
 			
 			/**
-			 * Add elements animation callback step
+			 * Add elements animation queue callback step
 			 * 
 			 * @param {Array}  els  Array of HTMLElements
 			 * @param {Object} cfg  Callback function configuration object
@@ -87,18 +87,18 @@
 			 */
 			addCallback: function(els, cfg) {
 				var
-					step = [],
 					obj  = {
+						queue: true,
 						arguments: [],
 						context: window,
 						callback: null
 					}, p;
 				
-				for(p in obj) {
-					step[p] = cfg[p] || obj[p];
+				for(p in cfg) {
+					obj[p] = cfg[p];
 				}	
 				
-				return this.add(els, step);
+				return this.add(els, obj);
 			},
 
 			/**
@@ -106,20 +106,27 @@
 			 * 
 			 * @param {HTMLElement} el  HTMLElement
 			 * @param {Object}      cfg Animation configuration object
-			 * @return {Array} step
+			 * @return {Array}      step
 			 */
 			getElStep: function(el, cfg) {
 				var 
-					eachEasing, easing, prop,
-					fxs, step,
+					step = [],
+					eachEasing, easing, prop, fxs,
 					p, val, fx;
 				
-				if("length" in cfg) {
-					// only has callback function	
-					return cfg;
-				} else {
+				step.cfg = {
+					t: 0,
+					d: cfg.duration,	
+					ctx: cfg.context,
+					args: cfg.arguments,
+					callback: cfg.callback,
+				};
+				
+				if(cfg.prop) {
 					fxs = cfg.fxs;
-					step = [];					
+				} else {
+					// only has callback function	
+					return step;					
 				}
 				
 				if (!fxs) {
@@ -176,13 +183,6 @@
 					cfg.fxs = fxs;
 				}
 				
-				step.callback  = cfg.callback;
-				step.context   = cfg.context;
-				step.arguments = cfg.arguments;
-				step.duration  = cfg.duration;
-				// element current step animation time
-				step.t   = 0;
-				
 				return this.setBc(el, fxs, step);	
 			},
 
@@ -198,16 +198,14 @@
 					len = fxs.length,
 					i   = 0,
 					undefined,
-					fx, b, c, p, s, u, e;
+					fx, b, c, p, u;
 					
 				for(; i < len; i++) {
 					fx = fxs[i];
 					
 					p = fx.name;
-					s = fx.symbol;
 					c = fx.val;
 					u = fx.unit;
-					e = this.easing[fx.easing];
 					
 					if (u !== "#") {
 						// element style property
@@ -225,7 +223,7 @@
 						}
 						
 						// set change value by symbol
-						switch (s) {
+						switch (fx.symbol) {
 							case "+=":
 								c = c * 1;
 								break;
@@ -246,7 +244,7 @@
 						b = this.getRgb(this.getElStyle(el, p));
 						c = this.getRgb(c);
 						
-						// set RGB value
+						// RGB value
 						c[0] -= b[0];// red
 						c[1] -= b[1];// green
 						c[2] -= b[2];// blue
@@ -261,7 +259,7 @@
 						b: b,
 						c: c,
 						u: u,
-						e: e
+						e: this.easing[fx.easing]
 					});
 				}
 				
@@ -297,7 +295,7 @@
 					aEls = this.animEls,
 					len  = aEls.length,
 					i    = 0,
-					el, que, cur, data;
+					el, que, cur, curStep, data;
 			
 				for(; i < len; i++) {
 					el = aEls[i];
@@ -306,60 +304,99 @@
 					
 					// element animation queue
 					que = data.queue;
+					// current animation steps
+					cur = data.current;
 					
-					// element current animation step
-					cur = que.curStep || (que.curStep = this.getElStep(el, que.shift()));
-					
-					while(!cur.length) {
-						if (cur.callback) {
-							cur.callback.apply(cur.context, cur.arguments.concat(el));
-						}
-						
-						if(cur = que.shift()) {
-							cur = que.curStep = this.getElStep(el, cur);
-						} else {
-							// element animation complete
-							
-							aEls.splice(i, 1);
-							data.isAnim = false;
-							que.curStep = null;
-							i--;
-							
-							// global animation complete
-							if ((len = aEls.length) === 0) {
-								window.clearInterval(this.timeId);
-								this.timeId = 0;
-								return;
-							}			
-											
-							break;
-						}
+					// element current animation queue step
+					if(!(curStep = data.curStep).length && !data.stopQueue && que.length) {
+						curStep = data.curStep = this.getElStep(el, que.shift());
+						cur.push(curStep);
 					}
 					
-					if (cur) {
-						if ((cur.t += stepTime) >= cur.duration) {
-							cur.t = cur.duration;
-							this.step(el, cur);
-							cur.length = 0;
-						} else {
-							this.step(el, cur);
-						}
-					} 
+					if(cur.length) {
+						this.step(data, el, cur, stepTime);
+					} else {
+						// element animation complete
+						aEls.splice(i--, 1);
+						data.isAnim = false;						
+						
+						// global animation complete
+						if ((len = aEls.length) === 0) {
+							window.clearInterval(this.timeId);
+							this.timeId = 0;
+							return;
+						}						
+					}
 				}					
 			},
 			
 			/**
 			 * Animation step
 			 * 
-			 * @param {HTMLElement} el    HTMLElement
-			 * @param {Array}       step  Animation step info object
+			 * @param {HTMLElement} el     HTMLElement
+			 * @param {Array}       steps  Animation steps array
 			 */
-			step: function(el, step) {
+			step: function(data, el, steps, stepTime) {
 				var 
-					len = step.length,
+					sty  = "",
+					len  = steps.length,
+					cfgs = [],
+					i    = 0,
+					step, cfg, d, t;
+				
+				for (i = 0; i < len; i++) {
+					step = steps[i];
+					cfg  = step.cfg;
+					
+					// aniamtion property already complete 
+					// or only just has callback function step
+					if(step.length === 0) {
+						cfgs.push(cfg);
+						steps.splice(i--, 1);
+						len--;
+						continue;
+					}
+					
+					t = cfg.t + stepTime;
+					d = cfg.d;
+					
+					if(t < d) {
+						sty += this.getCssText(el, step, t, d);
+					} else {
+						t = d;
+						sty += this.getCssText(el, step, t, d);
+						steps.splice(i--, 1);
+						len--;
+						step.length = 0;	
+						cfgs.push(cfg);
+					}
+					
+					cfg.t = t;
+				}
+
+				el.style.cssText += sty;
+				
+				for(i = 0, len = cfgs.length; i < len; i++) {
+					cfg = cfgs[i];
+					if(cfg.callback) {
+						// execute callback function
+						cfg.callback.apply(cfg.ctx, cfg.args.concat(el));
+					}					
+				}
+			},
+			
+			/**
+			 * Get element style cssText
+			 * 
+			 * @param {HTMLElement} el
+			 * @param {Array}       step
+			 * @param {Number}      t
+			 * @param {Number}      d
+			 */
+			getCssText: function(el, step, t, d) {
+				var 
 					sty = ";",
-					d   = step.duration,
-					t   = step.t,
+					len = step.length,
 					i   = 0,
 					f, p, b, c, u, e;
 
@@ -392,9 +429,9 @@
 								sty += p + ":" + e(t, b, c, d) + u + ";";								
 							}
 					}
-				}	
-
-				el.style.cssText += sty;
+				}
+				
+				return sty;				
 			},
 			
 			/**
@@ -414,6 +451,15 @@
 						// animation queue
 						queue: [],
 						
+						// current animation steps
+						current: [],
+						
+						// current animation queue step
+						curStep: [],
+						
+						// whether stop animation queue
+						stopQueue: false,
+						
 						// whether the element in animation array
 						isAnim: false
 					};
@@ -422,6 +468,58 @@
 				return x.mojoFx;				
 			},
 			
+			/**
+			 * Set elements data 
+			 * 
+			 * @param {Array}   els   HTMLElement array
+			 * @param {Object}  obj   Data object
+			 * @return {Object} joFx
+			 */
+			setElsData: function(els, obj) {
+				var
+					len = els.length,
+					i = 0,
+					el, data, p;
+				
+				for(; i < len; i++) {
+					el = els[i];
+					data = this.getElData(el);
+					
+					for(p in obj) {
+						data[p] = obj[p];
+					}
+				}	
+				
+				return this;
+			},
+			
+			/**
+			 * Stop elements animation
+			 * 
+			 * @param {Object}  els         HTMLElement array
+			 * @param {Boolean} clearQueue  Clear element animation queue
+			 * @return {Object} joFx
+			 */
+			stop: function(els, clearQueue) {
+				var
+					len = els.length,
+					i = 0,
+					el, data;
+				
+				for(; i < len; i++) {
+					el = els[i];
+					data = this.getElData(el);
+					
+					data.curStep.length = 0;
+					data.current.length = 0;
+					
+					if(clearQueue) {
+						data.queue.length = 0;
+					}
+				}	
+				
+				return this;				
+			},
 			
 			/**
 			 * Get property value of element css style
@@ -509,6 +607,9 @@
 						
 						eachEasing: {},
 						
+						// whether current animation enter animation queue 
+						queue: true,
+						
 						// context of callback function
 						context: window,
 						
@@ -534,6 +635,10 @@
 							cfg.callback = param;
 							break;
 						
+						case "boolean":
+							cfg.queue = param;
+							break;	
+						
 						// optional object configuration
 						case "object":
 							for(p in param) {
@@ -551,32 +656,13 @@
 			},
 			
 			/**
-			 * Stop element animation
+			 * Stop elements animation
 			 * 
 			 * @param {Boolean} clearQueue  Clear element animation queue	 
 			 * @return {Object} moFx
 			 */
 			stop: function(clearQueue) {
-				var 
-					els = this.elements,
-					len = els.length,
-					getElData = joFx.getElData,
-					i = 0, el;
-				
-				for(; i < len; i++) {
-					el = els[i];
-					
-					el = getElData(el).queue;
-					
-					if(el.curStep) {
-						el.curStep.length = 0;
-					}
-					
-					if(clearQueue) {
-						el.length = 0;
-					}
-				}	
-				
+				joFx.stop(this.elements, clearQueue);
 				return this;
 			},
 			
@@ -593,19 +679,21 @@
 				
 				joFx.addCallback(els, {
 					arguments: [els, els.length, t],
+					context: joFx,
 					callback: function(els, len, t) {
 						if (++count === len) {
+							var self = this;
+							self.setElsData(els, {stopQueue: true});
 							window.setTimeout(function(){
-								joFx.add(els).animStart();
+								self.setElsData(els, {stopQueue: false}).add(els).animStart();
 							}, t);
 						}
 					}
-				}).add(els, null);
+				});
 				
 				return this;
 			}							
 		};
-		
 		
 		mojoFx.extend = function(o) {
 		 	var p;
@@ -620,7 +708,7 @@
 		mojoFx.extend({
 			info: {
 				author: "scott.cgi",
-				version: "1.1.0"
+				version: "1.2.0"
 			},
 			
 			easing: joFx.easing,
