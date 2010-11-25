@@ -107,6 +107,10 @@
 			<button onclick="backTest()">Back test</button>
 			<button onclick="colorTest()">Color test</button>
 			<button onclick="delayTest()">Delay test</button>
+			<button onclick="QueueTrueTest()">Queue (true) test</button>
+			<button onclick="QueueFalseTest()">Queue (false) test</button>
+			<button onclick="StopTrueTest()">Stop (true) test</button>
+			<button onclick="StopFalseTest()">Stop (false) test</button>
 		</div>
 		
 	</body>
@@ -152,7 +156,7 @@
 			 .anim({
 			 	opacity:0
 			 }, {
-			 	complete:function(a, el) {
+			 	callback:function(a, el) {
 					el.innerHTML = "param = " + a + "<br> this = " + this;
 				},
 				context: "context",
@@ -187,7 +191,7 @@
 				eachEasing:{
 					top: "easeOutBounce"
 				},
-				complete: function(el) {
+				callback: function(el) {
 					el.parentNode.removeChild(el);
 				}
 			})
@@ -246,6 +250,26 @@
 			})
 			
 		}
-
+		
+		function QueueTrueTest() {
+			$(target).anim({left: "+=500"}, 2000)
+					 .anim({top: "+=300"}, 2000)
+					 .anim({left: "-=500"}, 2000)
+					 .anim({top: "-=300"}, 2000)
+					 .anim({height: 0, width: 0})
+		}
+		
+		function QueueFalseTest() {
+			$(target).anim({height: "+=100", width: "+=100"}, false, 5000);
+		}
+		
+		function StopTrueTest() {
+			$(target).stop(true);
+		}
+		
+		function StopFalseTest() {
+			$(target).stop();
+		}
+		
 	</script>
 </html>
