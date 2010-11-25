@@ -314,7 +314,7 @@
 					}
 					
 					if(cur.length) {
-						this.step(data, el, cur, stepTime);
+						this.step(el, cur, stepTime);
 					} else {
 						// element animation complete
 						aEls.splice(i--, 1);
@@ -336,7 +336,7 @@
 			 * @param {HTMLElement} el     HTMLElement
 			 * @param {Array}       steps  Animation steps array
 			 */
-			step: function(data, el, steps, stepTime) {
+			step: function(el, steps, stepTime) {
 				var 
 					sty  = "",
 					len  = steps.length,
@@ -348,30 +348,26 @@
 					step = steps[i];
 					cfg  = step.cfg;
 					
+					if(step.length) {
+
+						t = cfg.t += stepTime;
+						d = cfg.d;		
+								
+						if (t < d) {
+							sty += this.getCssText(el, step, t, d);
+							continue;
+						} else {
+							t = d;
+							sty += this.getCssText(el, step, t, d);
+						}			
+					}
+					
 					// aniamtion property already complete 
-					// or only just has callback function step
-					if(step.length === 0) {
-						cfgs.push(cfg);
-						steps.splice(i--, 1);
-						len--;
-						continue;
-					}
-					
-					t = cfg.t + stepTime;
-					d = cfg.d;
-					
-					if(t < d) {
-						sty += this.getCssText(el, step, t, d);
-					} else {
-						t = d;
-						sty += this.getCssText(el, step, t, d);
-						steps.splice(i--, 1);
-						len--;
-						step.length = 0;	
-						cfgs.push(cfg);
-					}
-					
-					cfg.t = t;
+					// or current step only just has callback function					
+					steps.splice(i--, 1);
+					len--;
+					step.length = 0;
+					cfgs.push(cfg);		
 				}
 
 				el.style.cssText += sty;
