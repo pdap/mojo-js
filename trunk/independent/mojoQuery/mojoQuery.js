@@ -214,7 +214,8 @@
 					arr = [],
 					i   = 0,
 					len = pseudos.length,
-					name, param, count, arr;
+					count = ++this.tagCount,
+					name, param, arr;
 				
 				for(; i < len; i++) {
 					name = pseudos[i];
@@ -225,8 +226,6 @@
 						
 						switch(name) {
 							case "nth-child":
-								count = ++this.tagCount;
-								
 								if (/(-?\d*)n([+-]?\d*)/.test(param === "odd" && "2n+1" ||
 															  param === "even" && "2n"  || param)) {
 									param = RegExp.$1;
@@ -239,6 +238,8 @@
 									param = [count, "n", param, RegExp.$2 * 1];
 									
 									// optimize "nth:child(n)" 
+									// this pseudo means all child nodes fit
+									// so no need execute this pseudo filter
 									if (param[2] === 1 && param[3] === 0) {
 										continue;
 									}
