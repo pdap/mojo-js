@@ -282,11 +282,13 @@
 					i   = 0, 
 					pseudo, param;
 				
-				for (; i < len; i++) {
+				for (; i < len; i += 2) {
 					pseudo = pseudos[i];
 					param  = pseudos[i + 1];
 					
-					return pseudo.call(this, el, param);
+					if(!pseudo.call(this, el, param)) {
+						return false;
+					}
 				}
 				
 				return true;
@@ -675,6 +677,7 @@
 						i = 0;
 						while (node) {
 							if (node.nodeType === 1) {
+								// nodeIndex is index number of parent's child nodes
 								this.getElData(node).nodeIndex = ++i;
 							}
 							node = node.nextSibling
