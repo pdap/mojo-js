@@ -12,18 +12,18 @@
 			
 			info: {
 				author: "scott.cgi",
-				version: "1.1.0"
+				version: "1.2.1"
 			},
 			
 			/**
-			 * get HTMLElement array by selector and context
+			 * Get HTMLElement array by selector and context
 			 * 
 			 * @param {String}                             selector  
 			 * @param {Undefined/String/HTMLElement/Array} context   
 			 */
-			get : function(selector, context) {
+			get: function(selector, context) {
 				var 
-					results     = [], 
+					results = [], 
 					selectors, contexts, rules,
 					i, j, n, m;
 				
@@ -68,7 +68,7 @@
 						rules.shift();
 					}
 					
-					// every time parse selector, use before parse result as this context
+					// each iteration parse selector, use before parse result as this context
 					contexts = context;
 					
 					// parse selector by each rule
@@ -76,7 +76,7 @@
 						contexts = joQuery.parse(selector[n], contexts, rules[n]);
 					}
 				
-					// connect results of comma delimited selector
+					// concat results of comma delimited selector
 					results = results.concat(contexts);
 				}
 				
@@ -90,23 +90,25 @@
 			}
 		},
 		
-		// assist object
+		// inner assist object
 		joQuery = {
-			// identifies HTMLElement whether matched in one query
+			// Identifies HTMLElement whether matched in one query
 			// refresh each query
 			tagCount: 0,
 			
 		   /**
-		 	* parse selector
+		 	* Parse selector and get matched HTMLElement array
 		 	* 
 		 	* @param  {String} selector      
 		 	* @param  {Array}  contexts      
 		 	* @param  {String} rule         
-		 	* @return {Array}  HTMLElement array
+		 	* @return {Array}  Matched HTMLElement array
 		 	*/
 			parse: function(selector, contexts, rule){
 				var 
-					arr, id;
+					arr, id, tag, cls, attrs, pseudos,
+					matched = [],
+					i, len;
 				
 				arr = this.getRules(selector);
 				
@@ -119,18 +121,30 @@
 					return [];
 				}
 				
-				arr = this.baseRules[rule].call(this, contexts, arr[2] || "*", arr[3], arr[4], arr[5]);
+				tag     = arr[2] || "*";
+				cls     = arr[3];
+				attrs   = arr[4];
+				pseudos = arr[5];
 				
-				return arr;
+				arr = this.BaseRules[rule].call(this, contexts, tag);
+				
+				for(i = 0, len = arr.length; i < len; i++) {
+					id = arr[i];
+					if(this.filterEl(id, tag, cls, attrs, pseudos)) {
+						matched.push(id);
+					}
+				}
+				
+				return matched;
 			},
 			
 			/**
-			 * parse selector and  get complex selector
+			 * split selector in different types
 			 * 
 			 * @param  {String} selector
-			 * @return {Array}  rules
+			 * @return {Array}  Array of different types rule
 			 */
-			getRules : function(selector) {
+			getRules: function(selector) {
 				var	
 					rules, attrs, pseudos; 
 				
@@ -157,61 +171,59 @@
 			},
 			
 			/**
-			 * get attribute rule 
+			 * Get attribute rule 
 			 * 
 			 * @param  {Array} attrs       
 			 * @param  {Array} attrParams  
-			 * @return {Array}     
+			 * @return {Array} Array of attribute rule    
 			 */
-			getAttrRules : function(attrs, attrParams) {
+			getAttrRules: function(attrs, attrParams) {
 				var
 					arr = [],
 					len = attrs.length,
 					rex = /=|!=|\^=|\$=|\*=|~=|\|=/,
 					i   = 0,
-					j   = 0,
 					attr, rule;
 				
-				for(; i < len; i++, j += 2) {
+				for(; i < len; i++) {
 					attr = attrParams[attrs[i]];
 					// rule
 					rule = attr.match(rex) || " ";
 					// attribute key-value
 					attr = attr.split(rex);					
 					
-					arr[j] = this.attrs[rule];
-					arr[j + 1] = attr;					
+					// attribute parse function
+					arr.push(this.Attrs[rule]);
+					arr.push(attr);					
 				}	
 				
 				return arr;
 			},		
 			
 			/**
-			 * get pesudo rule array
+			 * Get pesudo rule array
 			 * 
-			 * @param {Array}  pseudos
-			 * @param {Array}  pseuParams
-			 * @return {Array}
+			 * @param  {Array} pseudos
+			 * @param  {Array} pseuParams
+			 * @return {Array} Array of pseudo rule
 			 */
-			getPseudoRules : function(pseudos, pseuParams) {
+			getPseudoRules: function(pseudos, pseuParams) {
 				var 
 					arr = [],
 					i   = 0,
-					j   = 0,
 					len = pseudos.length,
-					name, param, count, arr;
+					count = ++this.tagCount,
+					name, param, arr;
 				
-				for(; i < len; i++, j += 2) {
+				for(; i < len; i++) {
 					name = pseudos[i];
-					if(/-param-(\d+)/.test(name)) {
+					if(/(\d+)/.test(name)) {
 						// pesudo parameter
 						param = pseuParams[RegExp.$1];
 						name  = RegExp["$`"];
 						
 						switch(name) {
 							case "nth-child":
-								count = ++this.tagCount;
-								
 								if (/(-?\d*)n([+-]?\d*)/.test(param === "odd" && "2n+1" ||
 															  param === "even" && "2n"  || param)) {
 									param = RegExp.$1;
@@ -224,6 +236,8 @@
 									param = [count, "n", param, RegExp.$2 * 1];
 									
 									// optimize "nth:child(n)" 
+									// this pseudo means all child nodes fit
+									// so no need execute this pseudo filter
 									if (param[2] === 1 && param[3] === 0) {
 										continue;
 									}
@@ -234,6 +248,8 @@
 								break;
 								
 						 	case "not" :
+							    // ":not" selector may has "," in parameter
+								// example: ":not(div,p)"
 								arr   = param.split(",");
 								param = [];
 								while(arr.length) {
@@ -244,15 +260,16 @@
 
 					}
 					
-					arr[j] = this.pseudos[name];
-					arr[j + 1] = param;
+					// parse pseudo selector funtion
+					arr.push(this.Pseudos[name]);
+					arr.push(param);
 				}	
 
 				return arr;
 			},
 			
 			/**
-			 * whether HTMLElement matched pseudo rule
+			 * Whether HTMLElement matched pseudo rule
 			 * 
 			 * @param  {HTMLElement} el
 			 * @param  {Array}       pseudos
@@ -264,18 +281,20 @@
 					i   = 0, 
 					pseudo, param;
 				
-				for (; i < len; i++) {
+				for (; i < len; i += 2) {
 					pseudo = pseudos[i];
-					param = pseudos[i + 1];
+					param  = pseudos[i + 1];
 					
-					return pseudo.call(this, el, param);
+					if(!pseudo.call(this, el, param)) {
+						return false;
+					}
 				}
 				
 				return true;
 			},	
 			
 			/**
-			 * whether HTMLElement matched attribute rule
+			 * Whether HTMLElement matched attribute rule
 			 * 
 			 * @param  {HTMLElement} el
 			 * @param  {Array}       attrs
@@ -298,7 +317,7 @@
 						}
 					}
 					
-					if (!rule.call(this, String(val), attr[1])) {
+					if (!rule.call(this, val + "", attr[1])) {
 						return false;
 					}
 				}
@@ -307,13 +326,14 @@
 			},	
 			
 			/**
-			 * filter HTMLElement 
+			 * Filter HTMLElement by all type selector
 			 * 
 			 * @param {HTMLElement} el
 			 * @param {String}      tag
 			 * @param {String}      cls
 			 * @param {Array}       attrs
 			 * @param {Array}       pseudos
+			 * @param {Boolean}
 			 */
 			filterEl: function(el, tag, cls, attrs, pseudos){
 				if (tag !== "*" && el.nodeName.toLowerCase() !== tag) {
@@ -336,10 +356,11 @@
 			},				
 			
 			/**
-			 * preprocessing selector
+			 * Preprocessing selector
 			 * 
 			 * @param  {String} selector
 			 * @return {Array}  selector array
+			 * @return {Array}  Array of regular selectors
 			 */
 			trim: function(selector){
 				var 
@@ -364,7 +385,7 @@
 				// remove pseudo selector parameter and put in array
 				while(selector.indexOf("(") !== -1) {
 					selector = selector.replace(/\([^()]+\)/g, function(match){
-						return "-param-" + (pseuParams.push(match.substring(1, match.length - 1)) - 1);
+						return pseuParams.push(match.substring(1, match.length - 1)) - 1;
 					});
 				}
 				
@@ -372,7 +393,7 @@
 			},			
 			
 		   	/**
-		 	 * whether HTMLElement matched class attribute
+		 	 * Whether HTMLElement matched class attribute
 		 	 * 
 		 	 * @param  {HTMLElement} el
 		 	 * @param  {String}      cls
@@ -398,7 +419,7 @@
 			},										
 
 		   /**
-		 	* reomve duplicate HTMLElement
+		 	* Reomve duplicate HTMLElement
 		 	* 
 		 	* @param  {Array} arr
 		 	*/
@@ -429,9 +450,10 @@
 			},
 			
 			/**
-			 * get the data bind in HTMLElement
+			 * Get the data bind in HTMLElement
 			 * 
-			 * @param {HTMLElement} el
+			 * @param  {HTMLElement} el
+			 * @return {Object}
 			 */
 			getElData: function(el) {
 				var x;
@@ -448,28 +470,25 @@
 				return x.mojoQuery;
 			},
 			
-			baseRules : {
+			BaseRules: {
 			   /**
-	 			* get matched HTMLElement
+	 			* Get matched HTMLElement
 	 			*
-	 			* @param {Array}  contexts   
-	 			* @param {String} tag        
-	 			* @param {String} cls        
-			  	* @param {Array}  attrs      
-			  	* @param {Array}  pseudos    
+	 			* @param  {Array}  contexts   
+	 			* @param  {String} tag
 			  	* @return {Array}
 	 			*/				
-				" " : function(contexts, tag, cls, attrs, pseudos) {
+				" " : function(contexts, tag) {
 					var 
 						count = ++this.tagCount,
 						arr   = [],
-						n     = 0,
-						j     = 0,
-						m     = contexts.length,
-						nodes, len, el, i, pel;			
+						len   = contexts.length,
+						i     = 0,
+						n, m,
+						nodes, el, pel;			
 						
-					for(; n < m; n++) {
-						el  = contexts[n];
+					for(; i < len; i++) {
+						el  = contexts[i];
 						if((pel = el.parentNode) && this.getElData(pel).tagCount === count) {
 							continue;
 						}
@@ -477,40 +496,32 @@
 						this.getElData(el).tagCount = count;
 						
 						nodes = el.getElementsByTagName(tag);	
-						for(i = 0, len = nodes.length; i < len; i++) {
-							el = nodes[i];
-							if(this.filterEl(el, tag, cls, attrs, pseudos)) {
-								arr[j++] = el;
-							}
-						}												
+						
+						for(n = 0, m = nodes.length; n < m; n++) {
+							arr.push(nodes[n]);
+						}
 					}
 					
 					return arr;
 				},
 				
 			   /**
-	 			* get matched HTMLElement
+	 			* Get matched HTMLElement
 	 			*
-	 			* @param {Array}  contexts   
-	 			* @param {String} tag        
-	 			* @param {String} cls        
-			  	* @param {Array}  attrs      
-			  	* @param {Array}  pseudos    
+	 			* @param  {Array} contexts   
 			  	* @return {Array}
 	 			*/				
-				">" : function(contexts, tag, cls, attrs, pseudos) {
+				">" : function(contexts) {
 					var 
 						arr = [], 
-						n   = 0,
-						j   = 0,
-						m   = contexts.length,
-						el;			
+						len = contexts.length,
+						i   = 0, el;			
 					
-					for(; n < m; n++) {
-						el = contexts[n].firstChild;	
+					for(; i < len; i++) {
+						el = contexts[i].firstChild;	
 						while(el) {
-							if(el.nodeType === 1 && this.filterEl(el, tag, cls, attrs, pseudos)) {
-								arr[j++] = el;
+							if(el.nodeType === 1) {
+								arr.push(el);
 							}
 							el = el.nextSibling;							
 						}												
@@ -520,30 +531,22 @@
 				},
 				
 			   /**
-	 			* get matched HTMLElement
+	 			* Get matched HTMLElement
 	 			*
-	 			* @param {Array}  contexts   
-	 			* @param {String} tag        
-	 			* @param {String} cls        
-			  	* @param {Array}  attrs      
-			  	* @param {Array}  pseudos    
+	 			* @param  {Array} contexts    
 			  	* @return {Array}
 	 			*/					
-				"+" : function(contexts, tag, cls, attrs, pseudos) {
+				"+" : function(contexts) {
 					var 
 						arr = [], 
-						n   = 0,
-						j   = 0,
-						m   = contexts.length,
-						el;	
+						len = contexts.length,
+						i   = 0, el;	
 						
-					for (; n < m; n++) {
-						el = contexts[n];
+					for (; i < len; i++) {
+						el = contexts[i];
 						while(el = el.nextSibling) {
 							if(el.nodeType === 1) {
-								if(this.filterEl(el, tag, cls, attrs, pseudos)) {
-									arr[j++] = el;
-								}
+								arr.push(el);
 								break;
 							}
 						}
@@ -553,33 +556,28 @@
 				},
 				
 			   /**
-	 			* get matched HTMLElement
+	 			* Get matched HTMLElement
 	 			*
-	 			* @param {Array}  contexts   
-	 			* @param {String} tag        
-	 			* @param {String} cls        
-			  	* @param {Array}  attrs      
-			  	* @param {Array}  pseudos    
+	 			* @param  {Array} contexts    
 			  	* @return {Array}
 	 			*/					
-				"~" : function(contexts, tag, cls, attrs, pseudos) {
+				"~" : function(contexts) {
 					var 
 						count = ++this.tagCount,
 						arr   = [], 
-						n     = 0,
-						j     = 0,
-						m     = contexts.length,
+						len   = contexts.length,
+						i     = 0,
 						el, pel, data;
 
-					for (; n < m; n++) {
-						el = contexts[n];
+					for (; i < len; i++) {
+						el = contexts[i];
 						if ((pel = el.parentNode) && (data = this.getElData(pel)).tagCount === count) {
 							continue;
 						}
 						
 						while(el = el.nextSibling) {
-							if (el.nodeType === 1 && this.filterEl(el, tag, cls, attrs, pseudos)) {
-								arr[j++] = el;
+							if (el.nodeType === 1) {
+								arr.push(el);
 							}
 						}
 						
@@ -591,7 +589,7 @@
 			},
 			
 			// attribute parameter relative
-			attrs : {
+			Attrs: {
 				" " : function() { 
 					return true;
 				},
@@ -626,8 +624,8 @@
 			},
 			
 			// pseudo parameter
-			pseudos : {
-				"first-child" : function(el) {
+			Pseudos : {
+				"first-child": function(el) {
 					while (el = el.previousSibling)	 {
 						if (el.nodeType === 1) { 
 							return false; 
@@ -637,7 +635,7 @@
 					return true;
 				},
 				
-				"last-child" : function(el) {
+				"last-child": function(el) {
 					while (el = el.nextSibling)	 {
 						if (el.nodeType === 1) { 
 							return false; 
@@ -647,7 +645,7 @@
 					return true;					
 				},
 				
-				"only-child" : function(el) {
+				"only-child": function(el) {
 					var	
 						next = el.nextSibling,
 						pre  = el.previousSibling;
@@ -669,7 +667,7 @@
 					return true;		
 				},
 				
-				"nth-child" : function(el, param) {
+				"nth-child": function(el, param) {
 					var
 					    pel, index, node, i, data;
 					
@@ -678,6 +676,7 @@
 						i = 0;
 						while (node) {
 							if (node.nodeType === 1) {
+								// nodeIndex is index number of parent's child nodes
 								this.getElData(node).nodeIndex = ++i;
 							}
 							node = node.nextSibling
@@ -696,7 +695,7 @@
 					return index === param[1] * 1;
 				},
 				
-				not : function(el, params) {
+				not: function(el, params) {
 					var 
 						i   = 0,
 						len = params.length,
@@ -713,29 +712,34 @@
 					return true;	
 				},
 				
-				enabled : function(el) {
+				enabled: function(el) {
 					return !el.disabled;
 				},
 				
-				disabled : function(el) {
+				disabled: function(el) {
 					return el.disabled;
 				},
 				
-				checked : function(el) {
+				checked: function(el) {
 					return el.checked;
 				},
 				
-				empty : function(el){
+				empty: function(el){
 					return !el.firstChild;
 				}				
 			}													
 		};
 		
-		
 		mojo.extend({
-			querySelector : function(selector, context) {
+			/**
+			 * Query HTMLElemtents by css selector
+			 * 
+			 * @param  {Object} selector
+			 * @param  {Object} context
+			 * @return {Array}  Array of HTMLElements
+			 */
+			queryCss: function(selector, context) {
 				return mojoQuery.get(selector, context);
 			}
 		});
-		
 })(window, mojo);	
