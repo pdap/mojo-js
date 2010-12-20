@@ -98,7 +98,8 @@
 		</div>
 
 		<div class="test-body">
-			<div class="test-target" id="test-target"></div>
+			<div class="test-target" id="test-target">
+			</div>
 		</div>
 		
 		<div class="test-control" id="test-control">
@@ -118,6 +119,9 @@
 	<script type="text/javascript">
 		var $ = mojoFx;
 		var target = document.getElementById("test-target");
+		
+		var l = document.getElementsByTagName('div');
+		alert(Array.prototype.concat.call([2], [1,2]))
 		
 		function runTest() {
 			$(target)
