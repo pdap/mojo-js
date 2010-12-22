@@ -7,10 +7,54 @@
 		<link rel="stylesheet" type="text/css" href="css/default.css">
 		
 		<script type="text/javascript" src="../mojo.js"></script>
+		<script type="text/javascript" src="../moudles/queryCss.js"></script>
 		<script type="text/javascript" src="../moudles/event.js"></script>
 	</head>
 	
 	<body>
+		<p>1</p>
+		<p>2</p>
+		<p>3</p>
 		
+		<div id="buttons">
+			<button onclick="addEventSF()">addEvent(S, F)</button>
+			<button onclick="addEventSO()">addEvent(S, O)</button>
+			<button onclick="addEventO()">addEvent(O)</button>
+		</div>
 	</body>
+	
+	<script type="text/javascript">
+		
+		function addEventSF() {
+			mojo("p").addEvent("click", function(event, el, i){
+				el.innerHTML = [event.type , i];
+			});
+		}
+		
+		function addEventSO(){
+			mojo("p").addEvent("dblclick", {
+				fn: function(a, b, event, el, i){
+					el.innerHTML = [event.type , i , this , a , b];
+				},
+				context: 'context',
+				args: ["a","b"]
+			});			
+		}
+		
+		function addEventO() {
+			mojo("p").addEvent({
+				"mouseover": function(event, el, i) {
+					el.innerHTML = [event.type , i];
+				},
+				
+				"mouseout": {
+					fn: function(a, b, event, el, i) {
+						el.innerHTML = [event.type , i , this , a , b];
+					},
+					context: "context",
+					args: ["a", "b"]
+				}
+			});
+		}
+	</script>
 </html>
