@@ -1,0 +1,10 @@
+
+p {
+    border: 1px dashed #abcabc;
+    margin: 10px;
+    text-align: center;
+}
+
+div {
+    float: left;
+}
