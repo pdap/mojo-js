@@ -10,14 +10,14 @@
 		document = window.document,
 		
 		mojo = window.mojo = function(selector, context) {
-			return new mo(selector, mojo.querySelector(selector, context));
+			return new mo(selector, mojo.queryCss(selector, context));
 		},
 		
 		/**
-		 * the mojo return object
+		 * The mojo constructor's return object
 		 * 
 		 * @param {String} selector
-		 * @param {Array} elements
+		 * @param {Array}  elements
 		 */
 		mo = function(selector, elements) {
 			this.selector = selector;
@@ -27,50 +27,135 @@
 		jo = {
 			
 			/**
-			 * call the function on each element
+			 * Execute the function on each element
 			 * 
 			 * @param {Object}   target  
 			 * @param {String}   name   
 			 * @param {Function} method  
 			 */
 			applyOnEach: function(target, name, method) {
+				var joSelf = this;
+				
 				target[name] = function() {
 					var 
+						returnVal = [],
 						els = this.elements, 
 						len = els.length, 
 						i = 0, 
-						retVal = [], 
-						el, ctx;	
+						el, context;	
 
 					for (; i < len; i++) {
 						el = els[i];
-						ctx = {
-							el: el,
-							index: i,
-							retVal: retVal,
-							self: method
+						context = {
+							el          : el,
+							index       : i,
+							self        : method,
+							returnVal   : returnVal,
+							elData      : joSelf.getElData(el),
+							getCtxArgs  : joSelf.getCtxArgs,
+							argsCode    : joSelf.getArgsCode(arguments),
 						};
-						if (method.apply(ctx, arguments) === false) {
+						
+						if (method.apply(context, arguments) === false) {
 							break;
 						}
 					}
 					
-					return retVal.length ? retVal : this;										
+					return returnVal.length ? returnVal : this;										
 				};	
+			},
+			
+			/**
+			 * Get data object bind in HTMLElement
+			 * 
+			 * @param  {HTMLElement} el
+			 * @return {Object}
+			 */
+			getELDate: function(el) {
+				var x;
+				if(!(x = el.mojoData)) {
+					x = el.mojoData = {};
+				}
+				
+				return x;				
+			},
+			
+			/**
+			 * Get arguments type code
+			 * 
+			 * @param {Object} args  Function arguments object
+			 */
+			getArgsCode: function(args) {
+				var 
+				    i    = 0,
+					len  = args.length,
+					code = len + "";
+			    
+				for(; i < len; i++) {
+					switch(typeof args[i]) {
+						case "string":
+							code += "S";
+							break;
+						
+						case "number":
+							code += "N";
+							break;
+						
+						case "object":
+							code += "O";
+							break;
+						
+						case "boolean":
+							code += "B";	
+							break;
+						
+						case "function":
+							code += "F";			
+					}
+				}
+				
+				return code;		
+			},
+			
+			/**
+			 * Get object mix function context and function arguments
+			 * 
+			 * @param  {Object} ctxArgs Init object
+			 * @return {Object} Object mix function context and function arguments
+			 */
+			getCtxArgs: function(ctxArgs) {
+				var 
+					obj = {
+						context: window,
+						args: []
+					}, undefined;
+				
+				if (ctxArgs) {
+					if (ctxArgs.context !== undefined) {
+						obj.context = ctxArgs.context;
+					}
+					
+					if (ctxArgs.args) {
+						obj.args = ctxArgs.args;
+					}
+				}
+				
+				return obj;
 			}
 		};
-		
+	
+	// Export mo prototype	
 	mojo.fn = mo.prototype;
 	
 	/**
-	 * extend mojo and mo object 
+	 * Extend mojo and mo object 
 	 * 
-	 * @param {Object} o 
-	 * @param {Boolean} isEach 
+	 * @param {Object}  o 
+	 * @param {Boolean} onEach 
 	 */
-	mojo.extend = mojo.fn.extend = function(o, isEach) {
+	mojo.extend = mojo.fn.extend = function(o, onEach) {
 		var p;
-		if (isEach) {
+		if (onEach) {
 			for (p in o) {
 				jo.applyOnEach(this, p, o[p]);
 			}

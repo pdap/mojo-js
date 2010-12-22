@@ -85,8 +85,49 @@
 		};
 		
 		mojo.fn.extend({
-			on: function() {
+			/**
+			 * Add element event
+			 * 
+			 * addEvent(Object)
+			 * addEvent(String, Function)
+			 * addEvent(String, Object)
+			 */
+			addEvent: function(x, y) {
+				var 
+					index  = this.index,
+					el     = this.el,
+					// cache element event function
+					mEvent = this.elData.mEvent || (this.elData.mEvent = {}),
+					p, fn, ctxArgs;
 				
+				if (this.argsCode === "1O") {
+					for(p in x) {
+						this.self.call(this, p, x[p]);
+					}
+					return;
+				} else {
+					if (!(p = mEvent[x])) {
+						 // cache element one type of event function
+						 p = mEvent[x] = [];
+					}
+				}
+				
+				switch(this.argsCode) {
+					case "2SF":
+						ctxArgs = this.getCtxArgs(); 
+						break;
+					
+					case "2SO":
+						ctxArgs = this.getCtxArgs(y);
+						y = y.fn;						
+				}	
+				
+				fn = function(event){
+					y.apply(ctxArgs.context, ctxArgs.args.concat([event || window.event, el, index]));
+				};
+				
+				p.push(fn);
+				joEvent.addEvent(el, x, fn);
 			}
 		}, true);
 	
