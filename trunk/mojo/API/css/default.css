@@ -1,4 +1,8 @@
-
+#buttons {
+	position:absolute;
+	bottom:0;
+	margin:5px
+}
 p {
     border: 1px dashed #abcabc;
     margin: 10px;
