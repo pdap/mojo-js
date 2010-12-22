@@ -125,7 +125,19 @@ window.contextSelectors = [
 
 ];
 
-window.customSelectors = [];
+window.customSelectors = [
+
+"body :empty",
+"div:not(.example)",
+":not(div)",
+":not(p,a)",
+":not(:not(p))",
+":nth-child(-1+n)",
+"div + div, div ~ div, div",
+"div ~ div, div",
+"div>div,div>div,div~div"
+
+];
 
 window.allSelectors = baseSelectors.concat(attrSelectors).concat(pseuSelectors).concat(contextSelectors);
 
