@@ -51,9 +51,9 @@
 							index       : i,
 							self        : method,
 							returnVal   : returnVal,
-							elData      : joSelf.getElData(el),
+							elData      : joSelf.getELData(el),
 							getCtxArgs  : joSelf.getCtxArgs,
-							argsCode    : joSelf.getArgsCode(arguments),
+							getArgsCode : joSelf.getArgsCode,
 						};
 						
 						if (method.apply(context, arguments) === false) {
@@ -71,7 +71,7 @@
 			 * @param  {HTMLElement} el
 			 * @return {Object}
 			 */
-			getELDate: function(el) {
+			getELData: function(el) {
 				var x;
 				if(!(x = el.mojoData)) {
 					x = el.mojoData = {};

@@ -96,11 +96,12 @@
 				var 
 					index  = this.index,
 					el     = this.el,
+					argsCode = this.getArgsCode(arguments),
 					// cache element event function
 					mEvent = this.elData.mEvent || (this.elData.mEvent = {}),
 					p, fn, ctxArgs;
 				
-				if (this.argsCode === "1O") {
+				if (argsCode === "1O") {
 					for(p in x) {
 						this.self.call(this, p, x[p]);
 					}
@@ -112,7 +113,7 @@
 					}
 				}
 				
-				switch(this.argsCode) {
+				switch(argsCode) {
 					case "2SF":
 						ctxArgs = this.getCtxArgs(); 
 						break;
