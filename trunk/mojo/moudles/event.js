@@ -1,5 +1,5 @@
 /**
- * event moudle
+ * mojo event moudle
  * 
  * Copyright (c) 2009 scott.cgi
  * http://mojo-js.appspot.com
