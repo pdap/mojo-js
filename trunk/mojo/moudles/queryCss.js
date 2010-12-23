@@ -1,5 +1,5 @@
 /**
- * css query moudle
+ * mojo css query moudle
  * 
  * Copyright (c) 2009 scott.cgi
  * http://mojo-js.appspot.com
