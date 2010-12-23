@@ -6,6 +6,8 @@
 		
 		<link rel="stylesheet" type="text/css" href="css/default.css">
 		
+		<script type="text/javascript" src="js/default.js"></script>
+		
 		<script type="text/javascript" src="../mojo.js"></script>
 		<script type="text/javascript" src="../moudles/queryCss.js"></script>
 		<script type="text/javascript" src="../moudles/event.js"></script>
@@ -20,41 +22,73 @@
 			<button onclick="addEventSF()">addEvent(S, F)</button>
 			<button onclick="addEventSO()">addEvent(S, O)</button>
 			<button onclick="addEventO()">addEvent(O)</button>
+			
+			<button onclick="removeEventSF()">removeEvent(S, F)</button>
+			<button onclick="removeEventS()">removeEvent(S)</button>
+			<button onclick="removeEvent()">removeEvent()</button>
 		</div>
 	</body>
 	
 	<script type="text/javascript">
 		
-		function addEventSF() {
-			mojo("p").addEvent("click", function(event, el, i){
-				el.innerHTML = [event.type , i];
+		var fn = function(){
+			alert("this is fn");
+		};
+		
+		mojo("p").addEvent("click", fn);
+		
+		function addEventSF() { 
+			mojo("p").addEvent("click", function(){
+				log.info(this.el, 
+						 "EventType: " + this.event.type, 
+						 "index: " + this.index,
+						 "self: " + this.self);
 			});
 		}
 		
 		function addEventSO(){
 			mojo("p").addEvent("dblclick", {
-				fn: function(a, b, event, el, i){
-					el.innerHTML = [event.type , i , this , a , b];
+				fn: function(a, b){
+					log.info(this.el, 
+							 "EventType: " + this.event.type, 
+							 "index: " + this.index,
+							 "arg1: " + a,
+							 "arg2: " + b);
 				},
-				context: 'context',
 				args: ["a","b"]
-			});			
+			});		
 		}
 		
 		function addEventO() {
 			mojo("p").addEvent({
-				"mouseover": function(event, el, i) {
-					el.innerHTML = [event.type , i];
+				"mouseover": function() {
+					log.info(this.el, "EventType: " + this.event.type, "index: " + this.index);
 				},
 				
 				"mouseout": {
-					fn: function(a, b, event, el, i) {
-						el.innerHTML = [event.type , i , this , a , b];
+					fn: function(a, b){
+						log.info(this.el, 
+								 "EventType: " + this.event.type, 
+								 "index: " + this.index, 
+								 "arg1: " + a, 
+								 "arg2: " + b);
 					},
-					context: "context",
 					args: ["a", "b"]
 				}
 			});
+		}
+		
+		
+		function removeEventSF() {
+			mojo("p").removeEvent("click", fn);
+		}
+		
+		function removeEventS() {
+			mojo("p").removeEvent("click").removeEvent("dblclick");
+		}
+		
+		function removeEvent() {
+			mojo("p").removeEvent();
 		}
 	</script>
 </html>

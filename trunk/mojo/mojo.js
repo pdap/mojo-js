@@ -52,7 +52,6 @@
 							self        : method,
 							returnVal   : returnVal,
 							elData      : joSelf.getELData(el),
-							getCtxArgs  : joSelf.getCtxArgs,
 							getArgsCode : joSelf.getArgsCode,
 						};
 						
@@ -115,32 +114,6 @@
 				}
 				
 				return code;		
-			},
-			
-			/**
-			 * Get object mix function context and function arguments
-			 * 
-			 * @param  {Object} ctxArgs Init object
-			 * @return {Object} Object mix function context and function arguments
-			 */
-			getCtxArgs: function(ctxArgs) {
-				var 
-					obj = {
-						context: window,
-						args: []
-					}, undefined;
-				
-				if (ctxArgs) {
-					if (ctxArgs.context !== undefined) {
-						obj.context = ctxArgs.context;
-					}
-					
-					if (ctxArgs.args) {
-						obj.args = ctxArgs.args;
-					}
-				}
-				
-				return obj;
 			}
 		};
 	
