@@ -81,6 +81,16 @@
 				} else if(el.detachEvent) {
 					el.detachEvent("on" + evtName, fn);
 				}
+			},
+			
+			/**
+			 * Get event cache object which bind in element
+			 * 
+			 * @param {Object} elData Data object of element
+			 * @return Cache object
+			 */
+			getMevent: function(elData) {
+				return elData.mEvent || (elData.mEvent = {});
 			}							
 		};
 		
@@ -94,42 +104,98 @@
 			 */
 			addEvent: function(x, y) {
 				var 
-					index  = this.index,
-					el     = this.el,
+					index    = this.index,
+					el       = this.el,
 					argsCode = this.getArgsCode(arguments),
 					// cache element event function
-					mEvent = this.elData.mEvent || (this.elData.mEvent = {}),
-					p, fn, ctxArgs;
+					mEvent   = joEvent.getMevent(this.elData),
+					p, fn, args;
 				
 				if (argsCode === "1O") {
 					for(p in x) {
 						this.self.call(this, p, x[p]);
 					}
 					return;
-				} else {
-					if (!(p = mEvent[x])) {
-						 // cache element one type of event function
-						 p = mEvent[x] = [];
-					}
+				}
+				
+				if (!(p = mEvent[x])) {
+					// cache element one type event function in array
+					p = mEvent[x] = [];
 				}
 				
 				switch(argsCode) {
 					case "2SF":
-						ctxArgs = this.getCtxArgs(); 
+						args = [];
 						break;
 					
 					case "2SO":
-						ctxArgs = this.getCtxArgs(y);
-						y = y.fn;						
+						args = y.args || [];
+						y    = y.fn;
 				}	
 				
 				fn = function(event){
-					y.apply(ctxArgs.context, ctxArgs.args.concat([event || window.event, el, index]));
+					y.apply({
+						el   : el,
+						self : y,
+						index: index,
+						event: event || window.event
+					}, args);
 				};
+				
+				fn.innerFn = y;
 				
 				p.push(fn);
 				joEvent.addEvent(el, x, fn);
+			},
+			
+			/**
+			 * Remove element event
+			 * 
+			 * removeEvent()
+			 * removeEvent(String)
+			 * removeEvent(String, Function)
+			 */
+			removeEvent: function(x, y) {
+				var		
+					el       = this.el,
+					argsCode = this.getArgsCode(arguments),
+					mEvent   = joEvent.getMevent(this.elData),
+					p, fns, i, len;
+					
+				if (argsCode === "0") {
+					for (p in mEvent) {
+						fns = mEvent[p];
+						for (i = 0, len = fns.length; i < len; i++) {
+							joEvent.removeEvent(el, p, fns[i]);
+						}
+					}
+					mEvent = {};
+					
+					return;
+				}	
+					
+				fns = mEvent[x] || [];
+					
+				switch(argsCode) {
+					case "1S":
+						for (i = 0, len = fns.length; i < len; i++) {
+							joEvent.removeEvent(el, x, fns[i]);
+						}
+						fns.length = 0;
+						break;
+					
+					case "2SF":
+						for (i = 0, len = fns.length; i < len; i++) {
+							if(y === fns[i].innerFn) {
+								joEvent.removeEvent(el, x, fns[i]);
+								fns.splice(i, 1);
+								i--;
+								len--;
+							}
+						}													
+				}	
 			}
+			
 		}, true);
 	
 })(window, mojo);
