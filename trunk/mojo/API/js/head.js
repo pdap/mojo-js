@@ -9,4 +9,4 @@ var headContent = [
 	'<script type="text/javascript" src="../../../moudles/event.js"></script>'
 ];
 
-document.writeln(headContent);
+document.writeln(headContent.join(""));
