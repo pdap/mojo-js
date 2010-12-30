@@ -52,7 +52,7 @@
 							self        : method,
 							returnVal   : returnVal,
 							elData      : joSelf.getELData(el),
-							getArgsCode : joSelf.getArgsCode,
+							getArgsCode : joSelf.getArgsCode
 						};
 						
 						if (method.apply(context, arguments) === false) {
