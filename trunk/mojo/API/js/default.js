@@ -25,6 +25,14 @@ API = {
 	preIds: [],
 	examples: [],
 	
+	add: function(api) {
+		this.setTitle(api.title)
+			.setParams(api.params)
+			.setRt(api.rt)
+			.setExamples(api.examples)
+			.insert(api.insert);		
+	},
+	
 	setTitle: function(title) {
 		this.title = title;
 		return this;
@@ -98,17 +106,18 @@ API = {
 		
 		arr.push('<ul>');
 			
-		for(; i < len; i++) {
+		for (; i < len; i++) {
 			node = this.params[i];
 			arr.push('<li>');
-			if(node.length) {
-				arr.push(this.getParams(node));
-			} else {
-				arr.push(node.name);
-				arr.push('<div class="api-param-desc">');
-				arr.push(node.desc);
-				arr.push('</div>');
+			arr.push(node.name);
+			arr.push('<div class="api-param-desc">');
+			arr.push(node.desc);
+			
+			if(node.child) {
+				arr.push(this.getParams.call({params: node.child}));
 			}
+			
+			arr.push('</div>');
 			arr.push('</li>');
 		}	
 		
