@@ -127,30 +127,7 @@ API = {
 	},
 	
 	getRt: function() {
-		var 
-			arr = [],
-			len = this.rt.length,
-			i   = 0, node;
-		
-		arr.push('<ul>');
-			
-		for(; i < len; i++) {
-			node = this.rt[i];
-			arr.push('<li>');
-			if(node.length) {
-				arr.push(this.getParams(node));
-			} else {
-				arr.push(node.name);
-				arr.push('<div class="api-param-desc">');
-				arr.push(node.desc);
-				arr.push('</div>');
-			}
-			arr.push('</li>');
-		}	
-		
-		arr.push('</ul>');
-		
-		return arr.join('');		
+		return this.getParams.call({params: this.rt});	
 	},
 
 	getExamples: function() {
@@ -164,7 +141,7 @@ API = {
 		arr.push('<div class="api-example"><div class="api-example-container">');			
 		for(i = 0; i < len; i++) {
 			id = this.ID++;
-			this.targetIds.push(id);
+			this.targetIds.push('id' + id);
 			arr.push('<div id="id' + id + '" class="api-example-target">#id' + id + '</div>');
 		}
 		arr.push('</div>');
