@@ -10,6 +10,9 @@
 		document = window.document,
 		
 		joEvent = {
+			// Generates a unique ID
+			guid: 1,
+			
 			/**
 			 * Init event
 			 * 
@@ -107,20 +110,21 @@
 					index    = this.index,
 					el       = this.el,
 					argsCode = this.getArgsCode(arguments),
+					guid     = joEvent.guid++,
 					// cache element event function
 					mEvent   = joEvent.getMevent(this.elData),
-					p, fn, args;
+					type, fn, args, undefined;
 				
 				if (argsCode === "1O") {
-					for(p in x) {
-						this.self.call(this, p, x[p]);
+					for(type in x) {
+						this.self.call(this, type, x[type]);
 					}
 					return;
 				}
 				
-				if (!(p = mEvent[x])) {
-					// cache element one type event function in array
-					p = mEvent[x] = [];
+				if (!(type = mEvent[x])) {
+					// cache element one type event
+					type = mEvent[x] = {};
 				}
 				
 				switch(argsCode) {
@@ -129,7 +133,7 @@
 						break;
 					
 					case "2SO":
-						args = y.args || [];
+						args = y.args === undefined ? [] : [].concat(y.args);
 						y    = y.fn;
 				}	
 				
@@ -142,9 +146,15 @@
 					}, args);
 				};
 				
-				fn.innerFn = y;
+				if(y.mEventGuid && type[y.mEventGuid]) {
+					// more than one event added on element
+					// which same event type and same function
+					delete type[y.mEventGuid];
+				}
 				
-				p.push(fn);
+				y.mEventGuid = guid;
+				type[guid]   = fn;
+				
 				joEvent.addEvent(el, x, fn);
 			},
 			
@@ -160,13 +170,13 @@
 					el       = this.el,
 					argsCode = this.getArgsCode(arguments),
 					mEvent   = joEvent.getMevent(this.elData),
-					p, fns, i, len;
+					type, fns, guid;
 					
 				if (argsCode === "0") {
-					for (p in mEvent) {
-						fns = mEvent[p];
-						for (i = 0, len = fns.length; i < len; i++) {
-							joEvent.removeEvent(el, p, fns[i]);
+					for (type in mEvent) {
+						fns = mEvent[type];
+						for(guid in fns) {
+							joEvent.removeEvent(el, type, fns[guid]);
 						}
 					}
 					mEvent = {};
@@ -174,25 +184,20 @@
 					return;
 				}	
 					
-				fns = mEvent[x] || [];
+				fns = mEvent[x] || {};
 					
 				switch(argsCode) {
 					case "1S":
-						for (i = 0, len = fns.length; i < len; i++) {
-							joEvent.removeEvent(el, x, fns[i]);
+						for(guid in fns) {
+							joEvent.removeEvent(el, x, fns[guid]);
 						}
-						fns.length = 0;
+						mEvent[x] = {};
 						break;
 					
 					case "2SF":
-						for (i = 0, len = fns.length; i < len; i++) {
-							if(y === fns[i].innerFn) {
-								joEvent.removeEvent(el, x, fns[i]);
-								fns.splice(i, 1);
-								i--;
-								len--;
-							}
-						}													
+						if(y.mEventGuid && fns[y.mEventGuid]) {
+							delete fns[y.mEventGuid];
+						}												
 				}	
 			}
 			
