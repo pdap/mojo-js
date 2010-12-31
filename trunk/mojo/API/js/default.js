@@ -87,7 +87,7 @@ API = {
 				btn = this.examples.buttons[i];
 				
 				document.getElementById("btn" + this.btnIds[i]).onclick = function() {
-					btn.fn.call(null, ids)
+					btn.fn.apply(null, ids)
 				};
 				
 				document.getElementById("pre" + this.preIds[i]).innerHTML = btn.fn.toString();
@@ -141,7 +141,7 @@ API = {
 		arr.push('<div class="api-example"><div class="api-example-container">');			
 		for(i = 0; i < len; i++) {
 			id = this.ID++;
-			this.targetIds.push('id' + id);
+			this.targetIds.push('#id' + id);
 			arr.push('<div id="id' + id + '" class="api-example-target">#id' + id + '</div>');
 		}
 		arr.push('</div>');
