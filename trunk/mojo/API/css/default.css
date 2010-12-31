@@ -52,7 +52,11 @@ button {
 	padding:5px 25px
 }
 
-.api-param li {
+.api-example ul {
+	list-style:none;
+}
+
+.api-param ul li {
 	list-style: circle inside;
 	padding:5px;
 }
@@ -65,10 +69,6 @@ button {
 	border: 1px dashed #abcabc;
     margin: 10px;
 	padding: 10px;
-}
-
-.api-example ul {
-	list-style:none;
 }
 
 .api-example ul li div{
