@@ -30,7 +30,9 @@ API = {
 			.setParams(api.params)
 			.setRt(api.rt)
 			.setExamples(api.examples)
-			.insert(api.insert);		
+			.insert(api.insert);	
+		
+		return this;		
 	},
 	
 	setTitle: function(title) {
