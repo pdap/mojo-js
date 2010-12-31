@@ -22,7 +22,7 @@ API = {
 	rt: [],
 	targetIds: [],
 	btnIds: [],
-	preIds: [],
+	codeIds: [],
 	examples: [],
 	
 	add: function(api) {
@@ -90,12 +90,16 @@ API = {
 					btn.fn.apply(null, ids)
 				};
 				
-				document.getElementById("pre" + this.preIds[i]).innerHTML = btn.fn.toString();
+				document.getElementById("pre" + this.codeIds[i]).innerHTML = this.formatCode(btn.fn.toString());
 			}
 
 			this.targetIds = [];
 			this.btnIds = [];
-			this.preIds = [];
+			this.codeIds = [];
+	},
+	
+	formatCode: function(str) {
+		return str
 	},
 	
 	getParams: function() {
@@ -142,7 +146,7 @@ API = {
 		for(i = 0; i < len; i++) {
 			id = this.ID++;
 			this.targetIds.push('#id' + id);
-			arr.push('<div id="id' + id + '" class="api-example-target">#id' + id + '</div>');
+			arr.push('<div id="id' + id + '" class="api-example-target">#id' + (i+1) + '</div>');
 		}
 		arr.push('</div>');
 		
@@ -157,9 +161,9 @@ API = {
 			arr.push('<button id="btn' + id + '">' + btn.text + '</button>');
 			
 			id  = this.ID++;
-			this.preIds.push(id);
+			this.codeIds.push(id);
 			
-			arr.push('<div><pre id="pre' + id + '"></pre></div>');
+			arr.push('<div class="api-example-code"><pre><code id="pre' + id + '"></code></pre></div>');
 			arr.push('</li>');
 		}
 		arr.push('</ul></div>');
