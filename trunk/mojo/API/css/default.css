@@ -48,20 +48,16 @@ button {
 	margin:0 auto;
 }
 
-.api-param {
-	padding:5px 25px
+.api-desc {
+	padding: 2px 25px;
 }
 
-.api-example ul {
-	list-style:none;
-}
-
-.api-param ul li {
+.api-desc ul li {
 	list-style: circle inside;
 	padding:5px;
 }
 
-.api-param-desc {
+.api-sub-desc {
 	padding: 5px 5px 5px 16px;
 }
 
@@ -71,20 +67,25 @@ button {
 	padding: 10px;
 }
 
-.api-example ul li div{
-	border: 1px solid #CCCCCC;
-	margin: 10px;
-	padding: 5px;
+.api-example ul {
+	list-style:none;
 }
 
 .api-example-container {
 	height: 100px;
+	background-color:#E2E1D5;
+}
+
+.api-example-code {
+	border: 1px solid #CCCCCC;
+	margin: 10px;
+	padding: 5px;	
 }
 
 .api-example-target {
-	width: 50px;
-	height: 50px;
-	border: 1px dotted #CC0033;
+	width: 75px;
+	height: 75px;
+	border: 1px dotted #CC3366;
 	background-color:#CCCCCC;
 	margin: 5px;
 	float: left;
