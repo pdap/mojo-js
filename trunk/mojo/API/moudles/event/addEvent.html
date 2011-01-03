@@ -6,61 +6,54 @@
 		<script type="text/javascript" src="../../js/head.js"></script>
 	</head>
 	
-	<body>
+<body>
+
+<div id="id1">
 	
-	</body>
+</div>
+
+</body>
 	
 	<script type="text/javascript">
 		var body = document.body;
+		var summary = [
+			"添加HTMLElement元素事件处理, 使用addEventListener或attachEvent实现."
+		];
 		
-		API.setTitle([
-			"addEvent",
-			"String eventType, Function fn",
-			"mojo"
-		]).setParams([{
+		API.add({
+			title: [
+				"addEvent",
+				"String eventType, Function fn",
+				"mojo"
+			],
+			summary: summary,
+			params: [{
 				name: "eventType: String",
 				desc: "事件类型"
 			}, {
 				name: "fn: Function",
-				desc: "事件处理函数"
-			}
-		]).setRt([{
-			name: "mojo",
-			desc: ""
-		}]).setExamples({
-			target: 1,
-			buttons: [{
-				text: "addEvent",
-				fn: function() {
-						alert("")
-				}
-			}]
-		}).insert(body);
+				desc: "事件处理函数, 函数上下文对象this含有以下属性:",
+				child: [{
+					name: "el: HTMLElement",
+					desc: "触发事件的元素"
+				},{
+					name: "event: Object",
+					desc: "原生事件对象"
+				},{
+					name: "index: Number",
+					desc: "当前对象在mojo对象的索引"
+				}]
+			}],
+			rt: [{
+				name: "mojo"
+			}],
+			examples: {
+				targets: ["id1"],
+				codes: ["code1"]
+			},
+			insert: body
+		})
+
 		
-		
-		API.setTitle([
-			"addEvent",
-			"String eventType, Function fn",
-			"mojo"
-		]).setParams([{
-				name: "eventType: String",
-				desc: "事件类型"
-			}, {
-				name: "fn: Function",
-				desc: "事件处理函数"
-			}
-		]).setRt([{
-			name: "mojo",
-			desc: ""
-		}]).setExamples({
-			target: 1,
-			buttons: [{
-				text: "addEvent",
-				fn: function() {
-						alert("")
-				}
-			}]
-		}).insert(body);		
-	
 	</script>
 </html>
