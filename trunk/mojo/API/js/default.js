@@ -16,11 +16,14 @@ log = {
 
 
 API = {
+	ID: 0,
+	codeIds: [],
+	apis: [],
 	title: [],
 	summary: [],
 	params: [],
 	rt: [],
-	examples: {},
+	examples: [],
 	
 	add: function(api) {
 		this.setTitle(api.title)
@@ -28,9 +31,28 @@ API = {
 			.setParams(api.params)
 			.setRt(api.rt)
 			.setExamples(api.examples)
-			.insert(api.insert);	
+			.addApi();	
 		
 		return this;		
+	},
+	
+	render: function(element) {
+		var 
+			i   = 0,
+			len = this.codeIds.length,
+			id, code;
+		
+		element.innerHTML += this.apis.join('');	 
+		
+		for(; i < len; i++) { 
+			code = document.getElementById("code" + this.codeIds[i]);
+			id   = code.innerHTML;
+			code.innerHTML = "";
+			code.appendChild(document.getElementById(id));
+		}
+		
+		this.codeIds.length = 0;
+		this.apis.length = 0;
 	},
 	
 	setTitle: function(title) {
@@ -58,11 +80,8 @@ API = {
 		return this;
 	},
 	
-	insert: function(element) {
+	addApi: function() {
 		var 
-			i, len, 
-			btns = this.examples.buttons, 
-			ids  = this.targetIds,
 			tpl = [
 				'<div class="api">',
 					'<h5 class="api-title">',
@@ -86,11 +105,14 @@ API = {
 						'</div>',
 						
 						'<h5>示例:</h5>',
+						'<div class="api-example">',
+							this.getExamples(),
+						'</div>',						
 					'</div>',
 				'</div>'		
 			];
 		   
-		   	element.innerHTML += tpl.join('');
+		   	this.apis.push( tpl.join(''));
 	},
 	
 	getSummary: function() {
@@ -130,6 +152,32 @@ API = {
 			arr.push('</div>');
 			arr.push('</li>');
 		}	
+		
+		arr.push('</ul>');
+		
+		return arr.join('');
+	},
+	
+	getExamples: function() {
+		var 
+			arr = [],
+			len = this.examples.length,
+			i   = 0, node, id;	
+		
+		arr.push('<ul>');
+		
+		for(; i < len; i++) {
+			node = this.examples[i];
+			arr.push('<li>');
+			arr.push(node.desc);
+			
+			id = this.ID++;
+			this.codeIds.push(id);
+			
+			arr.push('<div id="code' + id + '">');
+			arr.push(node.codeId);
+			arr.push('</div></li>');
+		}		
 		
 		arr.push('</ul>');
 		

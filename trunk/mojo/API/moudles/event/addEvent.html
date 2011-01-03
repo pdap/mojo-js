@@ -8,9 +8,13 @@
 	
 <body>
 
-<div id="id1">
-	
-</div>
+<pre id="id1">mojo("li").addEvent("click", function(){
+	alert('ok');
+
+});
+
+<button onclick="alert('ok')">addEvent</button>
+</pre>
 
 </body>
 	
@@ -47,12 +51,11 @@
 			rt: [{
 				name: "mojo"
 			}],
-			examples: {
-				targets: ["id1"],
-				codes: ["code1"]
-			},
-			insert: body
-		})
+			examples: [{
+				desc: "添加点击事件",
+				codeId: "id1"
+			}]
+		}).render(body);
 
 		
 	</script>
