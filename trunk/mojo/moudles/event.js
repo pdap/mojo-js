@@ -136,24 +136,24 @@
 						args = y.args === undefined ? [] : [].concat(y.args);
 						y    = y.fn;
 				}	
-				
+		
+				if (y.mEventGuid && type[y.mEventGuid]) {
+					// more than one event added on element
+					// which same event type and same function
+					return;
+				} 
+					
 				fn = function(event){
 					y.apply({
-						el   : el,
-						self : y,
+						el: el,
+						self: y,
 						index: index,
 						event: event || window.event
 					}, args);
 				};
 				
-				if(y.mEventGuid && type[y.mEventGuid]) {
-					// more than one event added on element
-					// which same event type and same function
-					delete type[y.mEventGuid];
-				}
-				
 				y.mEventGuid = guid;
-				type[guid]   = fn;
+				type[guid]   = fn;  
 				
 				joEvent.addEvent(el, x, fn);
 			},
@@ -195,8 +195,9 @@
 						break;
 					
 					case "2SF":
-						if(y.mEventGuid && fns[y.mEventGuid]) {
-							delete fns[y.mEventGuid];
+						if((y = y.mEventGuid) &&  (y = fns[y])) {
+							joEvent.removeEvent(el, x, y);
+							delete y;
 						}												
 				}	
 			}
