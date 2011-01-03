@@ -4,7 +4,7 @@ log = {
 	info: function(msg){
 		var	args = Array.prototype.slice.call(arguments, 1);
 			
-		msg = msg.replace("{}", function(){
+		msg = msg.replace(/\{\}/g, function(){
 			return args.pop();
 		});
 			
