@@ -20,8 +20,9 @@ ul {
 	padding:0;
 }
 
-button {
-	margin: 5px;
+code {
+	margin:0;
+	padding:0;
 }
 
 .api {
@@ -53,12 +54,12 @@ button {
 	margin:0 auto;
 }
 
-.api-desc {
+.api-desc, .api-example {
 	padding: 2px 25px;
 	margin: 0;
 }
 
-.api-desc ul li {
+.api-desc ul li, .api-example ul li {
 	list-style: circle inside;
 	padding:5px;
 }
@@ -67,35 +68,10 @@ button {
 	padding: 5px 5px 5px 16px;
 }
 
-.api-example {
-	border: 1px dashed #73880A;
-    margin: 10px;
+.api-example pre {
 	padding: 10px;
-}
-
-.api-example ul {
-	list-style:none;
-}
-
-.api-example-container {
-	height: 100px;
-	background-color:#E2E1D5;
-	border: 1px solid #E2E1D5;
-}
-
-.api-example-code {
-	border: 1px solid #CCCCCC;
-	margin: 10px;
-	padding: 5px;	
-}
-
-.api-example-target {
-	width: 75px;
-	height: 75px;
-	border: 1px dotted #CC3366;
-	background-color:#CCCCCC;
-	margin: 5px;
-	float: left;
+	background-color:#F8F8F8;
+	border: 1px dotted #CCCCCC;
 }
 
 .line {
