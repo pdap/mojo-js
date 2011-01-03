@@ -1,16 +1,30 @@
 log = {
-	info: function(e){
-		var
-			i   = 1,
-			msg = [],
-			len = arguments.length;
+	msg: [],
+	
+	info: function(msg){
+		var	args = Array.prototype.slice.call(arguments, 1);
+			
+		msg = msg.replace("{}", function(){
+			return args.pop();
+		});
+			
+		this.msg.push(msg + "\n");
 		
-		for(; i < len; i++) {
-			msg.push(arguments[i]);
-			msg.push("<br>");
-		}	
+		return this;
+	},
+	
+	render: function(e, append, split) {
+		append ? e.innerHTML += this.msg.join(split || "") :　e.innerHTML = this.msg.join(split || "");
+		this.msg.length = 0;
 		
-		e.innerHTML = msg.join("");
+		return this;
+	},
+	
+	alert: function(split) {
+		alert(this.msg.join(split || ""));
+		this.msg.length = 0;
+		
+		return this;
 	}
 };
 
