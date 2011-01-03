@@ -8,21 +8,92 @@
 	
 <body>
 
-<pre id="id1">mojo("li").addEvent("click", function(){
-	alert('ok');
-
+<pre id="id1">
+<div class="target" id="target-1">#target-1</div>	
+<button onclick="exeScript('source1')">addEvent</button>
+<code id="source1">
+mojo("#target-1").addEvent("click", function(){
+    log.info('触发事件元素: {}', this.el)
+       .info('事件类型: {}', this.event.type)
+       .info('元素索引: {}', this.index) 
+       .alert(); 
 });
+</code>
+</pre>
 
-<button onclick="alert('ok')">addEvent</button>
+
+
+
+
+
+<pre id="id2">
+<div class="target" id="target-2">#target-2</div>
+<button onclick="exeScript('source2')">addEvent</button>
+<code id="source2">	
+mojo('#target-2').addEvent('click', {
+	args: 'test',
+	fn: function(arg){
+	    log.info('传入参数为: {}', arg)
+	       .info('这是点击事件!')
+	       .alert();
+    }
+})
+.addEvent('click', {
+	args: ['a', 'b'],
+	fn: function(arg1, arg2){
+		log.info('第一个: {}, 第二个: {}', arg1, arg2)
+		   .info('这还是点击事件!')
+		   .alert();
+    }
+});	
+</code>
+</pre>
+
+
+
+
+
+
+<pre id="id3">
+<div class="target" id="target-3">#target-3</div>
+<button onclick="exeScript('source3')">addEvent</button>
+<code id="source3">	
+mojo('#target-3').addEvent({
+	'mouseover': function(){
+		log.info('事件: {}', this.event.type)
+		   .render(this.el);
+	},
+	
+	'mouseout': {
+		args: 'ok',
+		fn: function(arg){
+			log.info('事件: {}, 参数: {}', this.event.type, arg)
+			.render(this.el);
+		}
+	} 
+});	
+</code>
 </pre>
 
 </body>
-	
 	<script type="text/javascript">
 		var body = document.body;
 		var summary = [
 			"添加HTMLElement元素事件处理, 使用addEventListener或attachEvent实现."
 		];
+		var fnContext = [{
+				name: "el: HTMLElement",
+				desc: "触发事件的元素"
+			}, {
+				name: "event: Object",
+				desc: "原生事件对象"
+			}, {
+				name: "index: Number",
+				desc: "当前对象在mojo对象的索引"
+			}, {
+				name: "self: Function",
+				desc: "当前执行的函数"
+			}];
 		
 		API.add({
 			title: [
@@ -37,16 +108,7 @@
 			}, {
 				name: "fn: Function",
 				desc: "事件处理函数, 函数上下文对象this含有以下属性:",
-				child: [{
-					name: "el: HTMLElement",
-					desc: "触发事件的元素"
-				},{
-					name: "event: Object",
-					desc: "原生事件对象"
-				},{
-					name: "index: Number",
-					desc: "当前对象在mojo对象的索引"
-				}]
+				child: fnContext
 			}],
 			rt: [{
 				name: "mojo"
@@ -55,7 +117,74 @@
 				desc: "添加点击事件",
 				codeId: "id1"
 			}]
-		}).render(body);
+		})
+		
+		//
+		.add({
+			title: [
+				"addEvent",
+				"String eventType, Object config",
+				"mojo"
+			],
+			summary: summary,
+			params: [{
+				name: "eventType: String",
+				desc: "事件类型"
+			},{
+				name: "config: Object",
+				desc: "事件函数配置对象, 含有以下属性:",
+				child: [{
+					name: "args(可选): Array | Any",
+					desc: "事件函数的参数"
+				}, {
+					name: "fn: Function",
+					desc: "事件函数"
+				}]
+			}],
+			rt: [{
+				name: "mojo"
+			}],
+			examples: [{
+				desc: "添加点击事件",
+				codeId: "id2"
+			}]
+		})
+		
+		//
+		.add({
+			title: [
+				"addEvent",
+				"Object config",
+				"mojo"
+			],
+			summary: summary,
+			params: [{
+				name: "config: Object",
+				desc: "事件配置对象, 含有以下属性:",
+				child: [{
+					name: "eventType: String",
+					desc: "事件类型"
+				}, {
+					name: "fn: Function | config: Object",
+					desc: "事件函数或函数配置对象, 见:",
+					child: [{
+						name: "addEvent(String eventType, Function fn)"
+					},{
+						name:　"addEvent(String eventType, Object config)"
+					}]
+				}]
+			}],
+			rt: [{
+				name: "mojo"
+			}],
+			examples: [{
+				desc: "添加鼠标事件",
+				codeId: "id3"
+			}]
+		})		
+		
+		 //
+		 .render(body);
 
 		
 	</script>

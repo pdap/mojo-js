@@ -5,7 +5,7 @@ log = {
 		var	args = Array.prototype.slice.call(arguments, 1);
 			
 		msg = msg.replace(/\{\}/g, function(){
-			return args.pop();
+			return args.shift();
 		});
 			
 		this.msg.push(msg + "\n");
@@ -28,6 +28,9 @@ log = {
 	}
 };
 
+function exeScript(id) {
+	eval(document.getElementById(id).innerHTML);
+}
 
 API = {
 	ID: 0,
@@ -148,7 +151,7 @@ API = {
 		var 
 			arr = [],
 			len = this.params.length,
-			i   = 0, node;
+			i   = 0, node, oldParams;
 		
 		arr.push('<ul>');
 			
@@ -160,7 +163,10 @@ API = {
 			arr.push(node.desc);
 			
 			if(node.child) {
-				arr.push(this.getParams.call({params: node.child}));
+				oldParams = this.params;
+				this.params = node.child;
+				arr.push(this.getParams());
+				this.params = oldParams;
 			}
 			
 			arr.push('</div>');
