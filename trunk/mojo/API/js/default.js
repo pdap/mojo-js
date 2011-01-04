@@ -158,7 +158,7 @@ API = {
 		for (; i < len; i++) {
 			node = this.params[i];
 			arr.push('<li>');
-			arr.push(node.name);
+			arr.push('<em><strong>' + node.name + '</strong></em>');
 			arr.push('<div class="api-sub-desc">');
 			arr.push(node.desc);
 			
