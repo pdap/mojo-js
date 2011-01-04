@@ -137,11 +137,16 @@
 						y    = y.fn;
 				}	
 		
-				if (y.mEventGuid && type[y.mEventGuid]) {
-					// more than one event added on element
-					// which same event type and same function
-					return;
-				} 
+				if (y.mEventGuid) {
+					if (type[y.mEventGuid]) {
+						// more than one event added on element
+						// which same event type and same function
+						return;
+					}
+					guid = y.mEventGuid;
+				} else {
+					y.mEventGuid = guid;
+				}
 					
 				fn = function(event){
 					y.apply({
@@ -152,7 +157,6 @@
 					}, args);
 				};
 				
-				y.mEventGuid = guid;
 				type[guid]   = fn;  
 				
 				joEvent.addEvent(el, x, fn);
@@ -178,26 +182,28 @@
 						for(guid in fns) {
 							joEvent.removeEvent(el, type, fns[guid]);
 						}
+						delete mEvent[type];
 					}
-					mEvent = {};
 					
 					return;
 				}	
 					
-				fns = mEvent[x] || {};
+				fns = mEvent[x];
 					
 				switch(argsCode) {
 					case "1S":
-						for(guid in fns) {
-							joEvent.removeEvent(el, x, fns[guid]);
+						if (fns) {
+							for (guid in fns) {
+								joEvent.removeEvent(el, x, fns[guid]);
+							}
+							delete mEvent[x];
 						}
-						mEvent[x] = {};
 						break;
 					
 					case "2SF":
-						if((y = y.mEventGuid) &&  (y = fns[y])) {
-							joEvent.removeEvent(el, x, y);
-							delete y;
+						if(fns && (y = y.mEventGuid) && fns[y]) {
+							joEvent.removeEvent(el, x, fns[y]);
+							delete fns[y];
 						}												
 				}	
 			}
