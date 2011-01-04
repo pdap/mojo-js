@@ -87,6 +87,67 @@
 			},
 			
 			/**
+			 * Fix IE event object
+			 * 
+			 * @return Event object
+			 */
+			fixEvent: function() {
+				var	
+					event = this.event;
+				
+				if(!event.charCode) {
+					event.charCode = (event.type === "keypress") ? event.keyCode : 0;
+				}	
+				
+				if(!event.isChar) {
+					event.isChar = event.charCode > 0 ;
+				}
+				
+				if(!event.eventPhase) {
+					event.eventPhase = 2;
+				}
+				
+				if(!event.pageX && !event.pageY) {
+					event.pageX = event.clientX + document.body.scrollLeft;
+					event.pageY = event.clientY + document.body.scrollTop;
+				}
+				
+				if(!event.preventDefault) {
+					event.preventDefault = function() {
+						this.returnValue = false;
+					}
+				}
+				
+				if(!event.relatedTarget) {
+					switch(event.type) {
+						case "mouseout":
+							event.relatedTarget = event.toElement;
+							break;
+						
+						case "mouseover":
+							event.relatedTarget = event.fromElement;
+						
+					}
+				}
+				
+				if(!event.stopPropagation) {
+					event.stopPropagation = function() {
+						this.cancelBubble = true;
+					}
+				}
+				
+				if(!event.target) {
+					event.target = event.srcElement;
+				}
+				
+				if(!event.timeStamp) {
+					event.timeStamp = new Date().getTime();
+				} 
+				
+				return event;
+			},
+			
+			/**
 			 * Get event cache object which bind in element
 			 * 
 			 * @param {Object} elData Data object of element
@@ -153,7 +214,8 @@
 						el: el,
 						self: y,
 						index: index,
-						event: event || window.event
+						event: event || window.event,
+						fixEvent: joEvent.fixEvent
 					}, args);
 				};
 				
