@@ -47,12 +47,13 @@
 			 * @param {HTMLElement} el
 			 * @param {Object} evt      Event Object
 			 * @param {Object} evtName  Event name
+			 * @return {Boolean} Event fire successfully or canceled 
 			 */
 			fireEvent: function(el, evt, evtName) {
 				if(el.dispatchEvent) {
-					el.dispatchEvent(evt);
+					return el.dispatchEvent(evt);
 				} else if(el.fireEvent) {
-					el.fireEvent("on" + evtName, evt);
+					return el.fireEvent("on" + evtName, evt);
 				}
 			},		
 			
@@ -93,21 +94,21 @@
 			 */
 			fixEvent: function() {
 				var	
-					event = this.event;
+					event = this.event, undefined;
 				
-				if(!event.charCode) {
+				if(event.charCode === undefined) {
 					event.charCode = (event.type === "keypress") ? event.keyCode : 0;
 				}	
 				
-				if(!event.isChar) {
+				if(event.isChar === undefined) { 
 					event.isChar = event.charCode > 0 ;
 				}
 				
-				if(!event.eventPhase) {
+				if(event.eventPhase === undefined) {
 					event.eventPhase = 2;
 				}
 				
-				if(!event.pageX && !event.pageY) {
+				if(event.pageX === undefined && event.pageY === undefined) {
 					event.pageX = event.clientX + document.body.scrollLeft;
 					event.pageY = event.clientY + document.body.scrollTop;
 				}
@@ -140,7 +141,7 @@
 					event.target = event.srcElement;
 				}
 				
-				if(!event.timeStamp) {
+				if(event.timeStamp === undefined) {
 					event.timeStamp = new Date().getTime();
 				} 
 				
