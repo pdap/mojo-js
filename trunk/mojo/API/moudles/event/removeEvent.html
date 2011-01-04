@@ -9,24 +9,24 @@
 <body>
 
 <pre id="id1">
-<div class="target" id="id1-target-1">#id1-target-1</div>	
+<div class="target" id="id1-target1">#id1-target1</div>	
 <button onclick="exeScript('id1-source1')">addEvent</button>
 <code id="id1-source1">
-mojo("#id1-target-1").addEvent("click", foo);
+mojo("#id1-target1").addEvent("click", foo);
 </code>
 <button onclick="exeScript('id1-source2')">removeEvent</button>
 <code id="id1-source2">
-mojo("#id1-target-1").removeEvent("click", foo);
+mojo("#id1-target1").removeEvent("click", foo);
 </code>
 </pre>
 
 
 
 <pre id="id2">
-<div class="target" id="id2-target-1">#id2-target-1</div>	
+<div class="target" id="id2-target1">#id2-target1</div>	
 <button onclick="exeScript('id2-source1')">addEvent</button>
 <code id="id2-source1">
-mojo("#id2-target-1").addEvent('click', function(){
+mojo("#id2-target1").addEvent('click', function(){
 	log.info('点击一!').alert();
 })
 .addEvent('click', function(){
@@ -35,13 +35,13 @@ mojo("#id2-target-1").addEvent('click', function(){
 </code>
 <button onclick="exeScript('id2-source2')">removeEvent</button>
 <code id="id2-source2">
-mojo("#id2-target-1").removeEvent("click");
+mojo("#id2-target1").removeEvent("click");
 </code>
 </pre>	
 
 
 <pre id="id3">
-<div class="target" id="id3-target-1">#id3-target-1</div>	
+<div class="target" id="id3-target1">#id3-target1</div>	
 <button onclick="exeScript('id3-source1')">addEvent</button>
 <code id="id3-source1">
 function test() {
@@ -49,7 +49,7 @@ function test() {
 	   .render(this.el);
 };
 	
-mojo("#id3-target-1").addEvent({
+mojo("#id3-target1").addEvent({
 	'click': test,
 	'mouseover': test,
 	'mouseout': test
@@ -57,7 +57,7 @@ mojo("#id3-target-1").addEvent({
 </code>
 <button onclick="exeScript('id3-source2')">removeEvent</button>
 <code id="id3-source2">
-mojo("#id3-target-1").removeEvent();
+mojo("#id3-target1").removeEvent();
 </code>
 </pre>
 
