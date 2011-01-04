@@ -9,10 +9,10 @@
 <body>
 
 <pre id="id1">
-<div class="target" id="target-1">#target-1</div>	
-<button onclick="exeScript('source1')">addEvent</button>
-<code id="source1">
-mojo("#target-1").addEvent("click", function(){
+<div class="target" id="id1-target1">#id1-target1</div>	
+<button onclick="exeScript('id1-source1')">addEvent</button>
+<code id="id1-source1">
+mojo("#id1-target1").addEvent("click", function(){
     log.info('触发事件元素: {}', this.el)
        .info('事件类型: {}', this.event.type)
        .info('元素索引: {}', this.index) 
@@ -23,14 +23,27 @@ mojo("#target-1").addEvent("click", function(){
 
 
 
+<pre id="id4">
+<div class="target" id="id4-target1">#id4-target1</div>	
+<button onclick="exeScript('id4-source1')">addEvent</button>
+<code id="id4-source1">
+mojo("#id4-target1").addEvent("click", function(){
+    log.info('执行一次的{}事件', this.event.type)
+       .alert(); 
+	
+    mojo(this.el).removeEvent(this.event.type, this.self);   
+});
+</code>
+</pre>
+
 
 
 
 <pre id="id2">
-<div class="target" id="target-2">#target-2</div>
-<button onclick="exeScript('source2')">addEvent</button>
-<code id="source2">	
-mojo('#target-2').addEvent('click', {
+<div class="target" id="id2-target1">#id2-target1</div>
+<button onclick="exeScript('id2-source1')">addEvent</button>
+<code id="id2-source1">	
+mojo('#id2-target1').addEvent('click', {
 	args: 'test',
 	fn: function(arg){
 	    log.info('传入参数为: {}', arg)
@@ -55,10 +68,10 @@ mojo('#target-2').addEvent('click', {
 
 
 <pre id="id3">
-<div class="target" id="target-3">#target-3</div>
-<button onclick="exeScript('source3')">addEvent</button>
-<code id="source3">	
-mojo('#target-3').addEvent({
+<div class="target" id="id3-target1">#id3-target1</div>
+<button onclick="exeScript('id3-source1')">addEvent</button>
+<code id="id3-source1">	
+mojo('#id3-target1').addEvent({
 	'mouseover': function(){
 		log.info('事件: {}', this.event.type)
 		   .render(this.el);
@@ -114,6 +127,9 @@ mojo('#target-3').addEvent({
 			examples: [{
 				desc: "添加点击事件",
 				codeId: "id1"
+			}, {
+				desc: "执行一次的事件",
+				codeId: "id4"
 			}]
 		})
 		
