@@ -38,9 +38,44 @@ mojo("#id4-target1").addEvent("click", function(){
 
 
 
+<pre id="id5">
+<div class="target" id="id5-target1">#id5-target1</div>	
+<button onclick="exeScript('id5-source1')">addEvent</button>
+<code id="id5-source1">
+mojo("#id5-target1").addEvent("click", function(){ 
+	var event = this.fixEvent();
+	
+    log.info('charCode: {}', event.charCode)
+	   .info('isChar: {}', event.isChar)
+	   .info('keyCode: {}', event.keyCode)
+	   .info('eventPhase: {}', event.eventPhase)
+	   .info('pageX:: {}', event.pageX)
+	   .info('pageY: {}', event.pageY)
+	   .info('preventDefault: {}', 
+	         event.preventDefault.toString().replace(/\s/g, ''))
+	   .info('relatedTarget: {}', event.relatedTarget)
+	   .info('stopPropagation: {}', 
+	         event.stopPropagation.toString().replace(/\s/g, ''))
+	   .info('target: {}', event.target)
+	   .info('timeStamp: {}', event.timeStamp)
+	   .info('altKey: {}', event.altKey)
+	   .info('ctrlKey: {}', event.ctrlKey)
+	   .info('shiftKey: {}', event.shiftKey)
+	   .info('clientX: {}', event.clientX)
+	   .info('clientY: {}', event.clientY)
+	   .info('screenX: {}', event.screenX)
+	   .info('screenY: {}', event.screenY)
+	   .info('type: {}', event.type)
+       .alert(); 
+});
+</code>
+</pre>
+
+
 
 <pre id="id2">
 <div class="target" id="id2-target1">#id2-target1</div>
+
 <button onclick="exeScript('id2-source1')">addEvent</button>
 <code id="id2-source1">	
 mojo('#id2-target1').addEvent('click', {
@@ -119,6 +154,87 @@ mojo('#id3-target1').addEvent({
 				}, {
 					name: "self: Function",
 					desc: "当前执行的函数"
+				}, {
+					name: "fixEvent: Function",
+					desc: "调整IE event对象兼容标准, 此方法调用后, this.event对像即为调整后对象. 兼容属性如下:",
+					child: [{
+						name: "button: Number",
+						desc: "特定鼠标事件, 表示按下的按钮:",
+						child: [{
+							name: "0 - 未按下按钮"
+						}, {
+							name: "1 - 按下左键"
+						}, {
+							name: "2 - 按下右键"
+						}, {
+							name: "3 - 同时左右键"
+						}, {
+							name: "4 - 中键"
+						}, {
+							name: "5 - 左键和中键"
+						}, {
+							name: "6 - 右键和中键"
+						}, {
+							name:　"7 - 左中右键"
+						}]
+					}, {
+						name: "charCode: Number",
+						desc: "keypress事件, 按下按钮的unicode字符"
+					}, {
+						name: "isChar: Boolean",
+						desc: "按下键是否有字符与之相关"
+					}, {
+						name: "keyCode: Number",
+						desc: "按下按钮的数字代号"
+					} , {
+						name: "eventPhase: Number",
+						desc: "事件所处的阶段, 0 - 捕获, 1 - 目标, 2 - 冒泡"
+					}, {
+						name: "pageX: Number",
+						desc: "鼠标相对于页面的X坐标"
+					}, {
+						name: "pageY: Number",
+						desc: "鼠标相对于页面的Y坐标"
+					}, {
+						name: "preventDefault: Function",
+						desc: "阻止事件默认行为"
+					}, {
+						name: "relatedTarget: HTMLElement",
+						desc: "鼠标事件中的第二目标元素"
+					}, {
+						name: "stopPropagation: Function",
+						desc: "阻止事件冒泡"
+					}, {
+						name: "target: HTMLElement",
+						desc: "事件目标元素"
+					}, {
+						name: "timeStamp: Number",
+						desc: "触发事件的时间戳"
+					}, {
+						name: "altKey: Boolean",
+						desc: "是否按下ALT键"
+					}, {
+						name: "ctrlKey: Boolean",
+						desc: "是否按下CTRL键"
+					}, {
+						name: "shiftKey: Boolean",
+						desc: "是否按下shift键"
+					}, {
+						name: "clientX: Number",
+						desc: "鼠标在客户端区域的X坐标"
+					}, {
+						name: "clientY: Number",
+						desc: "鼠标在客户端区域的Y坐标"
+					}, {
+						name: "screenX: Number",
+						desc: "鼠标在屏幕的X坐标"
+					}, {
+						name: "screentY: Number",
+						desc: "鼠标在屏幕的Y坐标"
+					}, {
+						name: "type: String",
+						desc:　"事件类型"
+					}]
 				}]
 			}],
 			rt: [{
@@ -130,6 +246,9 @@ mojo('#id3-target1').addEvent({
 			}, {
 				desc: "执行一次的事件",
 				codeId: "id4"
+			}, {
+				desc: "事件对象",
+				codeId: "id5"
 			}]
 		})
 		

@@ -32,6 +32,28 @@ function exeScript(id) {
 	eval(document.getElementById(id).innerHTML);
 }
 
+function toggleClick(self) {
+	var div = mojo.queryCss("+div", self)[0];
+	var sty = div.style; 
+
+	switch(sty.display) {
+		case "":
+			sty.display = "block";
+			self.innerHTML = " - ";		
+			break;
+		
+		case "block":
+			sty.display = "none";
+			self.innerHTML = " + ";		
+			break;
+		
+		case "none":
+			sty.display = "block";
+			self.innerHTML = " - ";				
+	}
+}
+
+
 API = {
 	ID: 0,
 	codeIds: [],
@@ -158,15 +180,23 @@ API = {
 		for (; i < len; i++) {
 			node = this.params[i];
 			arr.push('<li>');
+
 			arr.push('<em><strong>' + node.name + '</strong></em>');
 			arr.push('<div class="api-sub-desc">');
-			arr.push(node.desc);
 			
 			if(node.child) {
+				arr.push('<span class="toggle" onclick="toggleClick(this)"> + </span>' + (node.desc || ''));
+				
+				arr.push('<div class="hidden">');
+				
 				oldParams = this.params;
 				this.params = node.child;
 				arr.push(this.getParams());
 				this.params = oldParams;
+				
+				arr.push('</div>');
+			} else {
+				arr.push(node.desc);
 			}
 			
 			arr.push('</div>');
@@ -189,12 +219,12 @@ API = {
 		for(; i < len; i++) {
 			node = this.examples[i];
 			arr.push('<li>');
-			arr.push(node.desc);
+			arr.push((node.desc || '') + '<span class="toggle" onclick="toggleClick(this)"> + </span>');
 			
 			id = this.ID++;
 			this.codeIds.push(id);
 			
-			arr.push('<div id="code' + id + '">');
+			arr.push('<div class="hidden" id="code' + id + '">');
 			arr.push(node.codeId);
 			arr.push('</div></li>');
 		}		
