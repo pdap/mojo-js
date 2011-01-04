@@ -9,55 +9,55 @@
 <body>
 
 <pre id="id1">
-<div class="target" id="target-1">#target-1</div>	
-<button onclick="exeScript('source1')">addEvent</button>
-<code id="source1">
-mojo("#target-1").addEvent("click", foo);
+<div class="target" id="id1-target-1">#id1-target-1</div>	
+<button onclick="exeScript('id1-source1')">addEvent</button>
+<code id="id1-source1">
+mojo("#id1-target-1").addEvent("click", foo);
 </code>
-<button onclick="exeScript('source2')">removeEvent</button>
-<code id="source2">
-mojo("#target-1").removeEvent("click", foo);
+<button onclick="exeScript('id1-source2')">removeEvent</button>
+<code id="id1-source2">
+mojo("#id1-target-1").removeEvent("click", foo);
 </code>
 </pre>
 
 
 
 <pre id="id2">
-<div class="target" id="target-2">#target-2</div>	
-<button onclick="exeScript('source3')">addEvent</button>
-<code id="source3">
-mojo("#target-2").addEvent('click', function(){
+<div class="target" id="id2-target-1">#id2-target-1</div>	
+<button onclick="exeScript('id2-source1')">addEvent</button>
+<code id="id2-source1">
+mojo("#id2-target-1").addEvent('click', function(){
 	log.info('点击一!').alert();
 })
 .addEvent('click', function(){
 	log.info('点击二!').alert();
 })
 </code>
-<button onclick="exeScript('source4')">removeEvent</button>
-<code id="source4">
-mojo("#target-2").removeEvent("click");
+<button onclick="exeScript('id2-source2')">removeEvent</button>
+<code id="id2-source2">
+mojo("#id2-target-1").removeEvent("click");
 </code>
 </pre>	
 
 
 <pre id="id3">
-<div class="target" id="target-3">#target-3</div>	
-<button onclick="exeScript('source5')">addEvent</button>
-<code id="source5">
+<div class="target" id="id3-target-1">#id3-target-1</div>	
+<button onclick="exeScript('id3-source1')">addEvent</button>
+<code id="id3-source1">
 function test() {
 	log.info('事件: {}', this.event.type)
 	   .render(this.el);
 };
 	
-mojo("#target-3").addEvent({
+mojo("#id3-target-1").addEvent({
 	'click': test,
 	'mouseover': test,
 	'mouseout': test
 });
 </code>
-<button onclick="exeScript('source6')">removeEvent</button>
-<code id="source6">
-mojo("#target-3").removeEvent();
+<button onclick="exeScript('id3-source2')">removeEvent</button>
+<code id="id3-source2">
+mojo("#id3-target-1").removeEvent();
 </code>
 </pre>
 
@@ -143,6 +143,7 @@ window.foo = function() {
 	log.info("事件: {}", this.event.type)
 	   .alert();
 }
+
 </script>
 
 </html>
