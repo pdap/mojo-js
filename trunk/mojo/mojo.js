@@ -10,7 +10,14 @@
 		document = window.document,
 		
 		mojo = window.mojo = function(selector, context) {
-			return new mo(selector, mojo.queryCss(selector, context));
+			switch(typeof selector) {
+				case "string":
+					return new mo(selector, mojo.queryCss(selector, context));
+				
+				case "object":
+				 	return new mo(selector, [selector]);	
+			}
+			
 		},
 		
 		/**
