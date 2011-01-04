@@ -57,6 +57,7 @@ code {
 .api-desc, .api-example {
 	padding: 2px 25px;
 	margin: 0;
+	overflow: hidden;
 }
 
 .api-desc ul li, .api-example ul li {
@@ -72,6 +73,17 @@ code {
 	padding: 10px;
 	background-color:#F8F8F8;
 	border: 1px dotted #CCCCCC;
+}
+
+.toggle {
+	font-size: 18px;
+	font-weight: bolder;
+	color: #356AA0;
+	cursor: pointer;
+}
+
+.hidden {
+	display: none;
 }
 
 .target {
