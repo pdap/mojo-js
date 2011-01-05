@@ -14,46 +14,102 @@
 			guid: 1,
 			
 			/**
-			 * Init event
+			 * Fire event
 			 * 
-			 * @param {String}   evtName     Event name
-			 * @param {String}   evtType     Event type
-			 * @param {Object}   evtVal      Event value object
-			 * @param {String}   initMethod  Event init method
+			 * @param  {HTMLElement} el       HTMLElement
+			 * @param  {String}      evtType  Event type
+			 * @param  {String}      initType Event init type
+			 * @return {Boolean} Event fire successfully or canceled 
 			 */
-			initEvent: function(evtName, evtType, evtVal, initMethod) {
+			fireEvent: function(el, evtType, evtVal, initType) {
 				var 
-					p, evt;
+					evt = {
+						canBubble: true,
+						cancelable: true,
+						view: window,
+						detail: 1,
+						screenX: 0,
+						screenY: 0,
+						clientX: 0,
+						clientY: 0,
+						ctrlKey: false,
+						altKey: false,
+						shiftKey: false,
+						metaKey: false,
+						button: 0,
+						relatedTarget: null,
+						bubbles: true,
+						viewArg: null,
+						ctrlKeyArg: false, 
+						altKeyArg: false, 
+						shiftKeyArg: false, 
+						metaKeyArg: false, 
+                        keyCodeArg: 0, 
+						charCodeArg: 0
+					}, p;
+				
+				if(evtVal) {
+					// override evt init value
+					for(p in evtVal) {
+						evt[p] = evtVal[p];
+					}
+				}
 				
 				// Create event object
 				if (document.createEvent) {
-					evt = document.createEvent(evtType || "HTMLEvents");
-					if (!initMethod) {
-						initMethod = "initEvent";
+					switch (initType || "MouseEvents") {
+						case "MouseEvents":
+							evt = document.createEvent("MouseEvents")
+							              .initMouseEvent(evtType, 
+												          evt.canBubble, 
+												          evt.cancelable, 
+												          evt.view, 
+												          evt.detail, 
+												          evt.screenX, 
+												          evt.screenY, 
+												          evt.clientX, 
+												          evt.clientY, 
+												          evt.ctrlKey, 
+												          evt.altKey, 
+												          evt.shiftKey, 
+												          evt.metaKey, 
+												          evt.button, 
+												          evt.relatedTarget);
+							break;
+						
+						case "HTMLEvents":
+							evt = document.createEvent("HTMLEvents")
+										  .initEvent(evtType, evt.bubbles, evt.cancelable);
+							break;
+						
+						case "UIEvents":
+							evt = document.createEvent("UIEvents")	
+										  .initUIEvent(evtType, evt.canBubble, evt.cancelable, evt.view, evt.detail);
+							break;
+							
+						case "KeyboardEvent":
+							evt = document.createEvent("KeyboardEvent")	
+										  .initKeyEvent(evtType, 
+										  				evt.bubbles, 
+														evt.cancelable, 
+														evt.viewArg, 
+                        								evt.ctrlKeyArg, 
+														evt.altKeyArg, 
+														evt.shiftKeyArg, 
+														evt.metaKeyArg, 
+                                                        evt.keyCodeArg, 
+														evt.charCodeArg);			  			  						  
 					}
-					evt[initMethod](evtName, evtVal.bubbles || true, evtVal.cancelable || false);
 					
 				} else if (document.createEventObject) {
-					evt = document.createEventObject();
-					for (p in evtVal) {
-						evt[p] = evtVal[p];
-					}
-				}				
-			},		
-			
-			/**
-			 * Fire event
-			 * 
-			 * @param {HTMLElement} el
-			 * @param {Object} evt      Event Object
-			 * @param {Object} evtName  Event name
-			 * @return {Boolean} Event fire successfully or canceled 
-			 */
-			fireEvent: function(el, evt, evtName) {
+					evt = document.createEventObject(evt);
+				}
+
+				// fire event
 				if(el.dispatchEvent) {
 					return el.dispatchEvent(evt);
 				} else if(el.fireEvent) {
-					return el.fireEvent("on" + evtName, evt);
+					return el.fireEvent("on" + evtType, evt);
 				}
 			},		
 			
@@ -61,14 +117,14 @@
 			 * Add event function
 			 * 
 			 * @param {HTMLElement} el
-			 * @param {String}      evtName  Event name
+			 * @param {String}      evtType  Event type
 			 * @param {Function}    fn		 Event function
 			 */
-			addEvent: function(el, evtName, fn) {
+			addEvent: function(el, evtType, fn) {
 				if(el.addEventListener) {
-					el.addEventListener(evtName, fn, false);
+					el.addEventListener(evtType, fn, false);
 				} else if(el.attachEvent) {
-					el.attachEvent("on" + evtName, fn);
+					el.attachEvent("on" + evtType, fn);
 				}
 			},		
 			
@@ -76,14 +132,14 @@
 			 * Remove event
 			 * 
 			 * @param {HTMLElement} el
-			 * @param {String}      evtName Event name
+			 * @param {String}      evtType Event type
 			 * @param {Function}    fn	    Event function
 			 */
-			removeEvent: function(el, evtName, fn) {
+			removeEvent: function(el, evtType, fn) {
 				if(el.removeEventListener) {
-					el.removeEventListener(evtName, fn, false);
+					el.removeEventListener(evtType, fn, false);
 				} else if(el.detachEvent) {
-					el.detachEvent("on" + evtName, fn);
+					el.detachEvent("on" + evtType, fn);
 				}
 			},
 			
@@ -160,6 +216,18 @@
 		};
 		
 		mojo.fn.extend({
+			
+			/**
+			 * Fire event
+			 * 
+			 * @param {String} evtType    Event type
+			 * @param {Object} evtVal     Event value
+			 * @param {String} initType   Event init type
+			 */
+			fireEvent: function(evtType, evtVal, initType) {
+				joEvent.fireEvent(this.el, evtType, evtVal, initType);	
+			},
+			
 			/**
 			 * Add element event
 			 * 
