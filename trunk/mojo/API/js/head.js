@@ -4,7 +4,7 @@ var headContent = [
 	'<script type="text/javascript" src="../../js/default.js"></script>',
 	
 	'<script type="text/javascript" src="../../../mojo.js"></script>',
-	'<script type="text/javascript" src="../../../moudles/queryCss.js"></script>',
+	'<script type="text/javascript" src="../../../moudles/query.js"></script>',
 	'<script type="text/javascript" src="../../../moudles/event.js"></script>'
 ];
 
