@@ -12,7 +12,7 @@
 		mojo = window.mojo = function(selector, context) {
 			switch(typeof selector) {
 				case "string":
-					return new mo(selector, mojo.queryCss(selector, context));
+					return new mo(selector, mojo.query(selector, context));
 				
 				case "object":
 				 	return new mo(selector, [selector]);	
