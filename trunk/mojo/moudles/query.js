@@ -740,7 +740,7 @@
 			 * @param  {Object} context
 			 * @return {Array}  Array of HTMLElements
 			 */
-			queryCss: function(selector, context) {
+			query: function(selector, context) {
 				return mojoQuery.get(selector, context);
 			}
 		});
