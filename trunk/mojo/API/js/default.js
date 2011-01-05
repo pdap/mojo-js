@@ -33,7 +33,7 @@ function exeScript(id) {
 }
 
 function toggleClick(self) {
-	var div = mojo.queryCss("+div", self)[0];
+	var div = mojo.query("+div", self)[0];
 	var sty = div.style; 
 
 	switch(sty.display) {
