@@ -23,6 +23,10 @@
 			 */
 			fireEvent: function(el, evtType, evtVal, initType) {
 				var 
+					evt, p, event;
+				
+				// Create event object
+				if (document.createEvent) {
 					evt = {
 						canBubble: true,
 						cancelable: true,
@@ -46,21 +50,19 @@
 						metaKeyArg: false, 
                         keyCodeArg: 0, 
 						charCodeArg: 0
-					}, p;
-				
-				if(evtVal) {
-					// override evt init value
-					for(p in evtVal) {
-						evt[p] = evtVal[p];
-					}
-				}
-				
-				// Create event object
-				if (document.createEvent) {
+					};
+					
+					if (evtVal) {
+						// override evt init value
+						for (p in evtVal) {
+							evt[p] = evtVal[p];
+						}
+					}					
+					
 					switch (initType || "MouseEvents") {
 						case "MouseEvents":
-							evt = document.createEvent("MouseEvents")
-							              .initMouseEvent(evtType, 
+							event = document.createEvent("MouseEvents");
+							event.initMouseEvent(evtType, 
 												          evt.canBubble, 
 												          evt.cancelable, 
 												          evt.view, 
@@ -78,18 +80,18 @@
 							break;
 						
 						case "HTMLEvents":
-							evt = document.createEvent("HTMLEvents")
-										  .initEvent(evtType, evt.bubbles, evt.cancelable);
+							event = document.createEvent("HTMLEvents");
+							event.initEvent(evtType, evt.bubbles, evt.cancelable);
 							break;
 						
 						case "UIEvents":
-							evt = document.createEvent("UIEvents")	
-										  .initUIEvent(evtType, evt.canBubble, evt.cancelable, evt.view, evt.detail);
+							event = document.createEvent("UIEvents");	
+							event.initUIEvent(evtType, evt.canBubble, evt.cancelable, evt.view, evt.detail);
 							break;
 							
 						case "KeyboardEvent":
-							evt = document.createEvent("KeyboardEvent")	
-										  .initKeyEvent(evtType, 
+							event = document.createEvent("KeyboardEvent");	
+							event.initKeyEvent(evtType, 
 										  				evt.bubbles, 
 														evt.cancelable, 
 														evt.viewArg, 
@@ -102,14 +104,20 @@
 					}
 					
 				} else if (document.createEventObject) {
-					evt = document.createEventObject(evt);
+					event = document.createEventObject();
+					if (evtVal) {
+						// override evt init value
+						for (p in evtVal) {
+							event[p] = evtVal;
+						}
+					}
 				}
 
 				// fire event
 				if(el.dispatchEvent) {
-					return el.dispatchEvent(evt);
+					return el.dispatchEvent(event);
 				} else if(el.fireEvent) {
-					return el.fireEvent("on" + evtType, evt);
+					return el.fireEvent("on" + evtType, event);
 				}
 			},		
 			
@@ -175,7 +183,7 @@
 					}
 				}
 				
-				if(!event.relatedTarget) {
+				if(event.relatedTarget === undefined) {
 					switch(event.type) {
 						case "mouseout":
 							event.relatedTarget = event.toElement;
@@ -193,7 +201,7 @@
 					}
 				}
 				
-				if(!event.target) {
+				if(event.target === undefined) {
 					event.target = event.srcElement;
 				}
 				
