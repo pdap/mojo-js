@@ -108,7 +108,7 @@
 					if (evtVal) {
 						// override evt init value
 						for (p in evtVal) {
-							event[p] = evtVal;
+							event[p] = evtVal[p];
 						}
 					}
 				}
