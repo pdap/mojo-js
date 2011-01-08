@@ -20,8 +20,8 @@
 			/**
 			 * Get HTMLElement array by selector and context
 			 * 
-			 * @param {String}                             selector  
-			 * @param {Undefined/String/HTMLElement/Array} context   
+			 * @param {String} selector  
+			 * @param {Undefined | String | HTMLElement | Array | NodeList} context   
 			 */
 			get: function(selector, context) {
 				var 
@@ -39,12 +39,12 @@
 						break;
 						
 					case "object":
-						// HTMLElement Array or NodeList
-						if (context.length) {
-							contexts = context;
-						} else {
+						if (context.nodeType) {
 							// HTMLElement
-							contexts = [context];
+							contexts = [context];							
+						} else {
+							// HTMLElement Array or NodeList
+                            contexts = context;
 						}
 				}				
 									 
@@ -141,7 +141,7 @@
 			},
 			
 			/**
-			 * split selector in different types
+			 * Split selector in different types
 			 * 
 			 * @param  {String} selector
 			 * @return {Array}  Array of different types rule
@@ -164,7 +164,8 @@
 				}
 				
 				if (pseudos = rules[5]) {
-					(pseudos  = pseudos.split(":")).shift();
+					// pseduo may start with ":" or "::"
+					(pseudos  = pseudos.split(/::|:/)).shift();
 					 // get pseudo rule array
 					 rules[5] = this.getPseudoRules(pseudos, this.pseuParams);
 				}				
@@ -314,7 +315,7 @@
 					name = attr[0];
 					
 					if (!(val = el.getAttribute(name))) {
-						if (!(val = el[name.replace("class", "className")])) {
+						if (!(val = el[{"class": "className"}[name] || name])) {
 							return false;
 						}
 					}
@@ -335,7 +336,6 @@
 			 * @param {String}      cls
 			 * @param {Array}       attrs
 			 * @param {Array}       pseudos
-			 * @param {Boolean}
 			 */
 			filterEl: function(el, tag, cls, attrs, pseudos){
 				if (tag !== "*" && el.nodeName.toLowerCase() !== tag) {
@@ -486,8 +486,7 @@
 						arr   = [],
 						len   = contexts.length,
 						i     = 0,
-						n, m,
-						nodes, el, pel;			
+						n, m, nodes, el, pel;			
 						
 					for(; i < len; i++) {
 						el  = contexts[i];
