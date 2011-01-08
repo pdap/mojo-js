@@ -166,7 +166,7 @@
 				if (pseudos = rules[5]) {
 					 // get pseudo rule array
 					 // pseduo may start with ":" or "::"
-					 rules[5] = this.getPseudoRules(pseudos.match(/[^:]/g), this.pseuParams);
+					 rules[5] = this.getPseudoRules(pseudos.match(/[^:]+/g), this.pseuParams);
 				}				
 				
 				return rules;	
