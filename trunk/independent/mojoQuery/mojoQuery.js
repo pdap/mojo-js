@@ -156,7 +156,7 @@
 				// rules[3]: class selecotr
 				// rules[4]: attribute selector
 				// rules[5]: pseudo selector  	
-				rules = /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?:\:.+[^:])*)/.exec(selector);
+				rules = /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.*[^:])*)/.exec(selector);
 				
 				if (attrs = rules[4]) {
 					// get attribute rule array
@@ -164,10 +164,9 @@
 				}
 				
 				if (pseudos = rules[5]) {
-					// pseduo may start with ":" or "::"
-					(pseudos  = pseudos.split(/::|:/)).shift();
 					 // get pseudo rule array
-					 rules[5] = this.getPseudoRules(pseudos, this.pseuParams);
+					 // pseduo may start with ":" or "::"
+					 rules[5] = this.getPseudoRules(pseudos.match(/[^:]/g), this.pseuParams);
 				}				
 				
 				return rules;	
