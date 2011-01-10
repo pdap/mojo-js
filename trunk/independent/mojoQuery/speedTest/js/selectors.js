@@ -81,6 +81,8 @@ window.pseuSelectors = [
 			
 'div:not(a,p)',
 
+':not(#title)',
+
 'div:not([class])',
 			
 'div:not(:not(.example))',
