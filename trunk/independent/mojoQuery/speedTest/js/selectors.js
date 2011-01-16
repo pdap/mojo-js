@@ -37,7 +37,7 @@ window.baseSelectors = [
 			
 'div.example, div.note', 
 
-'div.example.note',
+'.url.fn',
 
 '#title', 
 			
