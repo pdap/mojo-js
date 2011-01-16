@@ -100,6 +100,11 @@
 		    // Identifies HTMLElement whether matched in one query
 		    tagGuid: 1,			
 			
+			attrMap: {
+				"class": "className",
+				"for": "htmlFor"
+			},
+			
 		   /**
 		 	* Parse selector and get matched HTMLElement array
 		 	* 
@@ -319,7 +324,7 @@
 					name = attr[0];
 					
 					if (!(val = el.getAttribute(name))) {
-						if (!(val = el[{"class": "className"}[name] || name])) {
+						if (!(val = el[this.attrMap[name] || name])) {
 							return false;
 						}
 					}
@@ -413,7 +418,7 @@
 				if (clsName) {
 					cls = cls.split(".");
 					for (i = 1, len = cls.length; i < len; i++) {
-						if (clsName.indexOf(cls[i]) === -1) {
+						if (cls[i].indexOf(clsName) === -1) {
 							return false;
 						}
 					}
@@ -742,6 +747,31 @@
 				return !el.firstChild;
 			}				
 		};
+		
+		// browser support querySelectorAll
+//		if(document.querySelectorAll) {
+//			var 
+//				oldGet = mojoQuery.get;
+//			
+//			mojoQuery.get = function(selector, context) {
+//				var mix;
+//				
+//				switch(typeof context) {
+//					case "string":
+//						selector = context +　" " + selector;
+//						break;
+//					
+//					case "object":
+//						mix = [];
+//						if(context.nodeType) {
+//							
+//						} else {
+//							
+//						}	
+//				}
+//			};	
+//				
+//		}
 		
 		// make mojoQuery globel
 		window.mojoQuery = mojoQuery;
