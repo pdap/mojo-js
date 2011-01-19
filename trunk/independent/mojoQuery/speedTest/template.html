@@ -11,6 +11,8 @@
 	<script type="text/javascript">
 		var params = location.search.replace("?","").split(",");
 		
+		document.getElementsByClassName = null;
+		
 		if(params[0] !== "native") {
 			document.querySelectorAll = null;
 			document.writeln("<script type='text/javascript' src=" + params[0] + "></" + "script>");
