@@ -171,7 +171,7 @@
 					return [];
 				}
 				
-				matched = BaseRules[rule](contexts, rules[2] || "*");
+				matched = BaseRules[rule](contexts, rules[2] || "*", this);
 				
 				if(cls = rules[3]) {
 					matched = this.filterClass(matched, cls.replace(/\./g, ""));
@@ -339,7 +339,7 @@
 						pseudo = pseudoRules[n];
 						param  = pseudoRules[n + 1];
 						
-						if (!pseudo(el, param)) {
+						if (!pseudo(el, param, this)) {
 							break;
 						}
 					}
@@ -504,7 +504,7 @@
  			* @param  {String} tag        
 		  	* @return {Array}
  			*/			
-			" " : function(contexts, tag) {
+			" " : function(contexts, tag, joQuery) {
 				var 
 					guid  = joQuery.tagGuid++,
 					len   = contexts.length,
@@ -593,7 +593,7 @@
  			* @param  {String} tag        
 		  	* @return {Array}
  			*/					
-			"~" : function(contexts, tag) {
+			"~" : function(contexts, tag, joQuery) {
 				var 
 					guid  = joQuery.tagGuid++,
 					len   = contexts.length,
@@ -702,7 +702,7 @@
 				return true;		
 			},
 			
-			"nth-child": function(el, param) {
+			"nth-child": function(el, param, joQuery) {
 				var
 				    pel, index, node, i, data;
 				
@@ -729,7 +729,7 @@
 				return index === param[1] * 1;
 			},
 			
-			not: function(el, params) {
+			not: function(el, params, joQuery) {
 				var 
 					i   = 0,
 					len = params.length,
