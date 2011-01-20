@@ -35,7 +35,8 @@
 						break;
 						
 					case "string":
-						contexts = this.get(context, [document]);
+						selector = context + " " + selector; 
+						contexts = [document];
 						break;
 						
 					case "object":
@@ -85,7 +86,7 @@
 				if(j > 1) {
 					// if here, may hava duplicate HTMLElement
 					// remove duplicate
-					joQuery.makeDiff(results);
+					return joQuery.makeDiff(results);
 				}
 				
 				return results;
@@ -105,6 +106,43 @@
 				"for": "htmlFor"
 			},
 			
+			/**
+			 * Preprocessing selector
+			 * 
+			 * @param  {String} selector
+			 * @return {Array}  selector array
+			 * @return {Array}  Split selectors in array
+			 */
+			trim: function(selector){
+				var 
+					pseuParams = [],
+					attrParams = [];
+				
+				this.pseuParams = pseuParams;
+				this.attrParams = attrParams;
+				
+				selector = selector
+								// trim space
+								.replace(/^ +| +$/g, "")	
+						
+								// trim base rule space
+								.replace(/ +([ +>~]) +/g, "$1")	
+								
+								// remove attribute selector parameter and put in array
+								.replace(/[^\[]+(?=\])/g, function(match){
+									return attrParams.push(match) - 1;
+								});
+				
+				// remove pseudo selector parameter and put in array
+				while(selector.indexOf("(") !== -1) {
+					selector = selector.replace(/\([^()]+\)/g, function(match){
+						return pseuParams.push(match.substring(1, match.length - 1)) - 1;
+					});
+				}
+				
+				return selector.split(",");					
+			},				
+			
 		   /**
 		 	* Parse selector and get matched HTMLElement array
 		 	* 
@@ -115,14 +153,17 @@
 		 	*/
 			parse: function(selector, contexts, rule){
 				var 
-					arr, id, tag, cls, attrs, pseudos,
-					matched = [],
-					i, len;
+					matched, rules, id, tag, cls, attrs, pseudos;
 				
-				arr = this.getRules(selector);
+				// rules[1]: id selector 
+				// rules[2]: tag selector
+				// rules[3]: class selecotr
+				// rules[4]: attribute selector
+				// rules[5]: pseudo selector  									
+				rules = /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.+)*)/.exec(selector);;
 				
 				// id selector
-				if (id = arr[1]) { 
+				if (id = rules[1]) { 
 					if (id = document.getElementById(id.substring(1))) {
 						return [id];
 					}
@@ -130,58 +171,56 @@
 					return [];
 				}
 				
-				tag     = arr[2];
-				cls     = arr[3];
-				attrs   = arr[4];
-				pseudos = arr[5];
+				matched = BaseRules[rule](contexts, rules[2] || "*");
 				
-				arr = BaseRules[rule](contexts, tag);
-				
-				for(i = 0, len = arr.length; i < len; i++) {
-					id = arr[i];
-					if(this.filterEl(id, tag, cls, attrs, pseudos)) {
-						matched.push(id);
-					}
+				if(cls = rules[3]) {
+					matched = this.filterClass(matched, cls.replace(/\./g, ""));
 				}
 				
-				return matched;
+				if(attrs = rules[4]) {
+					matched = this.filterAttr(matched, this.getAttrRules(attrs.match(/[^\[]+(?=\])/g), this.attrParams));
+				}
+				
+				if(pseudos = rules[5]) {
+					matched = this.filterPseudo(matched, this.getPseudoRules(pseudos.match(/[^:]+/g), this.pseuParams));
+				}
+				
+				return matched; 
 			},
 			
 			/**
-			 * Split selector in different types
+			 * Parse selector and  get complex selector
 			 * 
 			 * @param  {String} selector
-			 * @return {Array}  Array of different types rule
+			 * @return {Array}  rules
 			 */
-			getRules: function(selector) {
+			getRules : function(selector) {
 				var	
 					rules, attrs, pseudos; 
-				
 				
 				// rules[1]: id selector 
 				// rules[2]: tag selector
 				// rules[3]: class selecotr
 				// rules[4]: attribute selector
 				// rules[5]: pseudo selector  	
-				rules = /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.*[^:])*)/.exec(selector);
+				rules = /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.+)*)/.exec(selector);
 				
 				if(!rules[2]) {
 					rules[2] = "*";
 				}
 				
+				rules[3] = rules[3].replace(/\./g, "");
+				
 				if (attrs = rules[4]) {
-					// get attribute rule array
 					rules[4] = this.getAttrRules(attrs.match(/[^\[]+(?=\])/g), this.attrParams);
 				}
 				
 				if (pseudos = rules[5]) {
-					 // get pseudo rule array
-					 // pseduo may start with ":" or "::"
-					 rules[5] = this.getPseudoRules(pseudos.match(/[^:]+/g), this.pseuParams);
+					 rules[5] = this.getPseudoRules(pseudos.match(/[^:]+/g), this.pseuParams)
 				}				
 				
 				return rules;	
-			},
+			},			
 			
 			/**
 			 * Get attribute rule 
@@ -225,14 +264,14 @@
 					arr  = [],
 					i    = 0,
 					len  = pseudos.length,
-					guid = joQuery.tagGuid++,
-					name, param, arr;
+					guid = this.tagGuid++,
+					name, param, rules;
 				
 				for(; i < len; i++) {
 					name = pseudos[i];
-					if(/(\d+)/.test(name)) {
+					if(/\d+/.test(name)) {
 						// pesudo parameter
-						param = pseuParams[RegExp.$1];
+						param = pseuParams[RegExp["$&"]];
 						name  = RegExp["$`"];
 						
 						switch(name) {
@@ -240,6 +279,7 @@
 								if (/(-?\d*)n([+-]?\d*)/.test(param === "odd" && "2n+1" ||
 															  param === "even" && "2n"  || param)) {
 									param = RegExp.$1;
+									
 									param === "" ? 
 									param = 1 : 
 									param === "-" ? 
@@ -260,13 +300,11 @@
 								
 								break;
 								
-						 	case "not" :
-							    // ":not" selector may has "," in parameter
-								// example: ":not(div,p)"
-								arr   = param.split(",");
+						 	case "not":
+								rules = param.split(",");
 								param = [];
-								while(arr.length) {
-									param.push(this.getRules(arr.pop()));
+								while(rules.length) {
+									param.push(this.getRules(rules.pop()));
 								}
 						}
 
@@ -281,183 +319,161 @@
 			},
 			
 			/**
-			 * Whether HTMLElement matched pseudo rule
+			 * Filter HTMLElement matched pseudo rule
 			 * 
-			 * @param  {HTMLElement} el
-			 * @param  {Array}       pseudos
+			 * @param  {Array}   els
+			 * @param  {Array}   pseudoRules
 			 * @return {Boolean}
 			 */
-			isPseudo: function(el, pseudos){
+			filterPseudo: function(els, pseudoRules){
 				var 
-					len = pseudos.length, 
+					len = els.length, 
 					i   = 0, 
-					pseudo, param;
+					m   = pseudoRules.length,
+					matched = [],
+					n, el, pseudo, param;
 				
-				for (; i < len; i += 2) {
-					pseudo = pseudos[i];
-					param  = pseudos[i + 1];
-					
-					if(!pseudo(el, param)) {
-						return false;
-					}
-				}
-				
-				return true;
-			},	
-			
-			/**
-			 * Whether HTMLElement matched attribute rule
-			 * 
-			 * @param  {HTMLElement} el
-			 * @param  {Array}       attrs
-			 * @return {Boolean}
-			 */
-			isAttr: function(el, attrs){
-				var 
-					len = attrs.length, 
-					i = 0, 
-					attr, rule, val, name;
-				
-				for (; i < len; i += 2) {
-					rule = attrs[i];
-					attr = attrs[i + 1];
-					name = attr[0];
-					
-					if (!(val = el.getAttribute(name))) {
-						if (!(val = el[this.attrMap[name] || name])) {
-							return false;
+				for(; i < len; i++) {
+					el = els[i];
+					for (n = 0; n < m; n += 2) {
+						pseudo = pseudoRules[n];
+						param  = pseudoRules[n + 1];
+						
+						if (!pseudo(el, param)) {
+							break;
 						}
 					}
 					
-					if (!rule(val + "", attr[1])) {
-						return false;
+					if(n === m) {
+						matched.push(el);
 					}
 				}
-				
-				return true;
+
+				return matched;
 			},	
 			
 			/**
-			 * Filter HTMLElement by all type selector
+			 * Filter HTMLElement matched attribute rule
 			 * 
-			 * @param {HTMLElement} el
-			 * @param {String}      tag
-			 * @param {String}      cls
-			 * @param {Array}       attrs
-			 * @param {Array}       pseudos
+			 * @param  {Array}  els
+			 * @param  {Array}  attrRules
+			 * @return {Boolean}
 			 */
-			filterEl: function(el, tag, cls, attrs, pseudos){
+			filterAttr: function(els, attrRules){
+				var 
+					len = els.length,
+					i = 0, 
+					m = attrRules.length,
+					matched = [],
+					n, el, attr, rule, val, name;
+				
+				for(; i < len; i++) {
+					el = els[i];
+					for (n = 0; n < m; n += 2) {
+						rule = attrRules[n];
+						attr = attrRules[n + 1];
+						name = attr[0];
+						
+						if (!(val = el.getAttribute(name))) {
+							if (!(val = el[this.attrMap[name] || name])) {
+								break;
+							}
+						}
+						
+						if (!rule(val + "", attr[1])) {
+							break;
+						}
+					}
+					
+					if(n === m) {
+						matched.push(el);
+					}
+				}
+
+				return matched;
+			},	
+			
+		   	/**
+		 	 * Filter HTMLElement matched class attribute
+		 	 * 
+		 	 * @param  {Array}   els
+		 	 * @param  {String}  cls
+		 	 * @return {Boolean}
+		 	 */ 
+		    filterClass: function(els, cls){
+				var 
+					i = 0,
+					len = els.length,
+					matched = [],
+					clsName, rex;
+				
+				for(; i < len; i++) {
+					el = els[i];
+					if(clsName = el.className) {
+						rex = new RegExp(clsName.replace(" ", "|"), "g");
+						if(!cls.replace(rex, "")) {
+							matched.push(el);
+						}
+					}
+				}
+
+				return matched;
+			},										
+			
+			/**
+			 * Filter HTMLElement 
+			 * 
+			 * @param  {HTMLElement} el
+			 * @param  {String}      tag
+			 * @param  {String}      cls
+			 * @param  {Array}       attrRules
+			 * @param  {Array}       pseudoRules
+			 * @return {Boolean}
+			 */
+			filterEl: function(el, tag, cls, attrRules, pseudoRules) {
 				if (tag !== "*" && el.nodeName.toLowerCase() !== tag) {
 					return false;
 				}
 				
-				if (cls && !this.hasClass(el, cls)) {
+				if (cls && !this.filterClass([el], cls).length) {
 					return false;
 				}
 				
-				if (attrs && !this.isAttr(el, attrs)) {
+				if (attrRules && !this.filterAttr([el], attrRules).length) {
 					return false;
 				}
 				
-				if (pseudos && !this.isPseudo(el, pseudos)) {
+				if (pseudoRules && !this.filterPseudo([el], pseudoRules).length) {
 					return false;
-				}
+				}				
 				
 				return true;
-			},				
-			
-			/**
-			 * Preprocessing selector
-			 * 
-			 * @param  {String} selector
-			 * @return {Array}  selector array
-			 * @return {Array}  Array of regular selectors
-			 */
-			trim: function(selector){
-				var 
-					pseuParams = [],
-					attrParams = [];
-				
-				this.pseuParams = pseuParams;
-				this.attrParams = attrParams;
-				
-				selector = selector
-								// trim space
-								.replace(/^ +| +$/g, "")	
-						
-								// trim base rule space
-								.replace(/ +([ +>~]) +/g, "$1")	
-								
-								// remove attribute selector parameter and put in array
-								.replace(/[^\[]+(?=\])/g, function(match){
-									return attrParams.push(match) - 1;
-								});
-				
-				// remove pseudo selector parameter and put in array
-				while(selector.indexOf("(") !== -1) {
-					selector = selector.replace(/\([^()]+\)/g, function(match){
-						return pseuParams.push(match.substring(1, match.length - 1)) - 1;
-					});
-				}
-				
-				return selector.split(",");					
-			},			
-			
-		   	/**
-		 	 * Whether HTMLElement matched class attribute
-		 	 * 
-		 	 * @param  {HTMLElement} el
-		 	 * @param  {String}      cls
-		 	 * @return {Boolean}
-		 	 */ 
-		    hasClass: function(el, cls){
-				var 
-					clsName = el.className, 
-					i, len;
-				
-				if (clsName) {
-					cls = cls.split(".");
-					for (i = 1, len = cls.length; i < len; i++) {
-						if (cls[i].indexOf(clsName) === -1) {
-							return false;
-						}
-					}
-					
-					return true;
-				}
-				
-				return false;
-			},										
+			},
 
 		   /**
 		 	* Reomve duplicate HTMLElement
 		 	* 
 		 	* @param  {Array} arr
+		 	* @return {Array}
 		 	*/
 			makeDiff : function(arr){
 				var 
 					guid  = this.tagGuid++,
 					len   = arr.length, 
-					temp  = [], 
+					diff  = [], 
 					i     = 0, 
-					j     = 0, 
 					el, data;
 				
 				for (; i < len; i++) {
 					el = arr[i];
 					data = this.getElData(el);
 					if (data.tagGuid !== guid) {
-						temp[j++] = el;
+						diff.push(el);
 						data.tagGuid = guid;
 					}
 				}
 				
-				arr.length = len = 0;
-				
-				for (i = 0; i < j; i++) {
-					el = temp[i];
-					arr[len++] = el;
-				}
+				return diff;
 			},
 			
 			/**
@@ -477,18 +493,17 @@
 				}
 
 				return this.dataCache[id] || (this.dataCache[id] = {});
-			}										
+			}			
 		}, 
 		
-		// base rules
 		BaseRules = {
-	       /**
+		   /**
  			* Get matched HTMLElement
  			*
  			* @param  {Array}  contexts   
- 			* @param  {String} tag
+ 			* @param  {String} tag        
 		  	* @return {Array}
- 			*/				
+ 			*/			
 			" " : function(contexts, tag) {
 				var 
 					guid  = joQuery.tagGuid++,
@@ -518,10 +533,11 @@
 		   /**
  			* Get matched HTMLElement
  			*
- 			* @param  {Array} contexts   
+ 			* @param  {Array}  contexts   
+ 			* @param  {String} tag        
 		  	* @return {Array}
- 			*/				
-			">" : function(contexts) {
+ 			*/					
+			">" : function(contexts, tag) {
 				var 
 					arr = [], 
 					len = contexts.length,
@@ -531,22 +547,25 @@
 					el = contexts[i].firstChild;	
 					while(el) {
 						if(el.nodeType === 1) {
-							arr.push(el);
+							if(el.nodeName.toLowerCase() === tag || tag === "*") {
+								arr.push(el);
+							}
 						}
 						el = el.nextSibling;							
 					}												
 				}
 				
 				return arr;					
-			},
+			},	
 			
 		   /**
  			* Get matched HTMLElement
  			*
- 			* @param  {Array} contexts    
+ 			* @param  {Array}  contexts   
+ 			* @param  {String} tag        
 		  	* @return {Array}
  			*/					
-			"+" : function(contexts) {
+			"+" : function(contexts, tag) {
 				var 
 					arr = [], 
 					len = contexts.length,
@@ -556,24 +575,27 @@
 					el = contexts[i];
 					while(el = el.nextSibling) {
 						if(el.nodeType === 1) {
-							arr.push(el);
+							if(el.nodeName.toLowerCase() === tag || tag === "*") {
+								arr.push(el);
+							}
 							break;
 						}
 					}
 				}
 				
 				return arr;											
-			},
+			},					
 			
 		   /**
  			* Get matched HTMLElement
  			*
- 			* @param  {Array} contexts    
+ 			* @param  {Array}  contexts   
+ 			* @param  {String} tag        
 		  	* @return {Array}
  			*/					
-			"~" : function(contexts) {
+			"~" : function(contexts, tag) {
 				var 
-					guid = joQuery.tagGuid++,
+					guid  = joQuery.tagGuid++,
 					len   = contexts.length,
 					arr   = [], 
 					i     = 0,
@@ -590,13 +612,15 @@
 					
 					while(el = el.nextSibling) {
 						if (el.nodeType === 1) {
-							arr.push(el);
+							if(el.nodeName.toLowerCase() === tag || tag === "*") {
+								arr.push(el);
+							}
 						}
 					}
 				}
 						
 				return arr;											
-			}
+			}			
 		},
 		
 		// attribute parameter relative
@@ -682,18 +706,17 @@
 				var
 				    pel, index, node, i, data;
 				
-				if ((data = joQuery.getElData(pel = el.parentNode)).tagGuid !== param[0]) {
+				if ((pel = el.parentNode) && (data = joQuery.getElData(pel)).tagGuid !== param[0]) { 
 					node = pel.firstChild;
 					i = 1;
 					while (node) {
 						if (node.nodeType === 1) {
-							// nodeIndex is index number of parent's child nodes
 							joQuery.getElData(node).nodeIndex = i++;
 						}
 						node = node.nextSibling
 					}
 					data.tagGuid = param[0];
-				} 
+				}
 					
 				index = joQuery.getElData(el).nodeIndex;
 				
@@ -723,7 +746,7 @@
 						return false;
 					}
 					
-					if(joQuery.filterEl(el, param[2], param[3] ,param[4], param[5])) {
+					if(joQuery.filterEl(el, param[2], param[3], param[4], param[5])) {
 						return false;
 					}
 				}	
