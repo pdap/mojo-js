@@ -10,20 +10,49 @@
 	var 
 		document = window.document,
 		
-		mojoQuery = {
+		mojoQuery = function(selector, context) {
+			return joQuery.query(selector, context);
+		},
+		
+		// inner assist object
+		joQuery = {
+			// HTMLElement data cache
+			dataCache: {},
 			
-			info: {
-				author: "scott.cgi",
-				version: "1.2.1"
+		    // Identifies HTMLElement whether matched in one query
+		    tagGuid: 1,			
+			
+			attrMap: {
+				"class": "className",
+				"for": "htmlFor"
+			},
+			
+			rex: {
+				B_RULE: /[ +>~]/g,
+				NB_RULE: /[^ +>~]+/g,
+				TRIM_LR: /^ +| +$/g,
+				TRIM_ALL: / +([ +>~]) +/g,
+				PSEU_PARAM: /\([^()]+\)/g,
+				ATTR_PARAM: /[^\[]+(?=\])/g,
+				ATTR: /=|!=|\^=|\$=|\*=|~=|\|=/,
+				CLS: /\./g,
+				PSEU: /[^:]+/g,
+				NUM: /\d+/,
+				NTH: /(-?\d*)n([+-]?\d*)/,
+				RULES: /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.+)*)/
+			},
+			
+			error: function(selector, reason) {
+				throw "Syntax error, unrecognized expression: " + selector + ", reason: " + reason;
 			},
 			
 			/**
 			 * Get HTMLElement array by selector and context
 			 * 
 			 * @param {String} selector  
-			 * @param {Undefined | String | HTMLElement | Array | NodeList} context   
-			 */
-			get: function(selector, context) {
+			 * @param {Undefined | String | HTMLElement | Array[HTMLElement] | NodeList} context   
+			 */			
+			query: function(selector, context) {
 				var 
 					results = [], 
 					selectors, contexts, rules,
@@ -49,7 +78,7 @@
 						}
 				}				
 									 
-				selectors = joQuery.trim(selector);
+				selectors = this.trim(selector);
 				
 				context = contexts;
 							
@@ -59,10 +88,10 @@
 					
 					// base rule array 
 					// add defalut rule " "
-					rules = (" " + selector).match(/[ +>~]/g);
+					rules = (" " + selector).match(this.rex.B_RULE);
 										
 					// selector of corresponding base rules 
-					selector = selector.match(/[^ +>~]+/g);
+					selector = selector.match(this.rex.NB_RULE);
 					
 					if(rules.length > selector.length) {
 						// if here, means selector begin with base rule
@@ -76,7 +105,7 @@
 					
 					// parse selector by each rule
 					for (n = 0, m = rules.length; n < m; n++) { 
-						contexts = joQuery.parse(selector[n], contexts, rules[n]);
+						contexts = this.parse(selector[n], contexts, rules[n]);
 					}
 				
 					// concat results of comma delimited selector
@@ -86,24 +115,10 @@
 				if(j > 1) {
 					// if here, may hava duplicate HTMLElement
 					// remove duplicate
-					return joQuery.makeDiff(results);
+					return this.makeDiff(results);
 				}
 				
-				return results;
-			}
-		},
-		
-		// inner assist object
-		joQuery = {
-			// HTMLElement data cache
-			dataCache: {},
-			
-		    // Identifies HTMLElement whether matched in one query
-		    tagGuid: 1,			
-			
-			attrMap: {
-				"class": "className",
-				"for": "htmlFor"
+				return results;				
 			},
 			
 			/**
@@ -122,20 +137,20 @@
 				this.attrParams = attrParams;
 				
 				selector = selector
-								// trim space
-								.replace(/^ +| +$/g, "")	
+								// trim left and right space
+								.replace(this.rex.TRIM_LR, "")	
 						
 								// trim base rule space
-								.replace(/ +([ +>~]) +/g, "$1")	
+								.replace(this.rex.TRIM_ALL, "$1")	
 								
 								// remove attribute selector parameter and put in array
-								.replace(/[^\[]+(?=\])/g, function(match){
+								.replace(this.rex.ATTR_PARAM, function(match){
 									return attrParams.push(match) - 1;
 								});
 				
 				// remove pseudo selector parameter and put in array
 				while(selector.indexOf("(") !== -1) {
-					selector = selector.replace(/\([^()]+\)/g, function(match){
+					selector = selector.replace(this.rex.PSEU_PARAM, function(match){
 						return pseuParams.push(match.substring(1, match.length - 1)) - 1;
 					});
 				}
@@ -160,7 +175,7 @@
 				// rules[3]: class selecotr
 				// rules[4]: attribute selector
 				// rules[5]: pseudo selector  									
-				rules = /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.+)*)/.exec(selector);;
+				rules = this.rex.RULES.exec(selector);;
 				
 				// id selector
 				if (id = rules[1]) { 
@@ -174,15 +189,15 @@
 				matched = BaseRules[rule](contexts, rules[2] || "*", this);
 				
 				if(cls = rules[3]) {
-					matched = this.filterClass(matched, cls.replace(/\./g, ""));
+					matched = this.filterClass(matched, cls.replace(this.rex.CLS, ""));
 				}
 				
 				if(attrs = rules[4]) {
-					matched = this.filterAttr(matched, this.getAttrRules(attrs.match(/[^\[]+(?=\])/g), this.attrParams));
+					matched = this.filterAttr(matched, this.getAttrRules(attrs.match(this.rex.ATTR_PARAM), this.attrParams));
 				}
 				
 				if(pseudos = rules[5]) {
-					matched = this.filterPseudo(matched, this.getPseudoRules(pseudos.match(/[^:]+/g), this.pseuParams));
+					matched = this.filterPseudo(matched, this.getPseudoRules(pseudos.match(this.rex.PSEU), this.pseuParams));
 				}
 				
 				return matched; 
@@ -203,20 +218,20 @@
 				// rules[3]: class selecotr
 				// rules[4]: attribute selector
 				// rules[5]: pseudo selector  	
-				rules = /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.+)*)/.exec(selector);
+				rules = this.rex.RULES.exec(selector);
 				
 				if(!rules[2]) {
 					rules[2] = "*";
 				}
 				
-				rules[3] = rules[3].replace(/\./g, "");
+				rules[3] = rules[3].replace(this.rex.CLS, "");
 				
 				if (attrs = rules[4]) {
-					rules[4] = this.getAttrRules(attrs.match(/[^\[]+(?=\])/g), this.attrParams);
+					rules[4] = this.getAttrRules(attrs.match(this.rex.ATTR_PARAM), this.attrParams);
 				}
 				
 				if (pseudos = rules[5]) {
-					 rules[5] = this.getPseudoRules(pseudos.match(/[^:]+/g), this.pseuParams)
+					 rules[5] = this.getPseudoRules(pseudos.match(this.rex.PSEU), this.pseuParams)
 				}				
 				
 				return rules;	
@@ -233,7 +248,7 @@
 				var
 					arr = [],
 					len = attrs.length,
-					rex = /=|!=|\^=|\$=|\*=|~=|\|=/,
+					rex = this.rex.ATTR,
 					i   = 0,
 					attr, rule;
 				
@@ -269,14 +284,14 @@
 				
 				for(; i < len; i++) {
 					name = pseudos[i];
-					if(/\d+/.test(name)) {
+					if(this.rex.NUM.test(name)) {
 						// pesudo parameter
 						param = pseuParams[RegExp["$&"]];
 						name  = RegExp["$`"];
 						
 						switch(name) {
 							case "nth-child":
-								if (/(-?\d*)n([+-]?\d*)/.test(param === "odd" && "2n+1" ||
+								if (this.rex.NTH.test(param === "odd" && "2n+1" ||
 															  param === "even" && "2n"  || param)) {
 									param = RegExp.$1;
 									
@@ -623,7 +638,6 @@
 			}			
 		},
 		
-		// attribute parameter relative
 		Attrs = {
 			" " : function() { 
 				return true;
@@ -658,7 +672,6 @@
 			}
 		},
 		
-		// pseudo parameter
 		Pseudos = {
 			"first-child": function(el) {
 				while (el = el.previousSibling)	 {
@@ -796,6 +809,12 @@
 //				
 //		}
 		
+		
+		mojoQuery.info = {
+			author: "scott.cgi",
+			version: "1.2.1"
+		};
 		// make mojoQuery globel
 		window.mojoQuery = mojoQuery;
+		
 })(window);	
