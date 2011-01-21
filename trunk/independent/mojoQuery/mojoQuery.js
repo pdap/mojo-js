@@ -16,9 +16,6 @@
 		
 		// inner assist object
 		joQuery = {
-			// HTMLElement data cache
-			dataCache: {},
-			
 		    // Identifies HTMLElement whether matched in one query
 		    tagGuid: 1,			
 			
@@ -292,7 +289,7 @@
 						switch(name) {
 							case "nth-child":
 								if (this.rex.NTH.test(param === "odd" && "2n+1" ||
-															  param === "even" && "2n"  || param)) {
+													  param === "even" && "2n"  || param)) {
 									param = RegExp.$1;
 									
 									param === "" ? 
@@ -499,15 +496,23 @@
 			 */
 			getElData: function(el) {
 				var 
-					id = el.mojoGuid;
+					data = el.mojoExpando;
 					
-				if(!id) {
-					id = window.mojoGuid || (window.mojoGuid = 1);
-					el.mojoGuid = id;
-					window.mojoGuid++;
+				if(!data) {
+					data = el.mojoExpando = {
+						mQuery: {
+							tagGuid: 1
+						}
+					};
 				}
-
-				return this.dataCache[id] || (this.dataCache[id] = {});
+				
+				if(!data.mQuery) {
+					data.mQuery = {
+						tagGuid: 1
+					};
+				}
+				
+				return data;
 			}			
 		}, 
 		
@@ -783,32 +788,6 @@
 				return !el.firstChild;
 			}				
 		};
-		
-		// browser support querySelectorAll
-//		if(document.querySelectorAll) {
-//			var 
-//				oldGet = mojoQuery.get;
-//			
-//			mojoQuery.get = function(selector, context) {
-//				var mix;
-//				
-//				switch(typeof context) {
-//					case "string":
-//						selector = context +　" " + selector;
-//						break;
-//					
-//					case "object":
-//						mix = [];
-//						if(context.nodeType) {
-//							
-//						} else {
-//							
-//						}	
-//				}
-//			};	
-//				
-//		}
-		
 		
 		mojoQuery.info = {
 			author: "scott.cgi",
