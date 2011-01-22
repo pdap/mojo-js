@@ -39,8 +39,8 @@
 				RULES: /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.+)*)/
 			},
 			
-			error: function(selector, reason) {
-				throw "Syntax error, unrecognized expression: " + selector + ", reason: " + reason;
+			error: function(selector) {
+				throw "Syntax error, unsupported expression: " + selector;
 			},
 			
 			/**
@@ -183,7 +183,7 @@
 					return [];
 				}
 				
-				matched = BaseRules[rule](contexts, rules[2] || "*", this);
+				matched = (BaseRules[rule] || this.error(rule))(contexts, rules[2] || "*", this);
 				
 				if(cls = rules[3]) {
 					matched = this.filterClass(matched, cls.replace(this.rex.CLS, ""));
@@ -323,7 +323,7 @@
 					}
 					
 					// parse pseudo selector funtion
-					arr.push(Pseudos[name]);
+					arr.push(Pseudos[name] || this.error(name));
 					arr.push(param);
 				}	
 
@@ -386,7 +386,7 @@
 						attr = attrRules[n + 1];
 						name = attr[0];
 						
-						if (!(val = el.getAttribute(name))) {
+						if (!(val = (name === "href" ? el.getAttribute(name, 2) : el.getAttribute(name)))) {
 							if (!(val = el[this.attrMap[name] || name])) {
 								break;
 							}
