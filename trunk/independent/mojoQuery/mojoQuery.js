@@ -38,11 +38,7 @@
 				NTH: /(-?\d*)n([+-]?\d*)/,
 				RULES: /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.+)*)/
 			},
-			
-			error: function(selector) {
-				throw "Syntax error, unsupported expression: " + selector;
-			},
-			
+
 			/**
 			 * Get HTMLElement array by selector and context
 			 * 
@@ -183,7 +179,7 @@
 					return [];
 				}
 				
-				matched = (BaseRules[rule] || this.error(rule))(contexts, rules[2] || "*", this);
+				matched = BaseRules[rule](contexts, rules[2] || "*", this);
 				
 				if(cls = rules[3]) {
 					matched = this.filterClass(matched, cls.replace(this.rex.CLS, ""));
@@ -323,7 +319,7 @@
 					}
 					
 					// parse pseudo selector funtion
-					arr.push(Pseudos[name] || this.error(name));
+					arr.push(Pseudos[name]);
 					arr.push(param);
 				}	
 
