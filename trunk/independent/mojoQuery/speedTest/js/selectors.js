@@ -1,17 +1,15 @@
 
-window.baseSelectors = [
+window.relativeSelectors = [
 
 'html',
 
 'body', 
 
-'body div',
+'body *',
 		
 'div', 
 			
 'div p', 
-			
-'div a',
 			
 'div div',
 			
@@ -29,8 +27,20 @@ window.baseSelectors = [
 
 'div, div, div',
 		
-'.note', 
+'#title', 
 			
+'div#title',
+
+'> p',
+
+'+ div'
+
+];
+
+window.clsSelector = [
+
+'.note',
+
 'div.example', 
 			
 'ul .tocline2', 
@@ -39,9 +49,7 @@ window.baseSelectors = [
 
 '.url.fn',
 
-'#title', 
-			
-'div #title', 
+'.fn.url', 
 			
 'ul.toc li.tocline2', 
 			
@@ -63,7 +71,7 @@ window.attrSelectors = [
 			
 'div[class*=e]', 
 			
-'div[class|=dialog]', 
+'a[name|=gen]', 
 			
 'div[class!=made_up]',
 			
@@ -79,15 +87,9 @@ window.pseuSelectors = [
 			
 'div:not(:nth-child(odd))',
 			
-'div:not(a,p)',
-
 ':not(#title)',
 
 'div:not([class])',
-			
-'div:not(:not(.example))',
-			
-'div:not(:not(:not(.example)))',
 			
 ':empty',
 			
@@ -95,7 +97,7 @@ window.pseuSelectors = [
 			
 'p:nth-child(n-4)',
 			
-//'p:nth-child(-2n+2)', this is cause some browser crush (not mojoQuery make)
+'p:nth-child(-2n+2)', 
 			
 'p:nth-child(-n+6)',
 			
@@ -121,27 +123,37 @@ window.pseuSelectors = [
 
 ];
 
-window.contextSelectors = [
+window.crazySelector = [
 
-['div', 'div']
+'div + div, div ~ div, div',
+
+'div ~ div, div',
+
+'div + *',
+
+'div > div, div + div, div ~ div',
+
+'div:not(:not(.example))',
+			
+'div:not(:not(:not(.example)))',
+
+'div:not(a, p)',
+
+'*',
+
+'* div *',
+
+'* > * + * ~ *',
+
+'*.fn.url, .example.example'
 
 ];
 
 window.customSelectors = [
 
-"body :empty",
-"div:not(.example)",
-":not(div)",
-":not(p,a)",
-":not(:not(p))",
-":nth-child(-1+n)",
-"div + div, div ~ div, div",
-"div ~ div, div",
-"div>div,div>div,div~div"
-
 ];
 
-window.allSelectors = baseSelectors.concat(attrSelectors).concat(pseuSelectors).concat(contextSelectors);
+window.allSelectors = relativeSelectors.concat(clsSelector).concat(attrSelectors).concat(pseuSelectors).concat(contextSelectors);
 
 // default loaded selectors
-window.selectors = baseSelectors;
+window.selectors = relativeSelectors;
