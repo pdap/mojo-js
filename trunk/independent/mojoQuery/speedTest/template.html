@@ -9,12 +9,10 @@
 	<meta http-equiv="expires" content="0" />
 	
 	<script type="text/javascript">
-		var params = location.search.replace("?","").split(",");
-		
-		document.getElementsByClassName = null;
+		var params = location.search.replace("?", "").split(",");
 		
 		if(params[0] !== "native") {
-			document.querySelectorAll = null;
+		    document.querySelectorAll = null;	
 			document.writeln("<script type='text/javascript' src=" + params[0] + "></" + "script>");
 		} else {
 			// native method querySelectorAll test page
@@ -43,9 +41,9 @@
 			try {
 				var start = new Date().getTime();
 				var elements = eval(queryMethod);
-				for(var i = 0; i < 9; i++) {
-					eval(queryMethod);
-				}
+//				for(var i = 0; i < 9; i++) {
+//					eval(queryMethod);
+//				}
 				var end = new Date().getTime() - start;
 				
 				return {'time': Math.round(end), 'found': get_length(elements)};
