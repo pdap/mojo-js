@@ -25,8 +25,8 @@
 			},
 			
 			rex: {
-				B_RULE: /[ +>~]/g,
-				NB_RULE: /[^ +>~]+/g,
+				R_RULE: /[ +>~]/g,
+				NR_RULE: /[^ +>~]+/g,
 				TRIM_LR: /^ +| +$/g,
 				TRIM_ALL: / +([ +>~]) +/g,
 				PSEU_PARAM: /\([^()]+\)/g,
@@ -71,32 +71,32 @@
 						}
 				}				
 									 
-				selectors = this.trim(selector);
+				selectors = this.format(selector);
 				
 				context = contexts;
 							
-				// split selector by comma
+				// each selector split by comma
 				for (i = 0, j = selectors.length; i < j; i++) {
 					selector = selectors[i];
 					
-					// base rule array 
+					// relative rule array 
 					// add defalut rule " "
-					rules = (" " + selector).match(this.rex.B_RULE);
+					rules = (" " + selector).match(this.rex.R_RULE);
 										
-					// selector of corresponding base rules 
-					selector = selector.match(this.rex.NB_RULE);
+					// selector on both sides of relative rule  
+					selector = selector.match(this.rex.NR_RULE);
 					
 					if(rules.length > selector.length) {
-						// if here, means selector begin with base rule
+						// if here, means selector begin with relative rule
 						// example: "+div" or ">div" 
 						// remove defalut rule " "
 						rules.shift();
 					}
 					
-					// each iteration parse selector, use before parse result as this context
+					// each iteration, use before parse result as this context
 					contexts = context;
 					
-					// parse selector by each rule
+					// parse selector by each relative rule
 					for (n = 0, m = rules.length; n < m; n++) { 
 						contexts = this.parse(selector[n], contexts, rules[n]);
 					}
@@ -115,13 +115,12 @@
 			},
 			
 			/**
-			 * Preprocessing selector
+			 * Format selector
 			 * 
-			 * @param  {String} selector
-			 * @return {Array}  selector array
-			 * @return {Array}  Split selectors in array
+			 * @param  {String} selector  
+			 * @return {Array}  Selector split by comma
 			 */
-			trim: function(selector){
+			format: function(selector){
 				var 
 					pseuParams = [],
 					attrParams = [];
@@ -133,7 +132,7 @@
 								// trim left and right space
 								.replace(this.rex.TRIM_LR, "")	
 						
-								// trim base rule space
+								// trim relative rule both sides space
 								.replace(this.rex.TRIM_ALL, "$1")	
 								
 								// remove attribute selector parameter and put in array
@@ -179,7 +178,7 @@
 					return [];
 				}
 				
-				matched = BaseRules[rule](contexts, rules[2] || "*", this);
+				matched = Relative[rule](contexts, rules[2] || "*", this);
 				
 				if(cls = rules[3]) {
 					matched = this.filterClass(matched, cls.replace(this.rex.CLS, ""));
@@ -200,7 +199,7 @@
 			 * Parse selector and  get complex selector
 			 * 
 			 * @param  {String} selector
-			 * @return {Array}  rules
+			 * @return {Array}  Parsed selector rules array
 			 */
 			getRules : function(selector) {
 				var	
@@ -220,10 +219,12 @@
 				rules[3] = rules[3].replace(this.rex.CLS, "");
 				
 				if (attrs = rules[4]) {
+					// attritubte rules parse function array
 					rules[4] = this.getAttrRules(attrs.match(this.rex.ATTR_PARAM), this.attrParams);
 				}
 				
 				if (pseudos = rules[5]) {
+					// pseudo rules parse function array
 					 rules[5] = this.getPseudoRules(pseudos.match(this.rex.PSEU), this.pseuParams)
 				}				
 				
@@ -231,11 +232,11 @@
 			},			
 			
 			/**
-			 * Get attribute rule 
+			 * Get attribute rules 
 			 * 
 			 * @param  {Array} attrs       
 			 * @param  {Array} attrParams  
-			 * @return {Array} Array of attribute rule    
+			 * @return {Array} Array of attribute rules    
 			 */
 			getAttrRules: function(attrs, attrParams) {
 				var
@@ -261,11 +262,11 @@
 			},		
 			
 			/**
-			 * Get pesudo rule array
+			 * Get pesudo rules
 			 * 
 			 * @param  {Array} pseudos
 			 * @param  {Array} pseuParams
-			 * @return {Array} Array of pseudo rule
+			 * @return {Array} Array of pseudo rules
 			 */
 			getPseudoRules: function(pseudos, pseuParams) {
 				var 
@@ -280,6 +281,7 @@
 					if(this.rex.NUM.test(name)) {
 						// pesudo parameter
 						param = pseuParams[RegExp["$&"]];
+						// pesudo name
 						name  = RegExp["$`"];
 						
 						switch(name) {
@@ -294,7 +296,11 @@
 									param = -1 : 
 									param = param * 1;
 									
-									param = [guid, "n", param, RegExp.$2 * 1];
+									// param[0]: Identifies HTMLElement
+									// param[1]: whether "nth-child()" has "n" parameter
+									// param[2]: parameter before "n"
+									// param[3]: paramter after "n"
+									param = [guid, true, param, RegExp.$2 * 1];
 									
 									// optimize "nth:child(n)" 
 									// this pseudo means all child nodes fit
@@ -303,12 +309,15 @@
 										continue;
 									}
 								} else {
-									param = [guid, param];
+									// param[2]: number in like "nth-child(5)"
+									param = [guid, false, param * 1];
 								}						
 								
 								break;
 								
 						 	case "not":
+							    // ":not()" may has "," in parameter
+								// like: ":not(a, p)"
 								rules = param.split(",");
 								param = [];
 								while(rules.length) {
@@ -327,11 +336,11 @@
 			},
 			
 			/**
-			 * Filter HTMLElement matched pseudo rule
+			 * Filter HTMLElement whether matched pseudo rules
 			 * 
-			 * @param  {Array}   els
-			 * @param  {Array}   pseudoRules
-			 * @return {Boolean}
+			 * @param  {Array} els
+			 * @param  {Array} pseudoRules
+			 * @return {Array} Matched HTMLElement array   
 			 */
 			filterPseudo: function(els, pseudoRules){
 				var 
@@ -361,11 +370,11 @@
 			},	
 			
 			/**
-			 * Filter HTMLElement matched attribute rule
+			 * Filter HTMLElement whether matched attribute rule
 			 * 
 			 * @param  {Array}  els
 			 * @param  {Array}  attrRules
-			 * @return {Boolean}
+			 * @return {Array}  Matched HTMLElement array
 			 */
 			filterAttr: function(els, attrRules){
 				var 
@@ -402,11 +411,11 @@
 			},	
 			
 		   	/**
-		 	 * Filter HTMLElement matched class attribute
+		 	 * Filter HTMLElement whether matched class attribute
 		 	 * 
 		 	 * @param  {Array}   els
 		 	 * @param  {String}  cls
-		 	 * @return {Boolean}
+		 	 * @return {Array}   Matched HTMLElement array
 		 	 */ 
 		    filterClass: function(els, cls){
 				var 
@@ -436,7 +445,7 @@
 			 * @param  {String}      cls
 			 * @param  {Array}       attrRules
 			 * @param  {Array}       pseudoRules
-			 * @return {Boolean}
+			 * @return {Boolean}     Whether HTMLElement matched
 			 */
 			filterEl: function(el, tag, cls, attrRules, pseudoRules) {
 				if (tag !== "*" && el.nodeName.toLowerCase() !== tag) {
@@ -462,7 +471,7 @@
 		 	* Reomve duplicate HTMLElement
 		 	* 
 		 	* @param  {Array} arr
-		 	* @return {Array}
+		 	* @return {Array} Unique HTMLElement array
 		 	*/
 			makeDiff : function(arr){
 				var 
@@ -488,7 +497,7 @@
 			 * Get the data bind in HTMLElement
 			 * 
 			 * @param  {HTMLElement} el
-			 * @return {Object}
+			 * @return {Object}      Data bind in HTMLElement
 			 */
 			getElData: function(el) {
 				var 
@@ -497,14 +506,14 @@
 				if(!data) {
 					data = el.mojoExpando = {
 						mQuery: {
-							tagGuid: 1
+							tagGuid: 0
 						}
 					};
 				}
 				
-				if(!data.mQuery) {
-					data.mQuery = {
-						tagGuid: 1
+				if(!(data = data.mQuery)) {
+					data = {
+						tagGuid: 0
 					};
 				}
 				
@@ -512,13 +521,13 @@
 			}			
 		}, 
 		
-		BaseRules = {
+		Relative = {
 		   /**
  			* Get matched HTMLElement
  			*
  			* @param  {Array}  contexts   
  			* @param  {String} tag        
-		  	* @return {Array}
+		  	* @return {Array}  Matched HTMLElement array
  			*/			
 			" " : function(contexts, tag, joQuery) {
 				var 
@@ -551,7 +560,7 @@
  			*
  			* @param  {Array}  contexts   
  			* @param  {String} tag        
-		  	* @return {Array}
+		  	* @return {Array}  Matched HTMLElement array
  			*/					
 			">" : function(contexts, tag) {
 				var 
@@ -579,7 +588,7 @@
  			*
  			* @param  {Array}  contexts   
  			* @param  {String} tag        
-		  	* @return {Array}
+		  	* @return {Array}  Matched HTMLElement array
  			*/					
 			"+" : function(contexts, tag) {
 				var 
@@ -607,7 +616,7 @@
  			*
  			* @param  {Array}  contexts   
  			* @param  {String} tag        
-		  	* @return {Array}
+		  	* @return {Array}  Matched HTMLElement array
  			*/					
 			"~" : function(contexts, tag, joQuery) {
 				var 
@@ -734,13 +743,13 @@
 					
 				index = joQuery.getElData(el).nodeIndex;
 				
-				if (param[1] === "n") {
+				if (param[1]) {
 					index = index - param[3];
 					param = param[2];
 					return index * param >= 0 && index % param === 0;
 				}
 				
-				return index === param[1] * 1;
+				return index === param[2];
 			},
 			
 			not: function(el, params, joQuery) {
@@ -769,15 +778,15 @@
 			},
 			
 			enabled: function(el) {
-				return !el.disabled;
+				return el.disabled === false;
 			},
 			
 			disabled: function(el) {
-				return el.disabled;
+				return el.disabled === true;
 			},
 			
 			checked: function(el) {
-				return el.checked;
+				return el.checked === true;
 			},
 			
 			empty: function(el){
@@ -787,7 +796,7 @@
 		
 		mojoQuery.info = {
 			author: "scott.cgi",
-			version: "1.2.1"
+			version: "1.3.0"
 		};
 		// make mojoQuery globel
 		window.mojoQuery = mojoQuery;
