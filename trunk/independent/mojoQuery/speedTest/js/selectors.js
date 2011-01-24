@@ -153,7 +153,7 @@ window.customSelectors = [
 
 ];
 
-window.allSelectors = relativeSelectors.concat(clsSelector).concat(attrSelectors).concat(pseuSelectors).concat(contextSelectors);
+window.allSelectors = relativeSelectors.concat(clsSelector).concat(attrSelectors).concat(pseuSelectors);
 
 // default loaded selectors
 window.selectors = relativeSelectors;
