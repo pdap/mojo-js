@@ -5,21 +5,23 @@ window.relativeSelectors = [
 
 'body', 
 
-'body *',
-		
 'div', 
 			
 'div p', 
 			
 'div div',
+
+'div ~ p', 
 			
 'div ~ div ~ p',
 			
 'div > p', 
+
+'div > p > p',
 			
 'div + p', 
-			
-'div ~ p', 
+
+'div + div + p',
 			
 'div p a', 
 
@@ -30,10 +32,6 @@ window.relativeSelectors = [
 '#title', 
 			
 'div#title',
-
-'> p',
-
-'+ div'
 
 ];
 
@@ -59,7 +57,7 @@ window.clsSelectors = [
 
 window.attrSelectors = [
 
-'a[href][lang][class]', 
+'a[href][name][class]', 
 			
 'div[class]', 
 			
