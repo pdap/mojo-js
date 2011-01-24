@@ -37,7 +37,7 @@ window.relativeSelectors = [
 
 ];
 
-window.clsSelector = [
+window.clsSelectors = [
 
 '.note',
 
@@ -123,7 +123,7 @@ window.pseuSelectors = [
 
 ];
 
-window.crazySelector = [
+window.crazySelectors = [
 
 'div + div, div ~ div, div',
 
@@ -153,7 +153,7 @@ window.customSelectors = [
 
 ];
 
-window.allSelectors = relativeSelectors.concat(clsSelector).concat(attrSelectors).concat(pseuSelectors);
+window.allSelectors = relativeSelectors.concat(clsSelectors).concat(attrSelectors).concat(pseuSelectors);
 
 // default loaded selectors
 window.selectors = relativeSelectors;

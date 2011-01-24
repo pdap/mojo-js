@@ -21,15 +21,6 @@
 	<!-- header -->
 	<h1><span>SlickSpeed</span></h1>
 	<h2>speed/validity selectors test for frameworks.</h2>
-	<p>
-		Every framework runs in his own iFrame, thus no conflicts can happen. 
-	</p>
-	<p>
-		Tests are run selector by selector, with an interval to prevent the browser from freeezing.
-	</p>
-	<p>
-		Tests are run in a neutral environment, no library or framework is included in the main javascript test, to avoid favoritism.
-	</p>
 	
 	<div id="controls">
 		<a class="stop" href="#">stop tests</a>
@@ -41,33 +32,22 @@
 <div style="margin:10px">
 	<p>
 		Selector Type : 
-		<select onchange="selectorTypeChange(this)">
-			<option selected="selected" value="baseSelectors">base selector</option>
+		<select onchange="selectorTypeChange(this)" id="selectorType">
+			<option selected="selected" value="relativeSelectors">relative selector</option>
+			<option value="clsSelectors">class selector</option>
 			<option value="attrSelectors">attribute selector</option>
 			<option value="pseuSelectors">pseudo selector</option>
-			<option value="contextSelectors">context selector</option>
 			<option value="allSelectors">all selector</option>
+			<option value="crazySelectors">crazy selector</option>
 			<option value="customSelectors">custom selector</option>
 		</select>
+		<input type="button" value="clear" onclick="clearSelector()" />
 	</p>
 	<p id="customSelector" style="display:none;">
 		Custom Selector :
 		<input type="text" value="" id="customText" style="width: 400px"/>
-		<input type="button" value="add" onclick="(function(){
-			var selector = document.getElementById('customText').value;
-			var custom = window.customSelectors;
-			custom.push(selector); 
-			custom.cacheSelectors = null;
-			fillTableData(custom);
-			window.selectors = custom;
-			window.onload();
-		})()" />
-		<input type="button" value="clear" onclick="(function(){
-			var custom = window.customSelectors;
-			custom.length = 0;
-			custom.cacheSelectors = null;
-			alert('clear over');
-		})()" />
+		<input type="button" value="add" onclick="addSelector()" />
+		<input type="button" value="removeAll" onclick="removeAll()" />
 	</p>
 </div>
 		
@@ -88,15 +68,23 @@
 	</tr>
 
 	<tr>
-		<td class="good"></td>
-		<td class="bad"></td>
-		<td class="exception"></td>
-		<td class="mismatch"></td>
+		<td class="good">&nbsp;</td>
+		<td class="bad">&nbsp;</td>
+		<td class="exception">&nbsp;</td>
+		<td class="mismatch">&nbsp;</td>
 	</tr>
 
 </table>
 
 <div id="footer">
+	
+	<h3>Notes:</h3>
+    <ul>
+    	<li> Every framework runs in his own iFrame, thus no conflicts can happen. </li>
+    	<li> Tests are run selector by selector, with an interval to prevent the browser from freeezing.</li>
+    	<li> Tests are run in a neutral environment, no library or framework is included in the main javascript test, to avoid favoritism.</li>
+    </ul>
+	<br/>	
 	<p class="footer">
 		copyright &copy; 2007 <a href="http://mootools.net">http://mootools.net</a>
 		| MIT License | <a href="http://slickspeed.googlecode.com/svn/trunk">Download from googlecode (PHP)</a>
@@ -177,6 +165,30 @@
 			}
 			tableDiv.innerHTML = table_thead_tbody + selectorArr.cacheSelectors + tbody_tfoot_table;			
 		}
+		
+		// add selector
+		function addSelector() {
+			var selector = document.getElementById('customText').value;
+			var custom = window.customSelectors;
+			custom.push(selector); 
+			custom.cacheSelectors = null;
+			fillTableData(custom);
+			window.selectors = custom;
+			window.onload();			
+		}
+		
+		// remove all test selector
+		function removeAll() {
+			var custom = window.customSelectors;
+			custom.length = 0;
+			custom.cacheSelectors = null;
+			fillTableData([]);			
+		}
+		
+		// clear selector
+		function clearSelector() {
+			document.getElementById("selectorType").onchange();
+		}
 	</script>
-
+	
 </html>
