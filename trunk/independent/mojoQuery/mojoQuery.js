@@ -658,15 +658,15 @@
 			},
 			
 			"!=" : function(attrVal, inputVal) {
-				return attrVal.indexOf(inputVal) === -1;
+				return attrVal !== inputVal;
 			},
 			
 			"^=" : function(attrVal, inputVal) {
-				return new RegExp("^" + inputVal).test(attrVal);
+				return attrVal.indexOf(inputVal) === 0;
 			},
 			
 			"$=" : function(attrVal, inputVal) {
-				return new RegExp(inputVal + "$").test(attrVal)
+				return attrVal.substring(attrVal.length - inputVal.length) === inputVal;
 			},
 			
 			"*=" : function(attrVal, inputVal) {
@@ -678,7 +678,7 @@
 			},
 			
 			"|=" : function(attrVal, inputVal) {
-				return new RegExp("^" + inputVal + "-?.*").test(attrVal);
+				return attrVal === inputVal || attrVal.substring(0, inputVal.length + 1) === inputVal + "-";
 			}
 		},
 		
