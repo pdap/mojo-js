@@ -31,7 +31,7 @@ window.relativeSelectors = [
 		
 '#title', 
 			
-'div#title',
+'div#title'
 
 ];
 
