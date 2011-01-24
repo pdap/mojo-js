@@ -17,7 +17,7 @@
 	</head>
 	
 	<body>
-		<div id="div1">
+		<div id="div1"  class="fn ul">
 		<p>1</p>
 		<p>2</p>
 		<p>3</p>
@@ -50,24 +50,63 @@
 		<p>14</p>
 		<p>15</p>
 		</div>		
+		
+		<button onclick="test()">Test</button>
+		
+		<a id="testa" href="/" class="class"></a>
 	</body>
 	
 	<script type="text/javascript">
-		var both = ":nth-child(3n):nth-child(2n)";
-		
-		var selector = "#div1 " + both;
-		
-		var arr = document.querySelectorAll(selector);
-		for(var i = 0, len = arr.length; i < len; i++) {
-			arr[i].style.backgroundColor = 'blue';
-		}
-		
-		var selector = "#div2 " + both;
-		
-		var arr = mojoQuery.get(selector);
-		for(var i = 0, len = arr.length; i < len; i++) {
-			arr[i].style.backgroundColor = 'red';
-		}
+	document.querySelectorAll = null;
+	
+function test() {
+//		var both = "p";
+//		
+//		var selector = "" + both;
+//		
+//		var arr = document.querySelectorAll(selector);
+//		for(var i = 0, len = arr.length; i < len; i++) {
+//			arr[i].style.backgroundColor = 'blue';
+//		}
+//		
+//		alert(len)
+//		
+//		var selector = "" + both;
+//		
+//		var arr = mojoQuery.get(selector);
+//		for(var i = 0, len = arr.length; i < len; i++) {
+//			arr[i].style.backgroundColor = 'red';
+//		}
+//		
+//		alert(len)
 
+//mojoQuery("p:nth-child(2n):nth-child(2n)")
+
+}
+		
+//var rules = /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.+)*)/g.exec("div.cls1.cls2[a]:a:cc");	
+//alert(rules[1])
+//alert(rules[2])
+//alert(rules[3])
+//alert(rules[4])
+//alert(rules[5])
+
+
+
+/*
+		try{
+			document.querySelectorAll(":not(*)");
+		}catch (e) {
+			alert(e)
+		}
+*/
+
+		
+/*
+		var arr = /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.*[^:])*)/.exec(":d::a:b::c")
+		
+		alert(arr[5].match(/[^:]/g))
+*/		
+	
 	</script>
 </html>
