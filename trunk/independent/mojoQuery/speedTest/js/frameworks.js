@@ -21,8 +21,8 @@ window.frameworks = [
 //["Elements", "frameworks/Elements.js", "Elements.query"],
 
 //["jSelector", "frameworks/jSelector.js", "$"],
-//
-//["peppy0.12", "frameworks/peppy.js", "peppy.query"],
+
+["peppy0.12", "frameworks/peppy.js", "peppy.query"],
 
 //["MooTools-1.2.4", "http://ajax.googleapis.com/ajax/libs/mootools/1.2.4/mootools-yui-compressed.js", "$$"],
 
