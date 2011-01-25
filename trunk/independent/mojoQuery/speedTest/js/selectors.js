@@ -87,7 +87,7 @@ window.pseuSelectors = [
 			
 ':not(#title)',
 
-'div:not([class])',
+':not([class])',
 			
 ':empty',
 			
