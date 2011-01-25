@@ -28,7 +28,7 @@
 				R_RULE: /[ +>~]/g,
 				NR_RULE: /[^ +>~]+/g,
 				TRIM_LR: /^ +| +$/g,
-				TRIM_ALL: / +([ +>~]) +/g,
+				TRIM_ALL: / *([ +>~,]) */g,
 				PSEU_PARAM: /\([^()]+\)/g,
 				ATTR_PARAM: /[^\[]+(?=\])/g,
 				ATTR: /=|!=|\^=|\$=|\*=|~=|\|=/,
@@ -85,13 +85,6 @@
 										
 					// selector on both sides of relative rule  
 					selector = selector.match(this.rex.NR_RULE);
-					
-					if(rules.length > selector.length) {
-						// if here, means selector begin with relative rule
-						// example: "+div" or ">div" 
-						// remove defalut rule " "
-						rules.shift();
-					}
 					
 					// each iteration, use before parse result as this context
 					contexts = context;
