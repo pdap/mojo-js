@@ -267,62 +267,21 @@
 					i    = 0,
 					len  = pseudos.length,
 					guid = this.tagGuid++,
-					name, param, rules;
+					name, param;
 				
 				for(; i < len; i++) {
 					name = pseudos[i];
-					if(this.rex.NUM.test(name)) {
+					// pesudo with parameter
+					if (this.rex.NUM.test(name)) {
 						// pesudo parameter
 						param = pseuParams[RegExp["$&"]];
-						// pesudo name
-						name  = RegExp["$`"];
+						// ParamPseudos's attribute object
+						name = ParamPseudos[RegExp["$`"]];
 						
-						switch(name) {
-							case "nth-child":
-								if (this.rex.NTH.test(param === "odd" && "2n+1" ||
-													  param === "even" && "2n"  || param)) {
-									param = RegExp.$1;
-									
-									param === "" ? 
-									param = 1 : 
-									param === "-" ? 
-									param = -1 : 
-									param = param * 1;
-									
-									// param[0]: Identifies HTMLElement
-									// param[1]: whether "nth-child()" has "n" parameter
-									// param[2]: parameter before "n"
-									// param[3]: paramter after "n"
-									param = [guid, true, param, RegExp.$2 * 1];
-									
-									// optimize "nth:child(n)" 
-									// this pseudo means all child nodes fit
-									// so no need execute this pseudo filter
-									if (param[2] === 1 && param[3] === 0) {
-										continue;
-									}
-								} else {
-									// param[2]: number in like "nth-child(5)"
-									param = [guid, false, param * 1];
-								}						
-								
-								break;
-								
-						 	case "not":
-							    // ":not()" may has "," in parameter
-								// like: ":not(a, p)"
-								rules = param.split(",");
-								param = [];
-								while(rules.length) {
-									param.push(this.getRules(rules.pop()));
-								}
-						}
-
+						arr = arr.concat([true, name.fn, name.getParam(this, param, guid)]);
+					} else {
+						arr = arr.concat([false, Pseudos[name], null]);
 					}
-					
-					// parse pseudo selector funtion
-					arr.push(Pseudos[name]);
-					arr.push(param);
 				}	
 
 				return arr;
@@ -341,16 +300,22 @@
 					i   = 0, 
 					m   = pseudoRules.length,
 					matched = [],
-					n, el, pseudo, param;
+					n, el, pseudo, hasParam;
 				
 				for(; i < len; i++) {
 					el = els[i];
-					for (n = 0; n < m; n += 2) {
-						pseudo = pseudoRules[n];
-						param  = pseudoRules[n + 1];
+					for (n = 0; n < m; n += 3) {
+						hasParam = pseudoRules[n];
+						pseudo   = pseudoRules[n + 1];
 						
-						if (!pseudo(el, param, this)) {
-							break;
+						if (hasParam) {
+							if (!pseudo(el, pseudoRules[n + 2], this)) {
+								break;
+							}
+						} else {
+							if(!pseudo(el)) {
+								break;
+							}	
 						}
 					}
 					
@@ -675,6 +640,105 @@
 			}
 		},
 		
+		ParamPseudos = {
+			"nth-child": {
+				getParam: function(joQuery, param, guid) {
+					if (joQuery.rex.NTH.test(param === "odd" && "2n+1" ||
+										     param === "even" && "2n"  || param)) {
+						param = RegExp.$1;
+						
+						param === "" ? 
+						param = 1 : 
+						param === "-" ? 
+						param = -1 : 
+						param = param * 1;
+						
+						// param[0]: Identifies HTMLElement
+						// param[1]: whether "nth-child()" has "n" parameter
+						// param[2]: parameter before "n"
+						// param[3]: paramter after "n"
+						param = [guid, true, param, RegExp.$2 * 1];
+						
+						// optimize "nth:child(n)" 
+						// this pseudo means all child nodes fit
+						// so no need execute this pseudo filter
+						//if (param[2] === 1 && param[3] === 0) {
+						//	return;
+						//}
+					} else {
+						// param[2]: number in like "nth-child(5)"
+						param = [guid, false, param * 1];
+					}		
+					
+					return param;				
+				},
+				fn: function(el, param, joQuery) {
+					var
+					    pel, index, node, i, data;
+					
+					if ((pel = el.parentNode) && (data = joQuery.getElData(pel)).tagGuid !== param[0]) { 
+						node = pel.firstChild;
+						i = 1;
+						while (node) {
+							if (node.nodeType === 1) {
+								joQuery.getElData(node).nodeIndex = i++;
+							}
+							node = node.nextSibling
+						}
+						data.tagGuid = param[0];
+					}
+						
+					index = joQuery.getElData(el).nodeIndex;
+					
+					if (param[1]) {
+						index = index - param[3];
+						param = param[2];
+						return index * param >= 0 && index % param === 0;
+					}
+					
+					return index === param[2];					
+				}
+			},
+			
+			not: {
+				getParam: function(joQuery, param) {
+				    // ":not()" may has "," in parameter
+					// like: ":not(a, p)"
+					var rules = param.split(",");
+					param = [];
+					while(rules.length) {
+						param.push(joQuery.getRules(rules.pop()));
+					}			
+					
+					return param;		
+				},
+				fn: function(el, param, joQuery) {
+					var 
+						i   = 0,
+						len = params.length,
+						param;
+						
+					for(; i < len; i++) {
+						param = params[i];
+						
+						if(param[1]) {
+							if("#" + el.id !== param[1]) {
+								continue;
+							}
+							
+							return false;
+						}
+						
+						if(joQuery.filterEl(el, param[2], param[3], param[4], param[5])) {
+							return false;
+						}
+					}	
+					
+					return true;					
+				}
+			}
+		},
+		
 		Pseudos = {
 			"first-child": function(el) {
 				while (el = el.previousSibling)	 {
@@ -718,58 +782,6 @@
 				return true;		
 			},
 			
-			"nth-child": function(el, param, joQuery) {
-				var
-				    pel, index, node, i, data;
-				
-				if ((pel = el.parentNode) && (data = joQuery.getElData(pel)).tagGuid !== param[0]) { 
-					node = pel.firstChild;
-					i = 1;
-					while (node) {
-						if (node.nodeType === 1) {
-							joQuery.getElData(node).nodeIndex = i++;
-						}
-						node = node.nextSibling
-					}
-					data.tagGuid = param[0];
-				}
-					
-				index = joQuery.getElData(el).nodeIndex;
-				
-				if (param[1]) {
-					index = index - param[3];
-					param = param[2];
-					return index * param >= 0 && index % param === 0;
-				}
-				
-				return index === param[2];
-			},
-			
-			not: function(el, params, joQuery) {
-				var 
-					i   = 0,
-					len = params.length,
-					param;
-					
-				for(; i < len; i++) {
-					param = params[i];
-					
-					if(param[1]) {
-						if("#" + el.id !== param[1]) {
-							continue;
-						}
-						
-						return false;
-					}
-					
-					if(joQuery.filterEl(el, param[2], param[3], param[4], param[5])) {
-						return false;
-					}
-				}	
-				
-				return true;	
-			},
-			
 			enabled: function(el) {
 				return el.disabled === false;
 			},
@@ -786,6 +798,113 @@
 				return !el.firstChild;
 			}				
 		};
+		
+		if(document.querySelectorAll) {
+			try {
+				// test browser has capable of
+                // converting a NodeList to an array using builtin methods
+				Array.prototype.slice.call(document.documentElement.childNodes, 0);
+				joQuery.slice = Array.prototype.slice;
+				joQuery.makeArray = function(nodeList) {
+					return this.slice.call(nodeList, 0);
+				};
+			} catch(e) {
+				joQuery.makeArray = function(nodeList) {
+					var 
+						results = [],
+						i       = 0,
+						len     = nodeList.length;
+					
+					for(; i < len; i++) {
+						results.push(nodeList[i]);
+					}	
+					
+					return results;
+				}
+			}
+			
+			joQuery.rex.UNSUPPORT = function(pseudo) {
+				var 
+					rexStr = ["(?:\[.+!=.+\])"],
+					p;
+				
+				for(p in pseudo) {
+					try {
+						switch(p) {
+							case "nth-child":
+								
+						}
+					} catch(e) {
+						
+					}
+				}
+				
+				return new RegExp(rexStr.join("|"), g);	
+			}.call(joQuery, pseudo);
+			
+			/**
+			 * Build selector by HTMLElement array context
+			 * 
+			 * @param {String} selector
+			 * @param {Array}  contexts
+			 * @param {Array}  cache
+			 */
+			joQuery.buildSelector = function(selector, contexts, cache) {
+				var 
+					i = 0,
+					len = contexts.length,
+					results = [], el, id;
+				
+				for(; i < len; i++) {
+					el = contexts[i];
+					if(el === document) {
+						results.push(selector);
+					} else {
+						if (!(id = el.id)) {
+							id = "_id_" + this.tagGuid++;
+							el.id = id;
+							cache.push(el);
+						}
+						
+						results.push("#" + id + " " + selector);
+					}
+				}	
+				
+				return results.join(",");
+			};
+			
+			/**
+			 * Rewrite query method using builtin method "querySelectorAll"
+			 */
+			joQuery.query = function(selector, context) {
+				var 
+					cache = [], i, len, params;
+				
+				switch (typeof context) {
+					case "string":
+						selector = context + " " + selector; 
+						break;
+						
+					case "object":
+						selector = this.buildSelector(selector, context.nodeType ? [context] : context, cache);
+				}
+				
+				try {
+					return this.makeArray(document.querySelectorAll(selector));
+				} catch(e) {
+					params = [];
+					selector.replace(this.rex.UNSUPPORT, function(matched) {
+						
+					});
+					
+				} finally {
+					for(i = 0, len = cache.length; i < len; i++) {
+						cache[i].removeAttribute("id");
+					}
+				}
+				
+			};
+		}
 		
 		mojoQuery.info = {
 			author: "scott.cgi",
