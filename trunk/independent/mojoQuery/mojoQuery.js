@@ -300,15 +300,14 @@
 					i   = 0, 
 					m   = pseudoRules.length,
 					matched = [],
-					n, el, pseudo, hasParam;
+					n, el, pseudo;
 				
 				for(; i < len; i++) {
 					el = els[i];
 					for (n = 0; n < m; n += 3) {
-						hasParam = pseudoRules[n];
 						pseudo   = pseudoRules[n + 1];
 						
-						if (hasParam) {
+						if (pseudoRules[n]) {
 							if (!pseudo(el, pseudoRules[n + 2], this)) {
 								break;
 							}
