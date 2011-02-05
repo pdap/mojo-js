@@ -712,7 +712,7 @@
 					
 					return param;		
 				},
-				fn: function(el, param, joQuery) {
+				fn: function(el, params, joQuery) {
 					var 
 						i   = 0,
 						len = params.length,
