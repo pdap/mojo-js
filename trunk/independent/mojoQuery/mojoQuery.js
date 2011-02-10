@@ -129,14 +129,14 @@
 								.replace(this.rex.TRIM_ALL, "$1")	
 								
 								// remove attribute selector parameter and put in array
-								.replace(this.rex.ATTR_PARAM, function(match){
-									return attrParams.push(match) - 1;
+								.replace(this.rex.ATTR_PARAM, function(matched){
+									return attrParams.push(matched) - 1;
 								});
 				
 				// remove pseudo selector parameter and put in array
 				while(selector.indexOf("(") !== -1) {
-					selector = selector.replace(this.rex.PSEU_PARAM, function(match){
-						return pseuParams.push(match.substring(1, match.length - 1)) - 1;
+					selector = selector.replace(this.rex.PSEU_PARAM, function(matched){
+						return pseuParams.push(matched.substring(1, matched.length - 1)) - 1;
 					});
 				}
 				
@@ -246,9 +246,7 @@
 					// attribute key-value
 					attr = attr.split(rex);					
 					
-					// attribute parse function
-					arr.push(Attrs[rule]);
-					arr.push(attr);					
+					arr.push(Attrs[rule], attr);
 				}	
 				
 				return arr;
@@ -278,9 +276,9 @@
 						// ParamPseudos's attribute object
 						name = ParamPseudos[RegExp["$`"]];
 						
-						arr = arr.concat([true, name.fn, name.getParam(this, param, guid)]);
+						arr.push(true, name.fn, name.getParam(this, param, guid));
 					} else {
-						arr = arr.concat([false, Pseudos[name], null]);
+						arr.push(false, Pseudos[name], null);
 					}
 				}	
 
@@ -614,7 +612,7 @@
 				return attrVal === inputVal;
 			},
 			
-			"!=" : function(attrVal, inputVal) {
+			"!=" : function(attrVal, inputVal) { 
 				return attrVal !== inputVal;
 			},
 			
@@ -822,24 +820,26 @@
 				}
 			}
 			
-			joQuery.rex.UNSUPPORT = function(pseudo) {
+			joQuery.rex.UNSUPPORTED = function() {
 				var 
-					rexStr = ["(?:\[.+!=.+\])"],
+					rexStr = ["\\[[^\\]]+!=[^\\]]+\\]"],
 					p;
 				
-				for(p in pseudo) {
+				for(p in Pseudos) {
+					p = ":" + p;
 					try {
-						switch(p) {
-							case "nth-child":
-								
-						}
+						document.querySelectorAll(p);
 					} catch(e) {
-						
+						rexStr.push(p);
 					}
 				}
 				
-				return new RegExp(rexStr.join("|"), g);	
-			}.call(joQuery, pseudo);
+				for(p in ParamPseudos) {
+					
+				}
+				
+				return new RegExp(rexStr.join("|"), "g");	
+			}.call(joQuery);
 			
 			/**
 			 * Build selector by HTMLElement array context
@@ -873,11 +873,54 @@
 			};
 			
 			/**
+			 * 
+			 * @param {Object} selector
+			 * @param {Object} els
+			 */
+			joQuery.filterEls = function(selector, els) { 
+				var 
+					pseuParams = [],
+					attrParams = [],
+					rules, attrs, pseudos;
+				
+				this.pseuParams = pseuParams;
+				this.attrParams = attrParams;
+				
+				selector = selector
+								// remove attribute selector parameter and put in array
+								.replace(this.rex.ATTR_PARAM, function(matched){
+									return attrParams.push(matched) - 1;
+								});
+				
+				// remove pseudo selector parameter and put in array
+				while(selector.indexOf("(") !== -1) {
+					selector = selector.replace(this.rex.PSEU_PARAM, function(matched){
+						return pseuParams.push(matched.substring(1, matched.length - 1)) - 1;
+					});
+				}
+				
+				rules = this.rex.RULES.exec(selector);
+				
+				if(attrs = rules[4]) {
+					els = this.filterAttr(els, this.getAttrRules(attrs.match(this.rex.ATTR_PARAM), this.attrParams));
+				}
+				
+				if(pseudos = rules[5]) {
+					els = this.filterPseudo(els, this.getPseudoRules(pseudos.match(this.rex.PSEU), this.pseuParams));
+				}			
+				
+				return els;	
+			};
+			
+			/**
 			 * Rewrite query method using builtin method "querySelectorAll"
 			 */
 			joQuery.query = function(selector, context) {
 				var 
-					cache = [], i, len, params;
+					cache = [], 
+					i, len, s,
+					str, unstr, arr, rex, res, lastIndex,
+					params, unsupporteds, results;
 				
 				switch (typeof context) {
 					case "string":
@@ -885,17 +928,89 @@
 						break;
 						
 					case "object":
-						selector = this.buildSelector(selector, context.nodeType ? [context] : context, cache);
+						if (context) {
+							selector = this.buildSelector(selector, context.nodeType ? [context] : context, cache);
+						}
 				}
 				
 				try {
 					return this.makeArray(document.querySelectorAll(selector));
 				} catch(e) {
-					params = [];
-					selector.replace(this.rex.UNSUPPORT, function(matched) {
+					unsupporteds = [];
+					params       = [];
+					res          = [];
+					str          = "";
+					unstr        = "";
+					lastIndex    = 0;
+					rex          = /(?:_\d+_)+/g;
+				
+					selector = selector
+								// trim left and right space
+								.replace(this.rex.TRIM_LR, "")	
 						
-					});
+								// trim relative rule both sides space
+								.replace(this.rex.TRIM_ALL, "$1")	
+								
+								// replace unsupported selector and put it in array					
+								.replace(this.rex.UNSUPPORTED, function(matched) { 
+									return "_" + (params.push(matched) - 1) + "_";
+								})
+								
+								.replace(/[^,]*_\d+_[^,]*/g, function(matched){
+									unsupporteds.push(matched);
+									return "";
+								})
+								
+								.replace(/^,+|,+$/g, "");
 					
+					if(selector) { 
+						results = this.makeArray(document.querySelectorAll(selector));
+					} else {
+						results = [];
+					}
+					
+					for(i = 0, len = unsupporteds.length; i < len; i++) {
+						selector = (" " + unsupporteds[i]).replace(/([ +~>](?=_\d+_))/, "$1*"); 
+						while((arr = rex.exec(selector)) !== null) {
+							
+							s = selector.substring(lastIndex, arr.index); 
+							if(str.length && (lastIndex = s.search(/[ +>]|(?:~[^=])/)) !== -1) {
+								str += s.substring(0, lastIndex + 1); 
+								
+								res.push(str, unstr);
+								
+								str = s.substring(lastIndex + 1);
+							} else {
+								str += s;
+							}
+							unstr += arr[0];
+							lastIndex = rex.lastIndex;
+						}
+						
+						res.push(str, unstr);
+						
+						for (str = 0, unstr = res.length; str < unstr; str += 2) {
+							arr = this.filterEls(res[str + 1].replace(/_\d+_/g, function(matched) {
+								return params[matched.substring(1, matched.length - 1)];
+							}), this.query(res[str], arr));
+						}
+						
+						if((s = selector.substring(lastIndex))) {
+							arr = this.query(s, arr);
+						}
+					
+						str   = unstr = "";
+						res   = [];
+						lastIndex = 0;
+						
+						results = results.concat(arr);
+					}
+					
+					if(i > 1) {
+						return this.makeDiff(results);
+					}
+					
+					return results;
 				} finally {
 					for(i = 0, len = cache.length; i < len; i++) {
 						cache[i].removeAttribute("id");
