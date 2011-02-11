@@ -28,6 +28,7 @@
 				R_RULE: /[ +>~]/g,
 				NR_RULE: /[^ +>~]+/g,
 				TRIM_LR: /^ +| +$/g,
+				TRIM_R: /^ +/g,
 				TRIM_ALL: / *([ +>~,]) */g,
 				PSEU_PARAM: /\([^()]+\)/g,
 				ATTR_PARAM: /[^\[]+(?=\])/g,
@@ -71,7 +72,7 @@
 						}
 				}				
 									 
-				selectors = this.format(selector);
+				selectors = this.replaceAttrPseudo(this.trim(selector)).split(",");
 				
 				context = contexts;
 							
@@ -108,12 +109,27 @@
 			},
 			
 			/**
-			 * Format selector
+			 * Trim space
+			 * 
+			 * @param  {String} selector
+			 * @return {String} Selector after tirm space
+			 */
+			trim: function(selector) {
+				return selector
+								// trim left and right space
+								.replace(this.rex.TRIM_LR, "")	
+								
+								// trim relative rule both sides space
+								.replace(this.rex.TRIM_ALL, "$1");								
+			},
+			
+			/**
+			 * Replace attribute and pseudo selector
 			 * 
 			 * @param  {String} selector  
 			 * @return {Array}  Selector split by comma
 			 */
-			format: function(selector){
+			replaceAttrPseudo: function(selector){
 				var 
 					pseuParams = [],
 					attrParams = [];
@@ -122,12 +138,6 @@
 				this.attrParams = attrParams;
 				
 				selector = selector
-								// trim left and right space
-								.replace(this.rex.TRIM_LR, "")	
-						
-								// trim relative rule both sides space
-								.replace(this.rex.TRIM_ALL, "$1")	
-								
 								// remove attribute selector parameter and put in array
 								.replace(this.rex.ATTR_PARAM, function(matched){
 									return attrParams.push(matched) - 1;
@@ -140,7 +150,7 @@
 					});
 				}
 				
-				return selector.split(",");					
+				return selector;					
 			},				
 			
 		   /**
@@ -246,7 +256,7 @@
 					// attribute key-value
 					attr = attr.split(rex);					
 					
-					arr.push(Attrs[rule], attr);
+					arr.push(Attrs[rule], attr[0].replace(this.rex.TRIM_LR, ""), attr[1] || "");
 				}	
 				
 				return arr;
@@ -271,10 +281,10 @@
 					name = pseudos[i];
 					// pesudo with parameter
 					if (this.rex.NUM.test(name)) {
-						// pesudo parameter
-						param = pseuParams[RegExp["$&"]];
 						// ParamPseudos's attribute object
-						name = ParamPseudos[RegExp["$`"]];
+						name = ParamPseudos[RegExp["$`"]];						
+						// pesudo parameter
+						param = pseuParams[RegExp["$&"]].replace(this.rex.TRIM_LR, "");
 						
 						arr.push(true, name.fn, name.getParam(this, param, guid));
 					} else {
@@ -337,14 +347,13 @@
 					i = 0, 
 					m = attrRules.length,
 					matched = [],
-					n, el, attr, rule, val, name;
+					n, el, rule, val, name;
 				
 				for(; i < len; i++) {
 					el = els[i];
-					for (n = 0; n < m; n += 2) {
+					for (n = 0; n < m; n += 3) {
 						rule = attrRules[n];
-						attr = attrRules[n + 1];
-						name = attr[0];
+						name = attrRules[n + 1];
 						
 						if (!(val = (name === "href" ? el.getAttribute(name, 2) : el.getAttribute(name)))) {
 							if (!(val = el[this.attrMap[name] || name])) {
@@ -352,7 +361,7 @@
 							}
 						}
 						
-						if (!rule(val + "", attr[1])) {
+						if (!rule(val + "", attrRules[n + 2])) {
 							break;
 						}
 					}
@@ -391,7 +400,7 @@
 
 				return matched;
 			},										
-			
+
 			/**
 			 * Filter HTMLElement 
 			 * 
@@ -879,27 +888,9 @@
 			 */
 			joQuery.filterEls = function(selector, els) { 
 				var 
-					pseuParams = [],
-					attrParams = [],
 					rules, attrs, pseudos;
 				
-				this.pseuParams = pseuParams;
-				this.attrParams = attrParams;
-				
-				selector = selector
-								// remove attribute selector parameter and put in array
-								.replace(this.rex.ATTR_PARAM, function(matched){
-									return attrParams.push(matched) - 1;
-								});
-				
-				// remove pseudo selector parameter and put in array
-				while(selector.indexOf("(") !== -1) {
-					selector = selector.replace(this.rex.PSEU_PARAM, function(matched){
-						return pseuParams.push(matched.substring(1, matched.length - 1)) - 1;
-					});
-				}
-				
-				rules = this.rex.RULES.exec(selector);
+				rules = this.rex.RULES.exec(this.replaceAttrPseudo(selector));
 				
 				if(attrs = rules[4]) {
 					els = this.filterAttr(els, this.getAttrRules(attrs.match(this.rex.ATTR_PARAM), this.attrParams));
