@@ -28,11 +28,10 @@
 				R_RULE: /[ +>~]/g,
 				NR_RULE: /[^ +>~]+/g,
 				TRIM_LR: /^ +| +$/g,
-				TRIM_R: /^ +/g,
 				TRIM_ALL: / *([ +>~,]) */g,
 				PSEU_PARAM: /\([^()]+\)/g,
 				ATTR_PARAM: /[^\[]+(?=\])/g,
-				ATTR: /=|!=|\^=|\$=|\*=|~=|\|=/,
+				ATTR: /[!\^$*|]?=/,
 				CLS: /\./g,
 				PSEU: /[^:]+/g,
 				NUM: /\d+/,
@@ -247,16 +246,20 @@
 					len = attrs.length,
 					rex = this.rex.ATTR,
 					i   = 0,
-					attr, rule;
+					attr;
 				
 				for(; i < len; i++) {
 					attr = attrParams[attrs[i]];
-					// rule
-					rule = attr.match(rex) || " ";
-					// attribute key-value
-					attr = attr.split(rex);					
 					
-					arr.push(Attrs[rule], attr[0].replace(this.rex.TRIM_LR, ""), attr[1] || "");
+					if(this.rex.ATTR.test(attr)) {
+						attr = RegExp["$'"];
+						//function, name, value
+						arr.push(Attrs[RegExp["$&"]], 
+								 RegExp["$`"].replace(this.rex.TRIM_LR, ""), 
+								 attr.replace(this.rex.TRIM_LR, ""));
+					} else {
+						arr.push(Attrs[" "], attr.replace(this.rex.TRIM_LR, ""), "");
+					}
 				}	
 				
 				return arr;
@@ -293,6 +296,10 @@
 				}	
 
 				return arr;
+			},
+			
+			getAttrPesudoRules: function() {
+				
 			},
 			
 			/**
@@ -935,12 +942,7 @@
 					lastIndex    = 0;
 					rex          = /(?:_\d+_)+/g;
 				
-					selector = selector
-								// trim left and right space
-								.replace(this.rex.TRIM_LR, "")	
-						
-								// trim relative rule both sides space
-								.replace(this.rex.TRIM_ALL, "$1")	
+					selector = this.trim(selector)
 								
 								// replace unsupported selector and put it in array					
 								.replace(this.rex.UNSUPPORTED, function(matched) { 
