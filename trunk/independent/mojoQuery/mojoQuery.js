@@ -489,6 +489,18 @@
 				}
 				
 				return data;
+			},
+			
+			/**
+			 * Add joQuery rex property
+			 * 
+			 * @param {Object} obj
+			 */
+			addRex: function(obj) {
+				var p;
+				for(p in obj) {
+					this.rex[p] = obj[p];
+				}
 			}			
 		}, 
 		
@@ -909,6 +921,15 @@
 				
 				return els;	
 			};
+			
+			joQuery.addRex({
+				UN_PARAMS: /(?:_\d+_)+/g,
+				UN_SELECTOR: /[^,]*_\d+_[^,]*/g,
+				TRIM_COMMA: /^,+|,+$/g,
+				RE_WITH_UN: /([ +~>](?=_\d+_))/,
+				RE_IN_ATTR: /[ +>]|(?:~[^=])/,
+				UN: /_\d+_/g
+			});
 			
 			/**
 			 * Rewrite query method using builtin method "querySelectorAll"
