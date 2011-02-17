@@ -1016,8 +1016,8 @@
 							arr = this.query(s, arr);
 						}
 					
-						str   = unstr = "";
-						res   = [];
+						str = unstr = "";
+						res = [];
 						lastIndex = 0;
 						
 						results = results.concat(arr);
