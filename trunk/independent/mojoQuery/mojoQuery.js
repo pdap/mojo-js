@@ -848,6 +848,7 @@
 				}
 			}
 			
+			// regexp matched unsupported selector
 			joQuery.rex.UNSUPPORTED = function() {
 				var 
 					rexStr = ["\\[[^\\]]+!=[^\\]]+\\]"],
@@ -872,9 +873,10 @@
 			/**
 			 * Build selector by HTMLElement array context
 			 * 
-			 * @param {String} selector
-			 * @param {Array}  contexts
-			 * @param {Array}  cache
+			 * @param  {String} selector
+			 * @param  {Array}  contexts
+			 * @param  {Array}  cache
+			 * @return {String} Contexts corresponds to selector
 			 */
 			joQuery.buildSelector = function(selector, contexts, cache) {
 				var 
@@ -901,9 +903,11 @@
 			};
 			
 			/**
+			 * Filter HTMLElements by unspported selector
 			 * 
-			 * @param {Object} selector
-			 * @param {Object} els
+			 * @param  {String} selector
+			 * @param  {Array}  els
+			 * @return {Array}  Filtered HTMLElements array
 			 */
 			joQuery.filterEls = function(selector, els) { 
 				var 
@@ -924,10 +928,10 @@
 			
 			joQuery.addRex({
 				UN_PARAMS: /(?:_\d+_)+/g,
-				UN_SELECTOR: /[^,]*_\d+_[^,]*/g,
+				UN_WITH_COMMA: /[^,]*_\d+_[^,]*/g,
 				TRIM_COMMA: /^,+|,+$/g,
-				RE_WITH_UN: /([ +~>](?=_\d+_))/,
-				RE_IN_ATTR: /[ +>]|(?:~[^=])/,
+				UN_WITH_RE: /([ +~>](?=_\d+_))/,
+				UN_RE: /[ +>]|(?:~[^=])/,
 				UN: /_\d+_/g
 			});
 			
@@ -938,7 +942,7 @@
 				var 
 					cache = [], 
 					i, len, s,
-					str, unstr, arr, rex, res, lastIndex,
+					str, unstr, arr, res, lastIndex,
 					params, unsupporteds, results;
 				
 				switch (typeof context) {
@@ -961,7 +965,6 @@
 					str          = "";
 					unstr        = "";
 					lastIndex    = 0;
-					rex          = /(?:_\d+_)+/g;
 				
 					selector = this.trim(selector)
 								
@@ -970,12 +973,12 @@
 									return "_" + (params.push(matched) - 1) + "_";
 								})
 								
-								.replace(/[^,]*_\d+_[^,]*/g, function(matched){
+								.replace(this.rex.UN_WITH_COMMA, function(matched){
 									unsupporteds.push(matched);
 									return "";
 								})
 								
-								.replace(/^,+|,+$/g, "");
+								.replace(this.rex.TRIM_COMMA, "");
 					
 					if(selector) { 
 						results = this.makeArray(document.querySelectorAll(selector));
@@ -984,11 +987,11 @@
 					}
 					
 					for(i = 0, len = unsupporteds.length; i < len; i++) {
-						selector = (" " + unsupporteds[i]).replace(/([ +~>](?=_\d+_))/, "$1*"); 
-						while((arr = rex.exec(selector)) !== null) {
-							
+						selector = (" " + unsupporteds[i]).replace(this.rex.UN_WITH_RE, "$1*"); 
+						
+						while((arr = this.rex.UN_PARAMS.exec(selector)) !== null) {
 							s = selector.substring(lastIndex, arr.index); 
-							if(str.length && (lastIndex = s.search(/[ +>]|(?:~[^=])/)) !== -1) {
+							if(str.length && (lastIndex = s.search(this.rex.UN_RE)) !== -1) {
 								str += s.substring(0, lastIndex + 1); 
 								
 								res.push(str, unstr);
@@ -1004,7 +1007,7 @@
 						res.push(str, unstr);
 						
 						for (str = 0, unstr = res.length; str < unstr; str += 2) {
-							arr = this.filterEls(res[str + 1].replace(/_\d+_/g, function(matched) {
+							arr = this.filterEls(res[str + 1].replace(this.rex.UN, function(matched) {
 								return params[matched.substring(1, matched.length - 1)];
 							}), this.query(res[str], arr));
 						}
