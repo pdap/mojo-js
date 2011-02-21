@@ -25,13 +25,14 @@
 			},
 			
 			rex: {
-				R_RULE: /[ +>~]/g,
-				NR_RULE: /[^ +>~]+/g,
+				RE_RULE: /[ +>~]/g,
+				NRE_RULE: /[^ +>~]+/g,
 				TRIM_LR: /^ +| +$/g,
-				TRIM_ALL: / *([ +>~,]) */g,
+				TRIM_RE: / *([ +>~,]) */g,
+				TRIM: / +/g,
 				PSEU_PARAM: /\([^()]+\)/g,
 				ATTR_PARAM: /[^\[]+(?=\])/g,
-				ATTR: /[!\^$*|]?=/,
+				ATTR: /[!\^$*|~]?=/,
 				CLS: /\./g,
 				PSEU: /[^:]+/g,
 				NUM: /\d+/,
@@ -81,10 +82,10 @@
 					
 					// relative rule array 
 					// add defalut rule " "
-					rules = (" " + selector).match(this.rex.R_RULE);
+					rules = (" " + selector).match(this.rex.RE_RULE);
 										
 					// selector on both sides of relative rule  
-					selector = selector.match(this.rex.NR_RULE);
+					selector = selector.match(this.rex.NRE_RULE);
 					
 					// each iteration, use before parse result as this context
 					contexts = context;
@@ -119,7 +120,7 @@
 								.replace(this.rex.TRIM_LR, "")	
 								
 								// trim relative rule both sides space
-								.replace(this.rex.TRIM_ALL, "$1");								
+								.replace(this.rex.TRIM_RE, "$1");								
 			},
 			
 			/**
@@ -249,16 +250,14 @@
 					attr;
 				
 				for(; i < len; i++) {
-					attr = attrParams[attrs[i]];
+					attr = attrParams[attrs[i]].replace(this.rex.TRIM, "");
 					
 					if(this.rex.ATTR.test(attr)) {
 						attr = RegExp["$'"];
 						//function, name, value
-						arr.push(Attrs[RegExp["$&"]], 
-								 RegExp["$`"].replace(this.rex.TRIM_LR, ""), 
-								 attr.replace(this.rex.TRIM_LR, ""));
+						arr.push(Attrs[RegExp["$&"]], RegExp["$`"], attr);
 					} else {
-						arr.push(Attrs[" "], attr.replace(this.rex.TRIM_LR, ""), "");
+						arr.push(Attrs[" "], attr, "");
 					}
 				}	
 				
@@ -287,7 +286,7 @@
 						// ParamPseudos's attribute object
 						name = ParamPseudos[RegExp["$`"]];						
 						// pesudo parameter
-						param = pseuParams[RegExp["$&"]].replace(this.rex.TRIM_LR, "");
+						param = pseuParams[RegExp["$&"]].replace(this.rex.TRIM, "");
 						
 						arr.push(true, name.fn, name.getParam(this, param, guid));
 					} else {
@@ -297,11 +296,7 @@
 
 				return arr;
 			},
-			
-			getAttrPesudoRules: function() {
-				
-			},
-			
+
 			/**
 			 * Filter HTMLElement whether matched pseudo rules
 			 * 
@@ -722,7 +717,10 @@
 					}
 					
 					return index === param[2];					
-				}
+				},
+				
+				testStr: ":nth-child(1)",
+				rexStr: ":nth-child\\(.+\\)" 
 			},
 			
 			not: {
@@ -760,7 +758,10 @@
 					}	
 					
 					return true;					
-				}
+				},
+				
+				testStr: ":not(html)",
+				rexStr: ":not\\(.+\\)" 				
 			}
 		},
 		
@@ -851,9 +852,10 @@
 			// regexp matched unsupported selector
 			joQuery.rex.UNSUPPORTED = function() {
 				var 
-					rexStr = ["\\[[^\\]]+!=[^\\]]+\\]"],
+					rexStr = ["\\[[^!]+!=[^\\]]+\\]"],
 					p;
-				
+					
+				// test no parameter pseudo selector whether supported
 				for(p in Pseudos) {
 					p = ":" + p;
 					try {
@@ -864,8 +866,17 @@
 				}
 				
 				for(p in ParamPseudos) {
-					
+					p = ParamPseudos[p];
+					try {
+						document.querySelectorAll(p.testStr);
+					} catch(e) {
+						rexStr.push(p.rexStr);
+					}
 				}
+				
+				rexStr.push([
+					":not\\(.+,.+\\)"
+				]);
 				
 				return new RegExp(rexStr.join("|"), "g");	
 			}.call(joQuery);
@@ -957,7 +968,8 @@
 				}
 				
 				try {
-					return this.makeArray(document.querySelectorAll(selector));
+//					return this.makeArray(document.querySelectorAll(selector));
+					throw "";
 				} catch(e) {
 					unsupporteds = [];
 					params       = [];
@@ -1001,7 +1013,7 @@
 								str += s;
 							}
 							unstr += arr[0];
-							lastIndex = rex.lastIndex;
+							lastIndex = this.rex.UN_PARAMS.lastIndex;
 						}
 						
 						res.push(str, unstr);

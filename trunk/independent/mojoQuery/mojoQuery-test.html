@@ -3,6 +3,9 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<title>mojoQuery Test</title>
+		<script>
+//			document.querySelectorAll = null;
+		</script>
 		<script type="text/javascript" src="mojoQuery.js"></script>
 		<style type="text/css">
 			p {
@@ -17,7 +20,7 @@
 	</head>
 	
 	<body>
-		<div id="div1"  class="fn ul">
+		<div id="div1"  class="fn">
 		<p>1</p>
 		<p>2</p>
 		<p>3</p>
@@ -34,7 +37,7 @@
 		<p>15</p>
 		</div>
 		
-		<div id="div2">
+		<div id="div2" class="ff">
 		<p>1</p>
 		<p>2</p>
 		<p>3</p>
@@ -53,34 +56,42 @@
 		
 		<button onclick="test()">Test</button>
 		
-		<a id="testa" href="/" class="class"></a>
+		<a id="testa" href="/" class="class">href</a>
 	</body>
 	
 	<script type="text/javascript">
-	document.querySelectorAll = null;
 	
 function test() {
-//		var both = "p";
-//		
-//		var selector = "" + both;
-//		
+		var both = 
+//		"p:nth-child(2n - 2)"
+//		"div[ class = fn ]"
+		":not(html,body,div)";
+		
+//		both = 
+//		"html [class!=fn]"
+//		"div[class!=fn] ,div[class!=fn] ,div[class!=fn]"
+		"div[class!=fn] :first-child"
+		"div[class!=fn] p:first-child"
+//			   "div[class!=fn] p";
+//		       "div[class!=fn]";  
+		
+		var selector = "" + both;
+		
 //		var arr = document.querySelectorAll(selector);
 //		for(var i = 0, len = arr.length; i < len; i++) {
 //			arr[i].style.backgroundColor = 'blue';
 //		}
 //		
 //		alert(len)
-//		
-//		var selector = "" + both;
-//		
-//		var arr = mojoQuery.get(selector);
-//		for(var i = 0, len = arr.length; i < len; i++) {
-//			arr[i].style.backgroundColor = 'red';
-//		}
-//		
-//		alert(len)
-
-//mojoQuery("p:nth-child(2n):nth-child(2n)")
+		
+		var selector = "" + both;
+		
+		var arr = mojoQuery(selector);
+		for(var i = 0, len = arr.length; i < len; i++) {
+			arr[i].style.backgroundColor = 'red';
+		}
+		
+		alert(len)
 
 }
 		
@@ -91,8 +102,6 @@ function test() {
 //alert(rules[4])
 //alert(rules[5])
 
-
-
 /*
 		try{
 			document.querySelectorAll(":not(*)");
@@ -100,13 +109,24 @@ function test() {
 			alert(e)
 		}
 */
-
-		
+//	alert(HTMLDocument.prototype.querySelectorAll)
 /*
 		var arr = /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.*[^:])*)/.exec(":d::a:b::c")
 		
 		alert(arr[5].match(/[^:]/g))
-*/		
-	
+*/						
+						
+//						var re = /(?:_\d+_)+/g;
+//						var arr;
+//						while((arr = re.exec("div.cls_0_[~]_0__02_[~] p>a_0_~div")) !== null) {
+//							//alert(arr[0])
+//							alert(arr.index)
+//							alert(re.lastIndex)
+//							
+//						}
+//alert(/[!\^$*|]?=/.test(" class =example"))
+//alert(RegExp["$&"])
+//alert(RegExp["$`"])
+//alert(RegExp["$'"])
 	</script>
 </html>
