@@ -719,8 +719,7 @@
 					return index === param[2];					
 				},
 				
-				testStr: ":nth-child(1)",
-				rexStr: ":nth-child\\(.+\\)" 
+				testStr: ":nth-child(1)"
 			},
 			
 			not: {
@@ -761,7 +760,12 @@
 				},
 				
 				testStr: ":not(html)",
-				rexStr: ":not\\(.+\\)" 				
+				
+				testFn: function(selector) {
+					selector = selector.replace(/:not\([^()]+\)/g, function(matched) {
+						alert(matched)
+					});
+				}
 			}
 		},
 		
@@ -849,10 +853,12 @@
 				}
 			}
 			
+			joQuery.testFns = [];
+			
 			// regexp matched unsupported selector
 			joQuery.rex.UNSUPPORTED = function() {
 				var 
-					rexStr = ["\\[[^!]+!=[^\\]]+\\]"],
+					rexStr = [],
 					p;
 					
 				// test no parameter pseudo selector whether supported
@@ -866,20 +872,46 @@
 				}
 				
 				for(p in ParamPseudos) {
-					p = ParamPseudos[p];
 					try {
-						document.querySelectorAll(p.testStr);
+						document.querySelectorAll(ParamPseudos[p].testStr);
+						if(p = ParamPseudos[p].testFn) {
+							this.testFns.push(p);
+						}
 					} catch(e) {
-						rexStr.push(p.rexStr);
+						rexStr.push(p + "\\([^()]+\\)");
 					}
 				}
 				
 				rexStr.push([
-					":not\\(.+,.+\\)"
+					"\\[[^!]+!=[^\\]]+\\]"
 				]);
 				
 				return new RegExp(rexStr.join("|"), "g");	
 			}.call(joQuery);
+			
+			/**
+			 * 
+			 * @param {Object} selector
+			 * @param {Object} params
+			 * @param {Object} unsupporteds
+			 */
+			joQuery.replaceUnspported = function(selector, params, unsupporteds) {
+				selector = this.trim(selector)								
+								// replace unsupported selector and put it in array					
+							   .replace(this.rex.UNSUPPORTED, function(matched) { 
+									return "_" + (params.push(matched) - 1) + "_";
+							   });
+				
+				for(var i = 0, len = this.testFns.length; i < len; i++) {
+					selector = this.testFns[i](selector);
+				}			   
+				
+				return selector.replace(this.rex.UN_WITH_COMMA, function(matched){
+									unsupporteds.push(matched);
+									return "";
+								})
+								.replace(this.rex.TRIM_COMMA, "");
+			};
 			
 			/**
 			 * Build selector by HTMLElement array context
@@ -978,19 +1010,7 @@
 					unstr        = "";
 					lastIndex    = 0;
 				
-					selector = this.trim(selector)
-								
-								// replace unsupported selector and put it in array					
-								.replace(this.rex.UNSUPPORTED, function(matched) { 
-									return "_" + (params.push(matched) - 1) + "_";
-								})
-								
-								.replace(this.rex.UN_WITH_COMMA, function(matched){
-									unsupporteds.push(matched);
-									return "";
-								})
-								
-								.replace(this.rex.TRIM_COMMA, "");
+					selector = this.replaceUnspported(selector, params, unsupporteds);
 					
 					if(selector) { 
 						results = this.makeArray(document.querySelectorAll(selector));
