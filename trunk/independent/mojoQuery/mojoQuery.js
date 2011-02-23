@@ -761,9 +761,16 @@
 				
 				testStr: ":not(html)",
 				
-				testFn: function(selector) {
-					selector = selector.replace(/:not\([^()]+\)/g, function(matched) {
-						alert(matched)
+				testFn: function(UNSUPPORTED, selector, params) {
+					return selector = selector.replace(/:not\(.+\)/g, function(matched) {
+						var 
+							param = matched.substring(5, matched.length - 1);
+							
+						if(UNSUPPORTED.test(param) || /[^ ]{1}[,.:\[]/.test(param) || param.indexOf(":not") !== -1) {
+							return "_" + (params.push(matched) - 1) + "_";
+						}
+						
+						return matched;
 					});
 				}
 			}
@@ -873,12 +880,12 @@
 				
 				for(p in ParamPseudos) {
 					try {
-						document.querySelectorAll(ParamPseudos[p].testStr);
+						document.querySelectorAll(ParamPseudos[p].testStr); 
 						if(p = ParamPseudos[p].testFn) {
 							this.testFns.push(p);
 						}
 					} catch(e) {
-						rexStr.push(p + "\\([^()]+\\)");
+						rexStr.push(":" + p + "\\(.+\\)");
 					}
 				}
 				
@@ -896,14 +903,15 @@
 			 * @param {Object} unsupporteds
 			 */
 			joQuery.replaceUnspported = function(selector, params, unsupporteds) {
+				var UNSUPPORTED = this.rex.UNSUPPORTED;
 				selector = this.trim(selector)								
 								// replace unsupported selector and put it in array					
-							   .replace(this.rex.UNSUPPORTED, function(matched) { 
+							   .replace(UNSUPPORTED, function(matched) { 
 									return "_" + (params.push(matched) - 1) + "_";
 							   });
-				
+
 				for(var i = 0, len = this.testFns.length; i < len; i++) {
-					selector = this.testFns[i](selector);
+					selector = this.testFns[i](UNSUPPORTED, selector, params);
 				}			   
 				
 				return selector.replace(this.rex.UN_WITH_COMMA, function(matched){
@@ -1012,7 +1020,7 @@
 				
 					selector = this.replaceUnspported(selector, params, unsupporteds);
 					
-					if(selector) { 
+					if(selector) {
 						results = this.makeArray(document.querySelectorAll(selector));
 					} else {
 						results = [];
