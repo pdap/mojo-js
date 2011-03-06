@@ -501,6 +501,25 @@
 			},
 			
 			/**
+			 * Add ParamPseudos
+			 * 
+			 * @param {Object} obj
+			 */
+			addParamPseudos: function(obj) {
+				var p, pp;
+				for(p in obj) { 
+					for(pp in obj[p]){ 
+						if(!ParamPseudos[p]) {
+							ParamPseudos[p] = {};
+						}
+						ParamPseudos[p][pp] = obj[p][pp];
+					}
+				}
+				
+				return this;
+			},
+			
+			/**
 			 * Extend joQuery property
 			 * 
 			 * @param {Object} obj
@@ -733,9 +752,7 @@
 					}
 					
 					return index === param[2];					
-				},
-				
-				testStr: ":nth-child(1)"
+				}
 			},
 			
 			not: {
@@ -763,7 +780,6 @@
 							if("#" + el.id !== param[1]) {
 								continue;
 							}
-							
 							return false;
 						}
 						
@@ -771,23 +787,7 @@
 							return false;
 						}
 					}	
-					
 					return true;					
-				},
-				
-				testStr: ":not(html)",
-				
-				testFn: function(UNSUPPORTED, selector, params) {
-					return selector = selector.replace(/:not\([^()]+\)/g, function(matched) {
-						var 
-							param = matched.substring(5, matched.length - 1);
-							
-						if(UNSUPPORTED.test(param) || /[^ ]{1}[,.:\[]/.test(param) || param.indexOf(":not") !== -1) {
-							return "_" + (params.push(matched) - 1) + "_";
-						}
-						
-						return matched;
-					});
 				}
 			}
 		},
@@ -875,19 +875,33 @@
 					return results;
 				}
 			}
+
+			joQuery.addParamPseudos({
+				"nth-child": {
+					testStr: ":nth-child(1)"
+				},
+				
+				not: {
+					testStr: ":not(html)",
+					testFn: function(param) {
+						if(/[^ ]{1}[,.:\[]/.test(param) || param.indexOf(":not") !== -1) {
+							return false;
+						}
+						return true;
+					}					
+				}
+			})
 			
-			// Array of unsupported parameter pseudo repalcement function 
-			joQuery.testFns = [];
-			
-			joQuery.addRex({
+			.addRex({
 				UN_PARAMS: /(?:_\d+_)+/g,
 				UN_WITH_COMMA: /[^,]*_\d+_[^,]*/g,
 				TRIM_COMMA: /^,+|,+$/g,
 				UN_WITH_RE: /([ +~>](?=_\d+_))/,
 				UN_RE: /[ +>]|(?:~[^=])/,
 				UN: /_\d+_/g,
+				PSEU_NUM: /:\D+\d+/g,
 				
-				UN_PSEU: function() { 
+				UNSUPPORTED: function() { 
 					var rexStr = ["\\[[^!]+!=[^\\]]+\\]"], p;
 					
 					for (p in Pseudos) {
@@ -900,35 +914,18 @@
 						}
 					}
 					
-					return new RegExp(rexStr.join("|"), "g");
-				}.call(joQuery),
-				
-				UN_PARAM_PSEU: function() {
-					var 
-						rexStr = [], s, p;
-					
 					for(p in ParamPseudos) {
-						s = ":" + p;
-						p = ParamPseudos[p];
 						try {
-							document.querySelectorAll(p.testStr);
-							if (p.testFn) {
-								// if supported, add replacement function
-								// this is handle custom extend pesudo selctor
-								this.testFns.push(
-									p.testFn, 
-									new RegExp(s + "\\([^()]+\\)", "g"), 
-									new RegExp(s + "\\d+", "g")
-								);
-							}							
+							document.querySelectorAll(ParamPseudos[p].testStr);						
 						} catch(e) {
-							rexStr.push(s + "\\([^()]+\\)");
+							rexStr.push(":" + p);
 						}
-					}
+					}					
 					
 					return new RegExp(rexStr.join("|"), "g");
 				}.call(joQuery)
 			})
+			
 			.extend({
 				/**
 				 * Replace unsupported selector and put it in array
@@ -940,47 +937,56 @@
 				 */
 				replaceUnsupported: function(selector, params, unsupporteds) {
 					var 
-						i = 0,
-						len = this.testFns.length,
-						UN_PSEU = this.rex.UN_PSEU,
-						UN_PARAM_PSEU = this.rex.UN_PARAM_PSEU,
-						tmp, j, k;
+						pseuParams  = [],
+						NUM         = this.rex.NUM,
+						PSEU_PARAM  = this.rex.PSEU_PARAM,
+						UNSUPPORTED = this.rex.UNSUPPORTED,
+						pp          = ParamPseudos;  
 					
 					selector = this.trim(selector);
 					
-					// replace unuspported parameter pseudo and put in array
-					while(UN_PARAM_PSEU.test(selector)) {
-						selector = selector.replace(UN_PARAM_PSEU, function(matched){
-							return "_" + (param.push(matched) - 1) + "_";
+					// remove pseudo selector parameter and put in array
+					while(selector.indexOf("(") !== -1) {
+						selector = selector.replace(PSEU_PARAM, function(matched){
+							return pseuParams.push(matched) - 1;
 						});
 					}
 					
-					for (; i < len; i += 2) {
-						UN_PARAM_PSEU = this.testFns[i + 1];
-						tmp = [];
-						
-						while(UN_PARAM_PSEU.test(selector)) {
-							selector = selector.replace(UN_PARAM_PSEU, function(matched){
-								var i = matched.indexOf("(");
-								return matched.substring(0, i) + (tmp.push(matched.substring(i)) - 1);
-							});							
-						}
-						
-						if(k = tmp.length) {
-							selector = selector.replace(this.testFns[i + 2], function(matched){
-								
-							});
+					if(pseuParams.length) {
+						selector = selector.replace(this.rex.PSEU_NUM, function(matched){
+							var 
+								p, param, s, testFn;
 							
-							selector = this.testFns[i]();
+							NUM.test(matched);
+							p = RegExp["$`"];
+							param = pseuParams[RegExp["$&"]];
 							
-							tmp = [];
-						}
-						
+							while(NUM.test(param)) {
+								param = param.replace(NUM, function(matched){
+									return pseuParams[matched];
+								});
+							}
+							
+							s = p + param;
+							
+							if(UNSUPPORTED.test(p)) {
+								return "_" + (params.push(s) - 1) + "_"								
+							} else {  
+								if(testFn = pp[p.substring(1)].testFn) {
+									param = param.substring(1, param.length - 1);
+									
+									if(UNSUPPORTED.test(param) || !testFn(param)) {
+										return "_" + (params.push(s) - 1) + "_"
+									}
+								}
+								return s;
+							}
+						});
 					}
 
 					return selector
 									// replace unuspported pseudo and put in array
-									.replace(UN_PSEU, function(matched) {
+									.replace(UNSUPPORTED, function(matched) {
 										return "_" + (params.push(matched) - 1) + "_";
 								    })
 									.replace(this.rex.UN_WITH_COMMA, function(matched) {
@@ -1010,7 +1016,7 @@
 							results.push(selector);
 						} else {
 							if (!(id = el.id)) {
-								id = "_id_" + this.tagGuid++;
+								id = "id" + this.tagGuid++;
 								el.id = id;
 								cache.push(el);
 							}
