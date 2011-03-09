@@ -987,7 +987,7 @@
 						// replace unsupported paramter pseudo selector
 						selector = selector.replace(this.rex.PSEU_NUM, function(matched){
 							var 
-								p, param, s, testFn;
+								p, param, s, testFn, o;
 							
 							NUM.test(matched);
 							param = pseuParams[RegExp["$&"]];
@@ -1008,13 +1008,12 @@
 								// and replace it
 								return "_" + (params.push(s) - 1) + "_"								
 							} else {  
-								pp = pp[p.substring(1)];
-								
+								o = pp[p.substring(1)];
 								// test pseudo's parameter whether is all supported 
-								if(testFn = pp.testFn) {
+								if(testFn = o.testFn) {
 									param = param.substring(1, param.length - 1);
 									
-									if(UNSUPPORTED.test(param) || !testFn(param, pp.rex)) {
+									if(UNSUPPORTED.test(param) || !testFn(param, o.rex)) {
 										return "_" + (params.push(s) - 1) + "_"
 									}
 								}
