@@ -970,6 +970,7 @@
 					var 
 						pseuParams  = [],
 						NUM         = this.rex.NUM,
+						PSEU_NUM    = this.rex.PSEU_NUM,
 						PSEU_PARAM  = this.rex.PSEU_PARAM,
 						UNSUPPORTED = this.rex.UNSUPPORTED,
 						pp          = paramPseudos;  
@@ -985,7 +986,7 @@
 					
 					if(pseuParams.length) {
 						// replace unsupported paramter pseudo selector
-						selector = selector.replace(this.rex.PSEU_NUM, function(matched){
+						selector = selector.replace(PSEU_NUM, function(matched){
 							var 
 								p, param, s, testFn, o;
 							
@@ -995,7 +996,7 @@
 							p     = RegExp["$`"];
 							
 							// get value of parameter
-							while(NUM.test(param)) {
+							while(PSEU_NUM.test(param)) {
 								param = param.replace(NUM, function(matched){
 									return pseuParams[matched];
 								});
@@ -1197,7 +1198,7 @@
 		
 		mojoQuery.info = {
 			author: "scott.cgi",
-			version: "1.3.0"
+			version: "1.4.0"
 		};
 		// make mojoQuery globel
 		window.mojoQuery = mojoQuery;
