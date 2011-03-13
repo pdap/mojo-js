@@ -62,16 +62,16 @@
 	<script type="text/javascript">
 	
 function test() {
-		var both = 
-//		"p:nth-child(2n - 2)"
+		var both = "p:not(a,p)"
+//		"div:not(a,b)>p:not(:not(p))"
+//		"p:nth-child(2n)"
 //		"div[ class = fn ]"
-		":not(html,body,div)";
-		
-//		both = 
+//		"div:not([class]:nth-child(1))";
+//		"div.ff[class!=fn] > p:first-child, p:first-child"
 //		"html [class!=fn]"
 //		"div[class!=fn] ,div[class!=fn] ,div[class!=fn]"
-		"div[class!=fn] :first-child"
-		"div[class!=fn] p:first-child"
+//		"div[class!=fn] :first-child"
+//		"div[class!=fn] p:first-child"
 //			   "div[class!=fn] p";
 //		       "div[class!=fn]";  
 		
@@ -128,5 +128,15 @@ function test() {
 //alert(RegExp["$&"])
 //alert(RegExp["$`"])
 //alert(RegExp["$'"])
+
+//	alert(":not([a])".replace(new RegExp(":not\\((?::|)\\)"), "#"))
+
+//var s = new Date().getTime();
+//for(var i =0; i < 10000; i++) {
+//	(i + "aaa").search();
+//}
+//
+//alert(new Date().getTime() - s);
+
 	</script>
 </html>

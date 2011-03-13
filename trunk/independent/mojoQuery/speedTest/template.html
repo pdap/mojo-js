@@ -10,41 +10,33 @@
 	
 	<script type="text/javascript">
 		var params = location.search.replace("?", "").split(",");
+		var querySelectorAll   = false;
+		var dQuerySelectorAll  = document.querySelectorAll;
+		var deQuerySelectorAll = document.documentElement.querySelectorAll;
 		
 		if(params[0] !== "native") {
-		    document.querySelectorAll = null;	
-			document.documentElement.querySelectorAll = null;
-			document.getElementsByClassName = null;
-			document.documentElement.getElementsByClassName = null;
+		    if (!querySelectorAll) {
+				document.querySelectorAll = null;
+				document.documentElement.querySelectorAll = null;
+			}	
 			
-			// disabled function "getElementsByClassName" and "querySelectorAll"
-			if(typeof Document !== "undefined") {
-				Document.prototype.getElementsByClassName = null;
-				Document.prototype.querySelectorAll = null;				
-			}
-			
-			if (typeof HTMLDocument !== "undefined") {
-				HTMLDocument.prototype.getElementsByClassName = null;
-				HTMLDocument.prototype.querySelectorAll = null;
-			}
-		
-			if(typeof Element !== "undefined") {
-				Element.prototype.getElementsByClassName = null;
-				Element.prototype.querySelectorAll = null;				
-			}
-			
-			if (typeof HTMLElement !== "undefined") {
-				HTMLElement.prototype.getElementsByClassName = null;
-				HTMLElement.prototype.querySelectorAll = null;
-			}			
-			
-			document.writeln("<script type='text/javascript' src=" + params[0] + "></" + "script>");
-		} else {
-			// native method querySelectorAll test page
-			//document.writeln("<script type='text/javascript'></" + "script>");
+			document.writeln("<script id='libScript' type='text/javascript' src=" + params[0] + "></" + "script>");
 		}
 		
 		window.queryMethod = params[1];
+		
+		function reloadScript() {
+			if(params[0] !== "native") {
+				if(querySelectorAll) {
+					document.querySelectorAll = dQuerySelectorAll;
+					document.documentElement.querySelectorAll = deQuerySelectorAll;
+				} else {
+					document.querySelectorAll = null;
+					document.documentElement.querySelectorAll = null;					
+				}
+				document.getElementById("libScript").src = params[0];
+			}
+		}
 		
 	</script>	
 	

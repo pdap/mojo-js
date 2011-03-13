@@ -7,8 +7,6 @@
 	<meta http-equiv="pragma" content="no-cache" />
 	<meta http-equiv="cache-control" content="no-cache" />
 	<meta http-equiv="expires" content="0" />
-	
-	<script type="text/javascript" src="mojoQuery.js"></script>	
 </head>
 
 <!-- 
@@ -2887,7 +2885,11 @@ the final editorial review.</p>
 </body>
 
 <script type="text/javascript">
-		var both = ":nth-child(odd)";
+//	document.querySelectorAll = null;
+</script>
+<script type="text/javascript" src="mojoQuery.js"></script>
+<script type="text/javascript">
+		var both = ":empty";
 		
 		var selector = "" + both;
 		
@@ -2897,10 +2899,17 @@ the final editorial review.</p>
 			arr[i].style.backgroundColor = 'blue';
 		}
 		
-		var arr = document.querySelectorAll(selector);
-		for(var i = 0, len = arr.length; i < len; i++) {
-			arr[i].style.backgroundColor = 'red';
-		}	
+//		alert(arr.length)
+		
+//		var arr = document.querySelectorAll(selector);
+//		for(var i = 0, len = arr.length; i < len; i++) {
+//			arr[i].style.backgroundColor = 'red';
+//		}	
+//		
+//		alert(arr.length)
+		
+		alert(document.getElementsByTagName("*").length);
+		alert(document.querySelectorAll(" *").length);
 
 </script>
 </html>

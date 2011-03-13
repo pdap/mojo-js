@@ -23,8 +23,8 @@
 	<h2>speed/validity selectors test for frameworks.</h2>
 	
 	<div id="controls">
-		<a class="stop" href="#">stop tests</a>
-		<a class="start" href="#">start tests</a>
+		<a class="stop" href="#">Stop tests</a>
+		<a class="start" href="#">Start tests</a>
 	</div>
 	<!-- header end -->
 
@@ -42,6 +42,7 @@
 			<option value="customSelectors">custom selector</option>
 		</select>
 		<input type="button" value="clear" onclick="clearSelector()" />
+		<button  onclick="switchQuerySelectorAll(this)">Enabled querySelectorAll</button>
 	</p>
 	<p id="customSelector" style="display:none;">
 		Custom Selector :
@@ -100,7 +101,6 @@
 		add test framework in frameworks.js
 	-->
 	<script type="text/javascript">
-		
 		// rewrite array toString method for context selector
 		Array.prototype.toString = function() {
 			return this.join(" | ");
@@ -189,6 +189,27 @@
 		// clear selector
 		function clearSelector() {
 			document.getElementById("selectorType").onchange();
+		}
+		
+		// switch querySelectorAll
+		function switchQuerySelectorAll(self) { 
+			var txt = self.innerHTML;
+			self.innerHTML = "Loading...";
+			var frames = document.getElementsByTagName('iframe'), f;
+			for(var i = 0; i < frames.length; i++) {
+				f = window[frames[i].name];
+				f.querySelectorAll = !f.querySelectorAll;
+				
+				f.reloadScript();
+			}
+			
+			if(txt.indexOf("Enabled") !== -1) {
+				txt = "Disabled querySelectorAll";
+			} else if(txt.indexOf("Disabled") != -1) {
+				txt = "Enabled querySelectorAll";
+			}
+			
+			self.innerHTML = txt;
 		}
 	</script>
 	
