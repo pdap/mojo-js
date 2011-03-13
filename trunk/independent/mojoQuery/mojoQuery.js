@@ -911,7 +911,7 @@
 				
 				not: {
 					rex: {
-						SINGLE: /[^ ]{1}[,.:\[]/
+						SINGLE: /[^ ][,.:\[]/
 					},
 					testStr: ":not(html)",
 					testFn: function(param, rex) {
@@ -926,11 +926,11 @@
 			.addRex({
 				UN_PARAMS: /(?:_\d+_)+/g,
 				UN_WITH_COMMA: /[^,]*_\d+_[^,]*/g,
-				TRIM_COMMA: /^,+|,+$/g,
+				TRIM_COMMA: /^,+|,+$|,+(?=,)/g,
 				UN_WITH_RE: /([ +~>](?=_\d+_))/,
 				UN_RE: /[ +>]|(?:~[^=])/,
 				UN: /_\d+_/g,
-				PSEU_NUM: /:\D+\d+/g,
+				PSEU_NUM: /:[^:]+\d+/g,
 				
 				UNSUPPORTED: function() { 
 					var rexStr = ["\\[[^!]+!=[^\\]]+\\]"], p;
@@ -947,6 +947,7 @@
 					
 					for(p in paramPseudos) {
 						try {
+							// parameter pseudo
 							document.querySelectorAll(paramPseudos[p].testStr);						
 						} catch(e) {
 							rexStr.push(":" + p);
@@ -996,7 +997,9 @@
 							p     = RegExp["$`"];
 							
 							// get value of parameter
-							while(PSEU_NUM.test(param)) {
+							// IE8 has something wrong with "PSEU_NUM.test(param)"
+							// because "PSEU_NUM" has "g" paramter
+							while(param.search(PSEU_NUM) !== -1) {
 								param = param.replace(NUM, function(matched){
 									return pseuParams[matched];
 								});
@@ -1004,7 +1007,7 @@
 							
 							s = p + param;
 							
-							if(UNSUPPORTED.test(p)) {
+							if(p.search(UNSUPPORTED) !== -1) {
 								// pseudo selector is unsupported then put it in array 
 								// and replace it
 								return "_" + (params.push(s) - 1) + "_"								
@@ -1014,7 +1017,7 @@
 								if(testFn = o.testFn) {
 									param = param.substring(1, param.length - 1);
 									
-									if(UNSUPPORTED.test(param) || !testFn(param, o.rex)) {
+									if(param.search(UNSUPPORTED) !== -1 || !testFn(param, o.rex)) {
 										return "_" + (params.push(s) - 1) + "_"
 									}
 								}
