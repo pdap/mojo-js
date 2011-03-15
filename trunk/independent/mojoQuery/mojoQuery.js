@@ -1169,6 +1169,17 @@
 								lastIndex = this.rex.UN_PARAMS.lastIndex;
 							}
 							
+							// after last UN_PARAMS matched selector
+							if((s = selector.substring(lastIndex))) {
+								if((lastIndex = s.search(this.rex.UN_RE)) !== -1) {
+									str += s.substring(0, lastIndex);
+									s    = s.substring(lastIndex);
+								} else {
+									str += s;
+									s = null;
+								}
+							}						
+							
 							res.push(str, unstr);
 							
 							for (str = 0, unstr = res.length; str < unstr; str += 2) {
@@ -1177,10 +1188,10 @@
 								}), this.query(res[str], arr));
 							}
 							
-							if((s = selector.substring(lastIndex))) {
-								arr = this.query(s, arr);
+							if(s) {
+								arr = this.filterEls(s, arr);
 							}
-						
+							
 							results = results.concat(arr);
 						}
 						
@@ -1203,6 +1214,7 @@
 			author: "scott.cgi",
 			version: "1.4.0"
 		};
+		
 		// make mojoQuery globel
 		window.mojoQuery = mojoQuery;
 		
