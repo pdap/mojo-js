@@ -1101,10 +1101,9 @@
 				 */
 				query: function(selector, context) {
 					var 
-						cache = [], 
 						i, len, s,
 						str, unstr, arr, res, lastIndex,
-						params, unsupporteds, results;
+						params, unsupporteds, results, cache;
 					
 					switch (typeof context) {
 						case "string":
@@ -1112,16 +1111,20 @@
 							break;
 							
 						case "object":
-							if (context) {
-								selector = this.buildSelector(selector, context.nodeType ? [context] : context, cache);
+							if (context.nodeType) {
+								context = [context];
 							}
 					}
 					
-					try {
-						return this.makeArray(document.querySelectorAll(selector));
-					} catch(e) {
-						e = selector;
+					if(!this.rex.UNSUPPORTED.test(selector)) {
+						selector = this.buildSelector(selector, context, cache = []);
 						
+						for(i = 0, len = cache.length; i < len; i++) {
+							cache[i].removeAttribute("id");
+						}					
+							
+						return this.makeArray(document.querySelectorAll(selector));
+					} else {
 						// array of unsupported selector which already replaced
 						unsupporteds = []; 
 						// replaced string for replace unsupported selector
@@ -1179,7 +1182,7 @@
 									s = null;
 								}
 							}						
-							
+
 							res.push(str, unstr);
 							
 							for (str = 0, unstr = res.length; str < unstr; str += 2) {
@@ -1189,7 +1192,7 @@
 							}
 							
 							if(s) {
-								arr = this.filterEls(s, arr);
+								arr = this.query(s, arr);
 							}
 							
 							results = results.concat(arr);
@@ -1201,11 +1204,7 @@
 						}
 						
 						return results;
-					} finally {
-						for(i = 0, len = cache.length; i < len; i++) {
-							cache[i].removeAttribute("id");
-						}
-					}
+					} 
 				}
 			});
 		}
