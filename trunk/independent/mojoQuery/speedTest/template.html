@@ -13,6 +13,7 @@
 		var querySelectorAll   = false;
 		var dQuerySelectorAll  = document.querySelectorAll;
 		var deQuerySelectorAll = document.documentElement.querySelectorAll;
+		var head = document.getElementsByTagName("head")[0];
 		
 		if(params[0] !== "native") {
 		    if (!querySelectorAll) {
@@ -34,7 +35,12 @@
 					document.querySelectorAll = null;
 					document.documentElement.querySelectorAll = null;					
 				}
-				document.getElementById("libScript").src = params[0];
+				
+				head.removeChild(document.getElementById("libScript"));
+				var lib = document.createElement("script");
+				lib.id  = "libScript";
+				lib.src = params[0];
+				head.appendChild(lib);
 			}
 		}
 		
