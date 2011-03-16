@@ -1041,36 +1041,44 @@
 				},
 				
 				/**
-				 * Build selector by HTMLElement array context
+				 * Query selector by browser native method
 				 * 
 				 * @param  {String} selector
 				 * @param  {Array}  contexts
-				 * @param  {Array}  cache
-				 * @return {String} Contexts corresponds to selector
+				 * @return {Array}  Array of HTMLElements
 				 */
-				buildSelector: function(selector, contexts, cache) {
+				queryByNative: function(selector, contexts) {
 					var 
-						i = 0, 
-						len = contexts.length, 
-						results = [], 
-						el, id;
+						i , el, id
+						len, results, cache;
 					
-					for (; i < len; i++) {
-						el = contexts[i];
-						if (el === document) {
-							results.push(selector);
-						} else {
-							if (!(id = el.id)) {
-								id = "id" + this.tagGuid++;
-								el.id = id;
-								cache.push(el);
+					if (contexts) {
+						results = [];
+						cache   = [];						
+						for (i = 0, len = contexts.length; i < len; i++) {
+							el = contexts[i];
+							if (el === document) {
+								results.push(selector);
+							} else {
+								if (!(id = el.id)) {
+									id = "id" + this.tagGuid++;
+									el.id = id;
+									cache.push(el);
+								}
+								
+								results.push("#" + id + " " + selector);
 							}
-							
-							results.push("#" + id + " " + selector);
 						}
+						
+						
+						for (i = 0, len = cache.length; i < len; i++) {
+							cache[i].removeAttribute("id");
+						}
+						
+						return this.makeArray(document.querySelectorAll(results.join(",")));
+					} else {
+						return this.makeArray(document.querySelectorAll(selector));
 					}
-					
-					return results.join(",");
 				},
 				
 				/**
@@ -1103,11 +1111,12 @@
 					var 
 						i, len, s,
 						str, unstr, arr, res, lastIndex,
-						params, unsupporteds, results, cache;
+						params, unsupporteds, results, st;
 					
 					switch (typeof context) {
 						case "string":
 							selector = context + " " + selector; 
+							context  = null;
 							break;
 							
 						case "object":
@@ -1117,13 +1126,7 @@
 					}
 					
 					if(!this.rex.UNSUPPORTED.test(selector)) {
-						selector = this.buildSelector(selector, context, cache = []);
-						
-						for(i = 0, len = cache.length; i < len; i++) {
-							cache[i].removeAttribute("id");
-						}					
-							
-						return this.makeArray(document.querySelectorAll(selector));
+						return this.queryByNative(selector, context);
 					} else {
 						// array of unsupported selector which already replaced
 						unsupporteds = []; 
@@ -1134,7 +1137,8 @@
 						
 						if(selector) {
 							// if here, selector must be supported
-							results = this.makeArray(document.querySelectorAll(selector));
+							results = this.queryByNative(selector, context);
+							st = selector;
 						} else {
 							results = [];
 						}
@@ -1185,20 +1189,24 @@
 
 							res.push(str, unstr);
 							
+							if(context) {
+								arr = context;
+							}
+							
 							for (str = 0, unstr = res.length; str < unstr; str += 2) {
 								arr = this.filterEls(res[str + 1].replace(this.rex.UN, function(matched) {
 									return params[matched.substring(1, matched.length - 1)];
-								}), this.query(res[str], arr));
+								}), this.queryByNative(res[str], arr));
 							}
 							
 							if(s) {
-								arr = this.query(s, arr);
+								arr = this.queryByNative(s, arr);
 							}
 							
 							results = results.concat(arr);
 						}
 						
-						if(e.indexOf(",") !== -1) {
+						if((st && st.indexOf(",") !== -1) || len > 1) {
 							// if here, may hava duplicate HTMLElement
 							return this.makeDiff(results);
 						}
