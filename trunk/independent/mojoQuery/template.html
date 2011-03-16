@@ -2888,16 +2888,17 @@ the final editorial review.</p>
 //	document.querySelectorAll = null;
 </script>
 <script type="text/javascript" src="mojoQuery.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 <script type="text/javascript">
-		var both = ":empty";
-		
-		var selector = "" + both;
-		
-		var arr = mojoQuery(selector);
-		for(var i = 0, len = arr.length; i < len; i++) {
-			if(arr[i] === document.documentElement) continue;
-			arr[i].style.backgroundColor = 'blue';
-		}
+//		var both = ":empty";
+//		
+//		var selector = "" + both;
+//		
+//		var arr = mojoQuery(selector);
+//		for(var i = 0, len = arr.length; i < len; i++) {
+//			if(arr[i] === document.documentElement) continue;
+//			arr[i].style.backgroundColor = 'blue';
+//		}
 		
 //		alert(arr.length)
 		
@@ -2907,9 +2908,10 @@ the final editorial review.</p>
 //		}	
 //		
 //		alert(arr.length)
-		
-		alert(document.getElementsByTagName("*").length);
-		alert(document.querySelectorAll(" *").length);
 
+
+var s = new Date().getTime();
+mojoQuery(":not(a,p):not(a)>p");
+alert(new Date().getTime() - s);
 </script>
 </html>
