@@ -43,7 +43,7 @@
 				PSEU: /[^:]+/g,
 				NUM: /\d+/,
 				NTH: /(-?\d*)n([+-]?\d*)/,
-				RULES: /((?:#.+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.+)*)/
+				RULES: /((?:#[^.:\[]+)*)([a-zA-Z*]*)([^\[:]*)((?:\[.+\])*)((?::.+)*)/
 			},
 
 			/**
@@ -177,7 +177,7 @@
 				// rules[3]: class selecotr
 				// rules[4]: attribute selector
 				// rules[5]: pseudo selector  									
-				rules = this.rex.RULES.exec(selector);;
+				rules = this.rex.RULES.exec(selector);
 				
 				// id selector
 				if (id = rules[1]) { 
@@ -322,34 +322,30 @@
 			 */
 			filterPseudo: function(els, pseudoRules){
 				var 
-					len = els.length, 
-					i   = 0, 
-					m   = pseudoRules.length,
-					matched = [],
-					n, el, pseudo;
+					n       = 0, 
+					m       = pseudoRules.length,
+					matched = els,
+					len, el, pseudo, hasParam, param, i;
 				
-				for(; i < len; i++) {
-					el = els[i];
+				for(; n < m; n += 3) {
+					pseudo   = pseudoRules[n + 1];
+					hasParam = pseudoRules[n];
+					param    = pseudoRules[n + 2];
+					els      = matched;
+					matched  = [];
 					
-					for (n = 0; n < m; n += 3) {
-						pseudo = pseudoRules[n + 1];
-						
-						if (pseudoRules[n]) {
-							// with parameter
-							
-							if (!pseudo(el, pseudoRules[n + 2], this)) {
-								break;
+					for(i = 0, len = els.length; i < len; i++) {
+						el = els[i];
+						if(hasParam) {
+							if (!pseudo(el, i, param, this)) {
+								continue;
 							}
 						} else {
-							// no parameter
-							
-							if(!pseudo(el)) {
-								break;
-							}	
+							if (!pseudo(el, i, len)) {
+								continue;
+							}
 						}
-					}
-					
-					if(n === m) {
+						
 						matched.push(el);
 					}
 				}
@@ -739,13 +735,6 @@
 						// param[2]: parameter before "n"
 						// param[3]: paramter after "n"
 						param = [guid, true, param, RegExp.$2 * 1];
-						
-						// optimize "nth:child(n)" 
-						// this pseudo means all child nodes fit
-						// so no need execute this pseudo filter
-						//if (param[2] === 1 && param[3] === 0) {
-						//	return;
-						//}
 					} else {
 						// param[0]: Identifies HTMLElement
 						// param[1]: whether "nth-child()" has "n" parameter
@@ -755,7 +744,7 @@
 					
 					return param;				
 				},
-				fn: function(el, param, joQuery) {
+				fn: function(el, arrIndex, param, joQuery) {
 					var
 					    pel, index, node, i, data;
 					
@@ -795,7 +784,7 @@
 					
 					return param;		
 				},
-				fn: function(el, params, joQuery) {
+				fn: function(el, arrIndex, params, joQuery) {
 					var 
 						i   = 0,
 						len = params.length,
@@ -877,6 +866,23 @@
 			
 			empty: function(el){
 				return !el.firstChild;
+			},
+			
+            //position//			
+			first: function(el, i) {
+				return i === 0;
+			},
+	
+			last: function(el, i, len) {
+				return i === (len - 1);
+			},
+	
+			even: function(el, i) {
+				return i % 2 === 0;
+			},
+	
+			odd: function(el, i) {
+				return i % 2 === 1;
 			}				
 		};
 		
@@ -903,318 +909,6 @@
 					return results;
 				}
 			}
-
-			joQuery.addParamPseudos({
-				"nth-child": {
-					testStr: ":nth-child(n)"
-				},
-				
-				not: {
-					rex: {
-						SINGLE: /[^ ][,.:\[]/
-					},
-					testStr: ":not(html)",
-					testFn: function(param, rex) {
-						if(rex.SINGLE.test(param) || param.indexOf(":not") !== -1) {
-							return false;
-						}
-						return true;
-					}					
-				}
-			})
-			
-			.addRex({
-				UN_PARAMS: /(?:_\d+_)+/g,
-				UN_WITH_COMMA: /[^,]*_\d+_[^,]*/g,
-				TRIM_COMMA: /^,+|,+$|,+(?=,)/g,
-				UN_WITH_RE: /([ +~>](?=_\d+_))/,
-				UN_RE: /[ +>]|(?:~[^=])/,
-				UN: /_\d+_/g,
-				PSEU_NUM: /:[^:]+\d+/g,
-				
-				UNSUPPORTED: function() { 
-					var rexStr = ["\\[[^!]+!=[^\\]]+\\]"], p;
-					
-					for (p in pseudos) {
-						p = ":" + p;
-						try {
-							// no parameter pseudo
-							document.querySelectorAll(p);
-						} catch (e) { 
-							rexStr.push(p);
-						}
-					}
-					
-					for(p in paramPseudos) {
-						try {
-							// parameter pseudo
-							document.querySelectorAll(paramPseudos[p].testStr);						
-						} catch(e) {
-							rexStr.push(":" + p);
-						}
-					}					
-					
-					return new RegExp(rexStr.join("|"), "g");
-				}.call(joQuery)
-			})
-			
-			.extend({
-				/**
-				 * Replace unsupported selector and put it in array
-				 * 
-				 * @param  {String} selector
-				 * @param  {Array}  params
-				 * @param  {Array}  unsupporteds
-				 * @retrun {String} Replaced selector 
-				 */
-				replaceUnsupported: function(selector, params, unsupporteds) {
-					var 
-						pseuParams  = [],
-						NUM         = this.rex.NUM,
-						PSEU_NUM    = this.rex.PSEU_NUM,
-						PSEU_PARAM  = this.rex.PSEU_PARAM,
-						UNSUPPORTED = this.rex.UNSUPPORTED,
-						pp          = paramPseudos;  
-					
-					selector = this.trim(selector);
-					
-					// remove pseudo selector parameter and put in array
-					while(selector.indexOf("(") !== -1) {
-						selector = selector.replace(PSEU_PARAM, function(matched){
-							return pseuParams.push(matched) - 1;
-						});
-					}
-					
-					if(pseuParams.length) {
-						// replace unsupported paramter pseudo selector
-						selector = selector.replace(PSEU_NUM, function(matched){
-							var 
-								p, param, s, testFn, o;
-							
-							NUM.test(matched);
-							param = pseuParams[RegExp["$&"]];
-							// pseudo name
-							p     = RegExp["$`"];
-							
-							// get value of parameter
-							// IE8 has something wrong with "PSEU_NUM.test(param)"
-							// because "PSEU_NUM" has "g" paramter
-							while(param.search(PSEU_NUM) !== -1) {
-								param = param.replace(NUM, function(matched){
-									return pseuParams[matched];
-								});
-							}
-							
-							s = p + param;
-							
-							if(p.search(UNSUPPORTED) !== -1) {
-								// pseudo selector is unsupported then put it in array 
-								// and replace it
-								return "_" + (params.push(s) - 1) + "_"								
-							} else {  
-								o = pp[p.substring(1)];
-								// test pseudo's parameter whether is all supported 
-								if(testFn = o.testFn) {
-									param = param.substring(1, param.length - 1);
-									
-									if(param.search(UNSUPPORTED) !== -1 || !testFn(param, o.rex)) {
-										return "_" + (params.push(s) - 1) + "_"
-									}
-								}
-								
-								// then the matched pseudo is supported 
-								// return  original value
-								return s;
-							}
-						});
-					}
-
-					return selector
-									// replace unuspported pseudo selector
-									.replace(UNSUPPORTED, function(matched) {
-										return "_" + (params.push(matched) - 1) + "_";
-								    })
-									.replace(this.rex.UN_WITH_COMMA, function(matched) {
-										unsupporteds.push(matched);
-										return "";
-									}).replace(this.rex.TRIM_COMMA, "");
-				},
-				
-				/**
-				 * Query selector by browser native method
-				 * 
-				 * @param  {String} selector
-				 * @param  {Array}  contexts
-				 * @return {Array}  Array of HTMLElements
-				 */
-				queryByNative: function(selector, contexts) {
-					var 
-						i , el, id
-						len, results, cache;
-					
-					if (contexts) {
-						results = [];
-						cache   = [];						
-						for (i = 0, len = contexts.length; i < len; i++) {
-							el = contexts[i];
-							if (el === document) {
-								results.push(selector);
-							} else {
-								if (!(id = el.id)) {
-									id = "id" + this.tagGuid++;
-									el.id = id;
-									cache.push(el);
-								}
-								
-								results.push("#" + id + " " + selector);
-							}
-						}
-						
-						
-						for (i = 0, len = cache.length; i < len; i++) {
-							cache[i].removeAttribute("id");
-						}
-						
-						return this.makeArray(document.querySelectorAll(results.join(",")));
-					} else {
-						return this.makeArray(document.querySelectorAll(selector));
-					}
-				},
-				
-				/**
-				 * Filter HTMLElements by unspported selector
-				 * 
-				 * @param  {String} selector
-				 * @param  {Array}  els
-				 * @return {Array}  Filtered HTMLElements array
-				 */				
-				filterEls: function(selector, els) {
-					var rules, attrs, pseudos;
-					
-					rules = this.rex.RULES.exec(this.replaceAttrPseudo(selector));
-					
-					if (attrs = rules[4]) {
-						els = this.filterAttr(els, this.getAttrRules(attrs.match(this.rex.ATTR_PARAM), this.attrParams));
-					}
-					
-					if (pseudos = rules[5]) {
-						els = this.filterPseudo(els, this.getPseudoRules(pseudos.match(this.rex.PSEU), this.pseuParams));
-					}
-					
-					return els;
-				},
-				
-				/**
-				 * Rewrite query method using builtin method "querySelectorAll"
-				 */
-				query: function(selector, context) {
-					var 
-						i, len, s,
-						str, unstr, arr, res, lastIndex,
-						params, unsupporteds, results, st;
-					
-					switch (typeof context) {
-						case "string":
-							selector = context + " " + selector; 
-							context  = null;
-							break;
-							
-						case "object":
-							if (context.nodeType) {
-								context = [context];
-							}
-					}
-					
-					if(!this.rex.UNSUPPORTED.test(selector)) {
-						return this.queryByNative(selector, context);
-					} else {
-						// array of unsupported selector which already replaced
-						unsupporteds = []; 
-						// replaced string for replace unsupported selector
-						params       = []; 
-					
-						selector = this.replaceUnsupported(selector, params, unsupporteds);
-						
-						if(selector) {
-							// if here, selector must be supported
-							results = this.queryByNative(selector, context);
-							st = selector;
-						} else {
-							results = [];
-						}
-						
-						for(i = 0, len = unsupporteds.length; i < len; i++) {
-							// supported and unspported selctor
-							str = unstr = "";
-							res = [];
-							lastIndex = 0;							
-							
-							// if unsupported selector not follow by tag selector
-							// then add "*"
-							selector = (" " + unsupporteds[i]).replace(this.rex.UN_WITH_RE, "$1*"); 
-							
-							// move and merge selector support and unsupported parts 
-							while((arr = this.rex.UN_PARAMS.exec(selector)) !== null) {
-								// string form last postion to this UN_PARAMS matched start index
-								s = selector.substring(lastIndex, arr.index); 
-								
-								// whether "s" has relative rule
-								if(str.length && (lastIndex = s.search(this.rex.UN_RE)) !== -1) {
-									// merge part of supported
-									str += s.substring(0, lastIndex); 
-									// add supported and unsupported
-									res.push(str, unstr);
-									// "s" has relative rule after UN_PARAMS matched
-									str   = s.substring(lastIndex);
-									unstr = "";
-								} else {
-									// means "s" not have unsupported
-									str += s;
-								}
-								// merge part of unsupported
-								unstr += arr[0];
-								lastIndex = this.rex.UN_PARAMS.lastIndex;
-							}
-							
-							// after last UN_PARAMS matched selector
-							if((s = selector.substring(lastIndex))) {
-								if((lastIndex = s.search(this.rex.UN_RE)) !== -1) {
-									str += s.substring(0, lastIndex);
-									s    = s.substring(lastIndex);
-								} else {
-									str += s;
-									s = null;
-								}
-							}						
-
-							res.push(str, unstr);
-							
-							if(context) {
-								arr = context;
-							}
-							
-							for (str = 0, unstr = res.length; str < unstr; str += 2) {
-								arr = this.filterEls(res[str + 1].replace(this.rex.UN, function(matched) {
-									return params[matched.substring(1, matched.length - 1)];
-								}), this.queryByNative(res[str], arr));
-							}
-							
-							if(s) {
-								arr = this.queryByNative(s, arr);
-							}
-							
-							results = results.concat(arr);
-						}
-						
-						if((st && st.indexOf(",") !== -1) || len > 1) {
-							// if here, may hava duplicate HTMLElement
-							return this.makeDiff(results);
-						}
-						
-						return results;
-					} 
-				}
-			});
 		}
 		
 		mojoQuery.info = {
