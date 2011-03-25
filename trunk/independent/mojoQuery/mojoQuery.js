@@ -94,6 +94,11 @@
 					// selector on both sides of relative rule  
 					selector = selector.match(this.rex.NRE_RULE);
 					
+					// selector start with relative rule
+					if(rules.length > selector.length) {
+						rules.shift();
+					}					
+					
 					// each iteration, use before parse result as this context
 					contexts = context;
 					
@@ -244,28 +249,29 @@
 			/**
 			 * Get attribute parse functions
 			 * 
-			 * @param  {Array} attrs       
+			 * @param  {Array} arrAttr       
 			 * @param  {Array} attrParams  
 			 * @return {Array} Array of attribute parse function    
 			 */
-			getAttrRules: function(attrs, attrParams) {
+			getAttrRules: function(arrAttr, attrParams) {
 				var
-					arr = [],
-					len = attrs.length,
-					rex = this.rex.ATTR,
-					i   = 0,
+					arr   = [],
+					len   = arrAttr.length,
+					rex   = this.rex.ATTR,
+					i     = 0,
+					attrs = attributes,
 					attr;
 				
 				for(; i < len; i++) {
-					attr = attrParams[attrs[i]].replace(this.rex.TRIM, "");
+					attr = attrParams[arrAttr[i]].replace(this.rex.TRIM, "");
 					
 					if(this.rex.ATTR.test(attr)) {
 						attr = RegExp["$'"];
 						// [function, name, value] are put in arr
-						arr.push(attributes[RegExp["$&"]], RegExp["$`"], attr);
+						arr.push(attrs[RegExp["$&"]], RegExp["$`"], attr);
 					} else {
 						// only has attribute name
-						arr.push(attributes[" "], attr, "");
+						arr.push(attrs[" "], attr, "");
 					}
 				}	
 				
@@ -281,32 +287,30 @@
 			 */
 			getPseudoRules: function(arrPseu, pseuParams) {
 				var 
-					arr  = [],
-					i    = 0,
-					len  = arrPseu.length,
-					guid = this.tagGuid++,
-					pseu;
+					arr   = [],
+					i     = 0,
+					len   = arrPseu.length,
+					guid  = this.tagGuid++,
+					pseus = pseudos,
+					pseu, param;
 				
 				for(; i < len; i++) {
 					pseu = arrPseu[i];
 					
 					// pesudo with parameter
-					if (this.rex.NUM.test(pseu)) {
-						// paramPseudos's object
-						pseu = paramPseudos[RegExp["$`"]];						
+					if (this.rex.NUM.test(pseu)) { 
+						// pseudos's object property
+						pseu  = pseus[RegExp["$`"]];	
+						// pesudo parameter					
+						param = pseuParams[RegExp["$&"]].replace(this.rex.TRIM, "");
 						
 						arr.push(
 							true, 
 							pseu.fn, 
-							pseu.getParam(
-								// pesudo parameter
-								pseuParams[RegExp["$&"]].replace(this.rex.TRIM, ""), 
-								this,
-								guid
-							)
+							pseu.getParam ? pseu.getParam(param, this, guid) : param
 						);
 					} else {
-						arr.push(false, pseudos[pseu], null);
+						arr.push(false, pseus[pseu], null);
 					}
 				}	
 
@@ -506,38 +510,54 @@
 			},
 			
 			/**
-			 * Add joQuery rex property
+			 * Get nth pseudo parameter after parsed
 			 * 
-			 * @param  {Object} obj
-			 * @return {Object} joQuery
+			 * @param  {String} param
+			 * @param  {Object} joQuery
+			 * @param  {Number} guid
+			 * @return {Array}  Parsed parameter
 			 */
-			addRex: function(obj) {
-				var p;
-				for(p in obj) {
-					this.rex[p] = obj[p];
-				}
+			getNthParam: function(param, joQuery, guid) {
+				if (joQuery.rex.NTH.test(param === "odd"  && "2n+1" ||
+									     param === "even" && "2n"   || param)) {
+					param = RegExp.$1;
+					
+					param === "" ? 
+					param = 1 : 
+					param === "-" ? 
+					param = -1 : 
+					param = param * 1;
+					
+					// param[0]: Identifies HTMLElement
+					// param[1]: whether "nth-child()" has "n" parameter
+					// param[2]: parameter before "n"
+					// param[3]: paramter after "n"
+					param = [guid, true, param, RegExp.$2 * 1];
+				} else {
+					// param[0]: Identifies HTMLElement
+					// param[1]: whether "nth-child()" has "n" parameter
+					// param[2]: number in like "nth-child(5)"
+					param = [guid, false, param * 1];
+				}			
 				
-				return this;
+				return param;		
 			},
 			
 			/**
-			 * Add paramPseudos
+			 * Check nth pseudo parameter whether matched condition
 			 * 
-			 * @param  {Object} obj
-			 * @return {Object} joQuery
+			 * @param  {Array}  param  parsed parameter
+			 * @param  {Number} index  element index in it's parentNode
+			 * @return {Boolean} Matched or not 
 			 */
-			addParamPseudos: function(obj) {
-				var p, pp;
-				for(p in obj) { 
-					for(pp in obj[p]){ 
-						if(!paramPseudos[p]) {
-							paramPseudos[p] = {};
-						}
-						paramPseudos[p][pp] = obj[p][pp];
-					}
+			checkNthParam: function(param, index) {
+				if (param[1]) {
+					index = index - param[3];
+					param = param[2];
+					return index * param >= 0 && index % param === 0;
 				}
 				
-				return this;
+				return index === param[2];					
 			},
 			
 			/**
@@ -716,34 +736,12 @@
 				return attrVal === inputVal || attrVal.substring(0, inputVal.length + 1) === inputVal + "-";
 			}
 		},
-		
-		paramPseudos = {
+
+		pseudos = {
+			
+			//css//
 			"nth-child": {
-				getParam: function(param, joQuery, guid) {
-					if (joQuery.rex.NTH.test(param === "odd" && "2n+1" ||
-										     param === "even" && "2n"  || param)) {
-						param = RegExp.$1;
-						
-						param === "" ? 
-						param = 1 : 
-						param === "-" ? 
-						param = -1 : 
-						param = param * 1;
-						
-						// param[0]: Identifies HTMLElement
-						// param[1]: whether "nth-child()" has "n" parameter
-						// param[2]: parameter before "n"
-						// param[3]: paramter after "n"
-						param = [guid, true, param, RegExp.$2 * 1];
-					} else {
-						// param[0]: Identifies HTMLElement
-						// param[1]: whether "nth-child()" has "n" parameter
-						// param[2]: number in like "nth-child(5)"
-						param = [guid, false, param * 1];
-					}		
-					
-					return param;				
-				},
+				getParam: joQuery.getNthParam,
 				fn: function(el, arrIndex, param, joQuery) {
 					var
 					    pel, index, node, i, data;
@@ -762,13 +760,7 @@
 						
 					index = joQuery.getElData(el).nodeIndex;
 					
-					if (param[1]) {
-						index = index - param[3];
-						param = param[2];
-						return index * param >= 0 && index % param === 0;
-					}
-					
-					return index === param[2];					
+					return joQuery.checkNthParam(param, index);				
 				}
 			},
 			
@@ -784,7 +776,7 @@
 					
 					return param;		
 				},
-				fn: function(el, arrIndex, params, joQuery) {
+				fn: function(el, index, params, joQuery) {
 					var 
 						i   = 0,
 						len = params.length,
@@ -804,12 +796,11 @@
 							return false;
 						}
 					}	
+					
 					return true;					
 				}
-			}
-		},
-		
-		pseudos = {
+			},			
+			
 			"first-child": function(el) {
 				while (el = el.previousSibling)	 {
 					if (el.nodeType === 1) { 
@@ -868,6 +859,7 @@
 				return !el.firstChild;
 			},
 			
+			
             //position//			
 			first: function(el, i) {
 				return i === 0;
@@ -883,6 +875,21 @@
 	
 			odd: function(el, i) {
 				return i % 2 === 1;
+			},
+			
+			nth: {
+				getParam: joQuery.getNthParam,
+				fn: function(el, index, param, joQuery) {
+					return joQuery.checkNthParam(param, index);
+				}
+			},
+			
+			
+			//additions//
+			contains: {
+				fn: function(el, index, param){
+					return (el.textContent || el.innerText || "").indexOf(param) !== -1;
+				}
 			}				
 		};
 		
