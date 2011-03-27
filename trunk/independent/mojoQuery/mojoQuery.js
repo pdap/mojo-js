@@ -34,8 +34,7 @@
 				RE_RULE: /[ +>~]/g,
 				NRE_RULE: /[^ +>~]+/g,
 				TRIM_LR: /^ +| +$/g,
-				TRIM_RE: / *([ +>~,]) */g,
-				TRIM: / +/g,
+				TRIM: / *(\W+) */g,
 				PSEU_PARAM: /\([^()]+\)/g,
 				ATTR_PARAM: /[^\[]+(?=\])/g,
 				ATTR: /[!\^$*|~]?=/,
@@ -132,7 +131,7 @@
 								.replace(this.rex.TRIM_LR, "")	
 								
 								// trim relative rule both sides space
-								.replace(this.rex.TRIM_RE, "$1");								
+								.replace(this.rex.TRIM, "$1");								
 			},
 			
 			/**
@@ -263,7 +262,7 @@
 					attr;
 				
 				for(; i < len; i++) {
-					attr = attrParams[arrAttr[i]].replace(this.rex.TRIM, "");
+					attr = attrParams[arrAttr[i]];
 					
 					if(this.rex.ATTR.test(attr)) {
 						attr = RegExp["$'"];
@@ -302,7 +301,7 @@
 						// pseudos's object property
 						pseu  = pseus[RegExp["$`"]];	
 						// pesudo parameter					
-						param = pseuParams[RegExp["$&"]].replace(this.rex.TRIM, "");
+						param = pseuParams[RegExp["$&"]];
 						
 						arr.push(
 							true, 
@@ -889,6 +888,66 @@
 			contains: {
 				fn: function(el, index, param){
 					return (el.textContent || el.innerText || "").indexOf(param) !== -1;
+				}
+			},
+			
+			has: {
+				getParam: function(param, joQuery) {
+					var
+						selectors = param.split(","),
+						i         = 0,
+						len       = selectors.length,
+						selector, rules;
+					
+					param = [];
+					
+					// each selector split by comma
+					for(; i < len; i++) {
+						selector = selectors[i];
+						
+						// relative rule array 
+						// add defalut rule " "
+						rules = (" " + selector).match(joQuery.rex.RE_RULE);
+						
+                        // selector on both sides of relative rule  
+                        selector = selector.match(joQuery.rex.NRE_RULE);
+						
+                        // selector start with relative rule
+                        if (rules.length > selector.length) {
+                            rules.shift();
+                        }					
+						
+						param.push(selector, rules);
+					}	
+						
+					return param;	
+				},
+				fn: function(el, index, param, joQuery) {
+					var 
+						i        = 0,
+						len      = param.length,
+						results  = [],
+						context  = [el],
+						selector, rules,
+						contexts, n, m;
+					
+					// each selector split by comma
+					for(; i < len; i += 2) {
+						contexts = context;
+						
+						selector = param[i];
+						rules    = param[i + 1];
+						
+                        // parse selector by each relative rule
+                        for (n = 0, m = rules.length; n < m; n++) {
+                            contexts = joQuery.parse(selector[n], contexts, rules[n]);
+                        }					
+						
+                        // concat results of comma delimited selector
+                        results = results.concat(contexts);				
+					}	
+					
+					return results.length !== 0;
 				}
 			}				
 		};
