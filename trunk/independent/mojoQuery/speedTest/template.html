@@ -22,6 +22,8 @@
 			}	
 			
 			document.writeln("<script id='libScript' type='text/javascript' src=" + params[0] + "></" + "script>");
+		} else {
+			document.writeln("<script id='libScript' type='text/javascript' ></" + "script>");
 		}
 		
 		window.queryMethod = params[1];
