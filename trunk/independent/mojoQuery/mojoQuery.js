@@ -34,7 +34,7 @@
 				RE_RULE: /[ +>~]/g,
 				NRE_RULE: /[^ +>~]+/g,
 				TRIM_LR: /^ +| +$/g,
-				TRIM: / *(\W+) */g,
+				TRIM: / *([^a-zA-Z*]) */g,
 				PSEU_PARAM: /\([^()]+\)/g,
 				ATTR_PARAM: /[^\[]+(?=\])/g,
 				ATTR: /[!\^$*|~]?=/,
@@ -226,9 +226,7 @@
 				// rules[5]: pseudo selector  	
 				rules = this.rex.RULES.exec(selector);
 				
-				if(!rules[2]) {
-					rules[2] = "*";
-				}
+				rules[2] = rules[2] || "*";
 				
 				rules[3] = rules[3].replace(this.rex.CLS, "");
 				
@@ -594,10 +592,10 @@
 				for(; i < len; i++) {
 					el  = contexts[i];
 					if(pel = el.parentNode) {
+						joQuery.getElData(el).tagGuid = guid;
 						if(joQuery.getElData(pel).tagGuid === guid) {
 							continue;
 						}
-						joQuery.getElData(el).tagGuid = guid;
 					}
 					
 					nodes = el.getElementsByTagName(tag);	
