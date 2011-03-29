@@ -525,19 +525,22 @@
 					param = -1 : 
 					param = param * 1;
 					
-					// param[0]: Identifies HTMLElement
-					// param[1]: whether "nth-child()" has "n" parameter
-					// param[2]: parameter before "n"
-					// param[3]: paramter after "n"
-					param = [guid, true, param, RegExp.$2 * 1];
-				} else {
-					// param[0]: Identifies HTMLElement
-					// param[1]: whether "nth-child()" has "n" parameter
-					// param[2]: number in like "nth-child(5)"
-					param = [guid, false, param * 1];
-				}			
+					if(param !== 0) {
+						// param[0]: Identifies HTMLElement
+						// param[1]: whether "nth-child()" has "n" parameter
+						// param[2]: parameter before "n"
+						// param[3]: paramter after "n"
+						return [guid, true, param, RegExp.$2 * 1];						
+					}
+					
+					// the "0n" matched
+					param = RegExp.$2;
+				} 
 				
-				return param;		
+				// param[0]: Identifies HTMLElement
+				// param[1]: whether "nth-child()" has "n" parameter
+				// param[2]: number in like "nth-child(5)"
+				return [guid, false, param * 1];		
 			},
 			
 			/**
@@ -555,6 +558,43 @@
 				}
 				
 				return index === param[2];					
+			},
+			
+            /**
+             * Create el index in parent's order 
+             * and return this index
+             * 
+             * @param  {HTMLElement} el   
+             * @param  {Number}      guid
+             * @param  {Boolean}     last
+             * @return {Number}      index
+             */
+			createIndx: function(el, guid, last) {
+				var
+				    pel, index, node, i, data, first, next;
+				
+				if ((pel = el.parentNode) && (data = this.getElData(pel)).tagGuid !== guid) { 
+					if(last) {
+						first = "firstChild";
+						next  = "nextSibling";
+					} else {
+						first = "lastChild";
+						next  = "previousSibling";
+					}
+					
+					i    = 1;
+					node = pel[first];
+					while (node) {
+						if (node.nodeType === 1) {
+							this.getElData(node).nodeIndex = i++;
+						}
+						node = node[next];
+					}
+					
+					data.tagGuid = guid;
+				}
+					
+				return this.getElData(el).nodeIndex;				
 			},
 			
 			/**
@@ -855,6 +895,10 @@
 			empty: function(el){
 				return !el.firstChild;
 			},
+			
+			selected: function(el) {
+				return el.selected === true;
+			} ,
 			
 			
             //position//			
