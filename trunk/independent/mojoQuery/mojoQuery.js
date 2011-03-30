@@ -566,22 +566,15 @@
              * 
              * @param  {HTMLElement} el   
              * @param  {Number}      guid
-             * @param  {Boolean}     last
+             * @param  {String}      first
+             * @param  {String}      next
              * @return {Number}      index
              */
-			createIndx: function(el, guid, last) {
+			createIndex: function(el, guid, first, next) {
 				var
-				    pel, index, node, i, data, first, next;
+				    pel, index, node, i, data;
 				
 				if ((pel = el.parentNode) && (data = this.getElData(pel)).tagGuid !== guid) { 
-					if(last) {
-						first = "firstChild";
-						next  = "nextSibling";
-					} else {
-						first = "lastChild";
-						next  = "previousSibling";
-					}
-					
 					i    = 1;
 					node = pel[first];
 					while (node) {
@@ -780,24 +773,14 @@
 			"nth-child": {
 				getParam: joQuery.getNthParam,
 				fn: function(el, arrIndex, param, joQuery) {
-					var
-					    pel, index, node, i, data;
-					
-					if ((pel = el.parentNode) && (data = joQuery.getElData(pel)).tagGuid !== param[0]) { 
-						node = pel.firstChild;
-						i = 1;
-						while (node) {
-							if (node.nodeType === 1) {
-								joQuery.getElData(node).nodeIndex = i++;
-							}
-							node = node.nextSibling
-						}
-						data.tagGuid = param[0];
-					}
-						
-					index = joQuery.getElData(el).nodeIndex;
-					
-					return joQuery.checkNthParam(param, index);				
+					return joQuery.checkNthParam(param, joQuery.createIndex(el, param[0], "firstChild", "nextSibling"));				
+				}
+			},
+			
+			"nth-last-child": {
+				getParam: joQuery.getNthParam,
+				fn: function(el, arrIndex, param, joQuery) {
+					return joQuery.checkNthParam(param, joQuery.createIndex(el, param[0], "lastChild", "previousSibling"));
 				}
 			},
 			
