@@ -540,7 +540,7 @@
 				// param[0]: Identifies HTMLElement
 				// param[1]: whether "nth-child()" has "n" parameter
 				// param[2]: number in like "nth-child(5)"
-				return [guid, false, param * 1];		
+				return [guid, false, param * 1, null];		
 			},
 			
 			/**
@@ -559,35 +559,54 @@
 				
 				return index === param[2];					
 			},
-			
-            /**
-             * Create el index in parent's order 
-             * and return this index
-             * 
-             * @param  {HTMLElement} el   
-             * @param  {Number}      guid
-             * @param  {String}      first
-             * @param  {String}      next
-             * @return {Number}      index
-             */
-			createIndex: function(el, guid, first, next) {
-				var
-				    pel, index, node, i, data;
+
+			/**
+			 * Check nth child pseudo parameter whether matched condition
+			 * 
+			 * @param  {HTMLElement} el
+			 * @param  {Number}      i
+			 * @param  {Array}       param
+			 * @param  {Object}      joQuery
+			 * @return {Booelan}     Matched or not
+			 */
+			checkNthChildParam: function(el, i, param, joQuery) {
+				var 
+					data, pel, map, index, checkType,
+					first = param[4],
+					next  = param[5],
+					guid  = param[0]; 
 				
-				if ((pel = el.parentNode) && (data = this.getElData(pel)).tagGuid !== guid) { 
-					i    = 1;
+				data = joQuery.getElData(pel = el.parentNode);
+				
+				if (data.tagGuid !== guid) {
+					if(checkType = param[6]) {
+						map = data.tagMap = {};
+					} else {
+						index = 0;
+					}
+					
 					node = pel[first];
 					while (node) {
 						if (node.nodeType === 1) {
-							this.getElData(node).nodeIndex = i++;
+							if(checkType) {
+                                name = node.nodeName;
+                                if (!map[name]) {
+                                    map[name] = 1;
+                                }				
+								index = map[name]++;			
+							} else {
+								index++;
+							}
+							
+							joQuery.getElData(node).nodeIndex = index;
 						}
 						node = node[next];
 					}
 					
 					data.tagGuid = guid;
 				}
-					
-				return this.getElData(el).nodeIndex;				
+
+				return joQuery.checkNthParam(param, joQuery.getElData(el).nodeIndex);
 			},
 			
 			/**
@@ -771,18 +790,31 @@
 			
 			//css//
 			"nth-child": {
-				getParam: joQuery.getNthParam,
-				fn: function(el, arrIndex, param, joQuery) {
-					return joQuery.checkNthParam(param, joQuery.createIndex(el, param[0], "firstChild", "nextSibling"));				
-				}
+				getParam: function(param, joQuery, guid) {
+					param = joQuery.getNthParam(param, joQuery, guid);
+					param.push("firstChild", "nextSibling", false);
+					return param;
+				},
+				fn: joQuery.checkNthChildParam
 			},
 			
 			"nth-last-child": {
-				getParam: joQuery.getNthParam,
-				fn: function(el, arrIndex, param, joQuery) {
-					return joQuery.checkNthParam(param, joQuery.createIndex(el, param[0], "lastChild", "previousSibling"));
-				}
+				getParam: function(param, joQuery, guid) {
+					param = joQuery.getNthParam(param, joQuery, guid);
+					param.push("lastChild", "previousSibling", false);
+					return param;
+				},
+				fn: joQuery.checkNthChildParam
 			},
+			
+			"nth-of-type": {
+				getParam: function(param, joQuery, guid) {
+					param = joQuery.getNthParam(param, joQuery, guid);
+					param.push("firstChild", "nextSibling", true);
+					return param;
+				},
+				fn: joQuery.checkNthChildParam
+			},			
 			
 			not: {
 				getParam: function(param, joQuery) {
