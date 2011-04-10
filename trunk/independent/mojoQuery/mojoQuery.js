@@ -561,7 +561,7 @@
 			},
 
 			/**
-			 * Check nth child pseudo parameter whether matched condition
+			 * Check nth type child pseudo parameter whether matched condition
 			 * 
 			 * @param  {HTMLElement} el
 			 * @param  {Number}      i
@@ -597,12 +597,10 @@
 							} else {
 								index++;
 							}
-							
 							joQuery.getElData(node).nodeIndex = index;
 						}
 						node = node[next];
 					}
-					
 					data.tagGuid = guid;
 				}
 
@@ -814,7 +812,16 @@
 					return param;
 				},
 				fn: joQuery.checkNthChildParam
-			},			
+			},		
+			
+			"nth-last-of-type": {
+				getParam: function(param, joQuery, guid) {
+					param = joQuery.getNthParam(param, joQuery, guid);
+					param.push("lastChild", "previousSibling", true);
+					return param;
+				},
+				fn: joQuery.checkNthChildParam
+			},					
 			
 			not: {
 				getParam: function(param, joQuery) {
