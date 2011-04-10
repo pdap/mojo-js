@@ -342,7 +342,7 @@
 								continue;
 							}
 						} else {
-							if (!pseudo(el, i, len)) {
+							if (!pseudo(el, i, len, this)) {
 								continue;
 							}
 						}
@@ -561,7 +561,7 @@
 			},
 
 			/**
-			 * Check nth type child pseudo parameter whether matched condition
+			 * Check nth child pseudo parameter whether matched condition
 			 * 
 			 * @param  {HTMLElement} el
 			 * @param  {Number}      i
@@ -608,18 +608,24 @@
 			},
 			
 			/**
-			 * Extend joQuery property
+			 * Check el has sibling 
 			 * 
-			 * @param  {Object} obj
-			 * @return {Object} joQuery
+			 * @param {HTMLElement} el
+			 * @param {String}      next
+			 * @param {Boolean}     checkType
+			 * @param {String}      name
+			 * @return {Boolean}    Has or not
 			 */
-			extend: function(obj) {
-				var p;
-				for(p in obj) {
-					this[p] = obj[p];
+			checkSibling: function(el, next, checkType, name) {
+				while(el = el[next]) {
+					if(el.nodeType === 1) {
+						if(!checkType || name === el.nodeName) {
+							return false;
+						} 
+					}
 				}
 				
-				return this;
+				return true;
 			}			
 		}, 
 		
@@ -860,47 +866,32 @@
 				}
 			},			
 			
-			"first-child": function(el) {
-				while (el = el.previousSibling)	 {
-					if (el.nodeType === 1) { 
-						return false; 
-					}
-				}
-				
-				return true;
+			"first-child": function(el, i, len, joQuery) {
+				return joQuery.checkSibling(el, "previousSibling", false);
 			},
 			
-			"last-child": function(el) {
-				while (el = el.nextSibling)	 {
-					if (el.nodeType === 1) { 
-						return false; 
-					}
-				}
-				
-				return true;					
+			"last-child": function(el, i, len, joQuery) {
+				return joQuery.checkSibling(el, "nextSibling", false);				
 			},
 			
-			"only-child": function(el) {
-				var	
-					next = el.nextSibling,
-					pre  = el.previousSibling;
-				
-				while(next) {
-					if(next.nodeType === 1) {
-						return false;
-					}
-					next = next.nextSibling;
-				}	
-				
-				while(pre) {
-					if(pre.nodeType === 1) {
-						return false;
-					}
-					pre = pre.previousSibling;
-				}			
-				
-				return true;		
+			"only-child": function(el, i, len, joQuery) {
+				return joQuery.checkSibling(el, "previousSibling", false) &&
+				       joQuery.checkSibling(el, "nextSibling", false);		
 			},
+			
+			"first-of-type": function(el, i, len, joQuery) {
+				return joQuery.checkSibling(el, "previousSibling", true, el.nodeName);				
+			},
+			
+			"last-of-type": function(el, i, len, joQuery) {
+				return joQuery.checkSibling(el, "nextSibling", true, el.nodeName);;					
+			},
+			
+			"only-of-type": function(el) {
+				var name = el.nodeName;
+				return joQuery.checkSibling(el, "previousSibling", true, name) &&
+				       joQuery.checkSibling(el, "nextSibling", true, name);		
+			},						
 			
 			enabled: function(el) {
 				return el.disabled === false;
