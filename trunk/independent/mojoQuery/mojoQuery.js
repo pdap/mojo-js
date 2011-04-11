@@ -11,10 +11,10 @@
 		document = window.document,
 		
 		/**
-		 * Select HTMLElements by css seletor
+		 * Select HTMLElements by css seletor and context
 		 * 
 		 * @param  {String} selector
-		 * @param  {Undefined | String | HTMLElement | Array[HTMLElement] | NodeList} context
+		 * @param  {String | HTMLElement | Array[HTMLElement] | NodeList} context (optional)
 		 * @return {Array} Array of HTMLElement
 		 */
 		mojoQuery = function(selector, context) {
@@ -49,7 +49,7 @@
 			 * Get HTMLElement array by selector and context
 			 * 
 			 * @param  {String} selector  
-			 * @param  {Undefined | String | HTMLElement | Array[HTMLElement] | NodeList} context  
+			 * @param  {String | HTMLElement | Array[HTMLElement] | NodeList} context (optional)
 			 * @return {Array} Array of HTMLElement 
 			 */			
 			query: function(selector, context) {
@@ -73,7 +73,7 @@
 							// HTMLElement
 							contexts = [context];							
 						} else {
-							// HTMLElement Array or NodeList
+							// assert HTMLElement Array or NodeList
                             contexts = context;
 						}
 				}				
