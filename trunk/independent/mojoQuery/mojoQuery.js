@@ -94,6 +94,7 @@
 					selector = selector.match(this.rex.NRE_RULE);
 					
 					// selector start with relative rule
+					// remove defalut rule " "
 					if(rules.length > selector.length) {
 						rules.shift();
 					}					
@@ -120,17 +121,17 @@
 			},
 			
 			/**
-			 * Trim space
+			 * Trim extra space
 			 * 
 			 * @param  {String} selector
-			 * @return {String} Selector after tirm space
+			 * @return {String} Selector after tirm
 			 */
 			trim: function(selector) {
 				return selector
 								// trim left and right space
 								.replace(this.rex.TRIM_LR, "")	
 								
-								// trim relative rule both sides space
+								// trim space in selector
 								.replace(this.rex.TRIM, "$1");								
 			},
 			
@@ -301,6 +302,10 @@
 						// pesudo parameter					
 						param = pseuParams[RegExp["$&"]];
 						
+						
+						// arr[0]: whether has parameter
+						// arr[1]: pseudo parse function
+						// arr[2]: parameter
 						arr.push(
 							true, 
 							pseu.fn, 
@@ -546,8 +551,8 @@
 			/**
 			 * Check nth pseudo parameter whether matched condition
 			 * 
-			 * @param  {Array}  param  parsed parameter
-			 * @param  {Number} index  element index in it's parentNode
+			 * @param  {Array}  param  
+			 * @param  {Number} index  
 			 * @return {Boolean} Matched or not 
 			 */
 			checkNthParam: function(param, index) {
@@ -561,7 +566,7 @@
 			},
 
 			/**
-			 * Check nth child pseudo parameter whether matched condition
+			 * Check nth child HTMLELement whether matched condition
 			 * 
 			 * @param  {HTMLElement} el
 			 * @param  {Number}      i
@@ -569,7 +574,7 @@
 			 * @param  {Object}      joQuery
 			 * @return {Booelan}     Matched or not
 			 */
-			checkNthChildParam: function(el, i, param, joQuery) {
+			checkNthChild: function(el, i, param, joQuery) {
 				var 
 					data, pel, map, index, checkType,
 					first = param[4],
@@ -580,6 +585,8 @@
 				
 				if (data.tagGuid !== guid) {
 					if(checkType = param[6]) {
+						// need to check HTMLElement type
+						// so record the type
 						map = data.tagMap = {};
 					} else {
 						index = 0;
@@ -593,8 +600,11 @@
                                 if (!map[name]) {
                                     map[name] = 1;
                                 }				
+								
+								// count child by different type
 								index = map[name]++;			
 							} else {
+								// count all child
 								index++;
 							}
 							joQuery.getElData(node).nodeIndex = index;
@@ -799,7 +809,7 @@
 					param.push("firstChild", "nextSibling", false);
 					return param;
 				},
-				fn: joQuery.checkNthChildParam
+				fn: joQuery.checkNthChild
 			},
 			
 			"nth-last-child": {
@@ -808,7 +818,7 @@
 					param.push("lastChild", "previousSibling", false);
 					return param;
 				},
-				fn: joQuery.checkNthChildParam
+				fn: joQuery.checkNthChild
 			},
 			
 			"nth-of-type": {
@@ -817,7 +827,7 @@
 					param.push("firstChild", "nextSibling", true);
 					return param;
 				},
-				fn: joQuery.checkNthChildParam
+				fn: joQuery.checkNthChild
 			},		
 			
 			"nth-last-of-type": {
@@ -826,7 +836,7 @@
 					param.push("lastChild", "previousSibling", true);
 					return param;
 				},
-				fn: joQuery.checkNthChildParam
+				fn: joQuery.checkNthChild
 			},					
 			
 			not: {
@@ -1030,11 +1040,23 @@
 					return results;
 				}
 			}
+			
+			joQuery.oldQuery = joQuery.query;
+			joQuery.query    = function(selector, context) {
+				if (!context) {
+					try {
+						this.makeArray(document.querySelectorAll(selector));
+					} 
+					catch (e) {}
+				}
+				
+				return oldQuery(selctor, context);
+			}
 		}
 		
 		mojoQuery.info = {
 			author: "scott.cgi",
-			version: "1.4.0"
+			version: "1.5.0"
 		};
 		
 		// make mojoQuery globel
