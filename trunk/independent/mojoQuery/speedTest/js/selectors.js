@@ -82,68 +82,94 @@ window.attrSelectors = [
 window.pseuSelectors = [
 
 'p:nth-child(even)',
-'p:nth-last-child(even)',
-'p:nth-of-type(even)',
-'p:nth-last-of-type(even)',
 
 'p:nth-child(odd)', 
-'p:nth-last-child(odd)',
-'p:nth-of-type(odd)',
-'p:nth-last-of-type(odd)',
+
 
 'p:nth-child(2n)',
-'p:nth-last-child(2n)',
-'p:nth-of-type(2n)',
-'p:nth-last-of-type(2n)',
+
 
 'p:nth-child(3n)',
-'p:nth-last-child(3n)',
-'p:nth-of-type(3n)',
-'p:nth-last-of-type(3n)',
+
 			
 'p:nth-child(n-4)',
-'p:nth-last-child(n-4)',
-'p:nth-of-type(n-4)',
-'p:nth-last-of-type(n-4)',
+
 
 'p:nth-child(2n+1)',
-'p:nth-last-child(2n+1)',
-'p:nth-of-type(2n+1)',
-'p:nth-last-of-type(2n+1)',
+
 			
 'p:nth-child(-2n+2)', 
-'p:nth-last-child(-2n+2)',
-'p:nth-of-type(-2n+2)',
-'p:nth-last-of-type(-2n+2)',
+
 
 'p:nth-child(-n+6)',
-'p:nth-last-child(-n+6)',
-'p:nth-of-type(-n+6)',
-'p:nth-last-of-type(-n+6)',
+
 			
 'p:nth-child(0n+2)',
-'p:nth-last-child(0n+2)',
-'p:nth-of-type(0n+2)',
-'p:nth-last-of-type(0n+2)',
+
 			
 'p:nth-child(5)',
-'p:nth-last-child(5)',
-'p:nth-of-type(5)',
-'p:nth-last-of-type(5)',
+
 			
 'p:only-child', 
-'p:only-of-type', 
+
 			
 'p:last-child', 
-'p:last-of-type',
+
 
 'p:first-child',
-'p:first-of-type',
+
 
 'p:empty'
 ];
 
 window.extraSelectors = [
+
+'p:nth-last-child(even)',
+'p:nth-of-type(even)',
+'p:nth-last-of-type(even)',
+
+'p:nth-last-child(odd)',
+'p:nth-of-type(odd)',
+'p:nth-last-of-type(odd)',
+
+'p:nth-last-child(2n)',
+'p:nth-of-type(2n)',
+'p:nth-last-of-type(2n)',
+
+'p:nth-last-child(3n)',
+'p:nth-of-type(3n)',
+'p:nth-last-of-type(3n)',
+
+'p:nth-last-child(n-4)',
+'p:nth-of-type(n-4)',
+'p:nth-last-of-type(n-4)',
+
+'p:nth-last-child(2n+1)',
+'p:nth-of-type(2n+1)',
+'p:nth-last-of-type(2n+1)',
+
+'p:nth-last-child(-2n+2)',
+'p:nth-of-type(-2n+2)',
+'p:nth-last-of-type(-2n+2)',
+
+'p:nth-last-child(-n+6)',
+'p:nth-of-type(-n+6)',
+'p:nth-last-of-type(-n+6)',
+
+'p:nth-last-child(0n+2)',
+'p:nth-of-type(0n+2)',
+'p:nth-last-of-type(0n+2)',
+
+'p:nth-last-child(5)',
+'p:nth-of-type(5)',
+'p:nth-last-of-type(5)',
+
+'p:only-of-type', 
+
+'p:last-of-type',
+
+'p:first-of-type',
+
 'div:not(.example)', 
 			
 'div:not(:nth-child(odd))',

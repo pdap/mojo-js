@@ -4,6 +4,8 @@
 window.frameworks = [
 //[iframe name, file name, css query method]
 
+["native", "native", "document.querySelectorAll"],
+
 ["mojoQuery", "../mojoQuery.js", "mojoQuery"],
 
 ["jquery-1.4.2", "http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js", "$"],
@@ -18,8 +20,6 @@ window.frameworks = [
 
 //["MooTools-1.3.1", "https://ajax.googleapis.com/ajax/libs/mootools/1.3.1/mootools-yui-compressed.js", "$$"],
 
-["dojo-1.6", "https://ajax.googleapis.com/ajax/libs/dojo/1.6.0/dojo/dojo.xd.js", "dojo.query"],
-
-["native", "native", "document.querySelectorAll"]
+["dojo-1.6", "https://ajax.googleapis.com/ajax/libs/dojo/1.6.0/dojo/dojo.xd.js", "dojo.query"]
 
 ];
