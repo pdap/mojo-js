@@ -18,7 +18,7 @@ window.frameworks = [
 
 //["peppy0.12", "frameworks/peppy.js", "peppy.query"],
 
-//["MooTools-1.3.1", "https://ajax.googleapis.com/ajax/libs/mootools/1.3.1/mootools-yui-compressed.js", "$$"],
+["MooTools-1.3.1", "https://ajax.googleapis.com/ajax/libs/mootools/1.3.1/mootools-yui-compressed.js", "$$"],
 
 ["dojo-1.6", "https://ajax.googleapis.com/ajax/libs/dojo/1.6.0/dojo/dojo.xd.js", "dojo.query"]
 

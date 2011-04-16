@@ -232,7 +232,7 @@ window.customSelectors = [
 
 ];
 
-window.allSelectors = relativeSelectors.concat(clsSelectors).concat(attrSelectors).concat(pseuSelectors).concat(extraSelectors);
+window.allSelectors = relativeSelectors.concat(clsSelectors).concat(attrSelectors).concat(pseuSelectors);
 
 // default loaded selectors
 window.selectors = relativeSelectors;
