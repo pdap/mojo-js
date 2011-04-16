@@ -1050,7 +1050,7 @@
 					catch (e) {}
 				}
 				
-				return oldQuery(selctor, context);
+				return this.oldQuery(selector, context);
 			}
 		}
 		
