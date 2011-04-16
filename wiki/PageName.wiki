@@ -9,5 +9,3 @@
   * [CSSReference CSS reference]
 
 #sidebar TableOfContents
-
-http://code.google.com/p/mojo-js/source/browse/trunk/independent/mojoQuery/speedTest/index.html
