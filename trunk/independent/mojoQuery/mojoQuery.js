@@ -1045,9 +1045,8 @@
 			joQuery.query    = function(selector, context) {
 				if (!context) {
 					try {
-						this.makeArray(document.querySelectorAll(selector));
-					} 
-					catch (e) {}
+						return this.makeArray(document.querySelectorAll(selector));
+					} catch (e) {}
 				}
 				
 				return this.oldQuery(selector, context);
