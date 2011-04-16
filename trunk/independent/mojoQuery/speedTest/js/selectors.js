@@ -211,8 +211,12 @@ window.crazySelectors = [
 'div > div, div + div, div ~ div',
 
 'div:not(:not(.example))',
+
+'div.example',
 			
 'div:not(:not(:not(.example)))',
+
+'div:not(.example)',
 
 'div:not(a, p)',
 
