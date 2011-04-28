@@ -1,0 +1,18 @@
+#summary CSS query engine
+
+= API =
+
+{{{
+mojoQuery(selector, context)     return Array
+
+@param {String} selector 
+- support selector
+
+@param {Undefined | String | HTMLElement | Array | NodeList} context
+- selector context
+
+@return Array of HTMLElements
+}}}
+
+
+= Support selector =
