@@ -1,9 +1,12 @@
 /**
- * Copyright (c) 2009 scott.cgi
- * http://mojo-js.appspot.com
- * under MIT License
+ * mojoQuery JavaScript Library
+ * http://code.google.com/p/mojo-js
+ * 
+ * Copyright (c) 2011 scott.cgi
+ * Released under MIT License
+ * 
  * Since  2009-11-11
- * Nightly Builds
+ * Current Release Date: 2011-05-03 0:48 (UTC+08:00)
  */
 (function(window){
 	
