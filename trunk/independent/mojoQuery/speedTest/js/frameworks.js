@@ -8,7 +8,7 @@ window.frameworks = [
 
 ["mojoQuery", "../mojoQuery.js", "mojoQuery"],
 
-["jquery-1.4.2", "http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js", "$"],
+["jquery-1.6", " https://ajax.googleapis.com/ajax/libs/jquery/1.6.0/jquery.min.js", "$"],
 
 ["jquery-1.5.2", "https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js", "$"],
 
