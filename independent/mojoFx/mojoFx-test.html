@@ -4,6 +4,11 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<title>mojoFx Test Page</title>
 		
+		<!--
+		
+		<script type="text/javascript" src="../../../tags/independent/mojoFx/1.1/mojoFx-1.1.js"></script>
+		-->
+		
 		<script type="text/javascript" src="mojoFx.js"></script>
 		<script type="text/javascript" src="fxEasing.js"></script>
 		
@@ -135,7 +140,7 @@
 			 }, 1000)
 			 .anim({
 			 	backgroundColor:"#999999"
-			 }, {duration:1000})
+			 }, 1000)
 
 			 .anim({
 			 	left:"+=400"
@@ -148,22 +153,16 @@
 			 .anim({
 			 	left:"0px",
 			 	top:"-=400"
-			 }, function(el) {
-			 	el.innerHTML = "this is callback"
-			 }, {
-			 	duration: 1000
-			 })
+			 }, function() {
+			 	this.innerHTML = "this is callback"
+			 }, 1000)
 
 			 .anim({
 			 	opacity:0
-			 }, {
-			 	callback:function(a, el) {
-					el.innerHTML = "param = " + a + "<br> this = " + this;
-				},
-				context: "context",
-				arguments: ["test"],
-				duration: 1000
-			 })
+			 }, function(a) {
+					this.innerHTML = "param = " + a + "<br> this = " + this;
+				}, ["test"], 1000)
+				
 			 .anim({
 			 	opacity:"1"
 			 }, 1000)
@@ -172,8 +171,8 @@
 			 	height:0,
 			 	width:0,
 				borderWidth: 25
-			 }, 1000, function(el) {
-			 	el.innerHTML = "";
+			 }, 1000, function() {
+			 	this.innerHTML = "";
 			 })
 
 		}
@@ -186,23 +185,18 @@
 			document.body.appendChild(el);
 			
 			$(el).anim({
-				top:"+=550px",
+				top:["+=550px", "easeOutBounce"],
 				left:["+=550", "easeOutQuad"]
-			}, 2000, {
-				eachEasing:{
-					top: "easeOutBounce"
-				},
-				callback: function(el) {
-					el.parentNode.removeChild(el);
-				}
-			})
+			}, 2000, function() {
+					this.parentNode.removeChild(this);
+		    })
 		}
 		
 		function backTest() {
 			$(target).anim({
 				left:"+=600"
 			}, 1000, "easeInOutBack",function(){
-				$(target).anim({left:"-=600"},2000,"easeInOutElastic")
+				$(target).anim({left:"-=600"},2000, "easeInOutElastic")
 			})
 		}
 		
@@ -239,17 +233,20 @@
 				arr.push(el);
 			}
 			
+			$(arr[0]).anim({left: "+=500"}, 5000)
+			$(arr[1]).anim({left: "+=500"}, 1000)	
+			
 			$(arr)
-			.anim({left: "+=500"}, 1000)
+//			.anim({left: "+=500"}, 1000)
 			.delay(500)
 			.anim({left:"-=500"}, 1000)
 			.delay(500)
 			.anim({top:"+=200"})
 			.delay(500)
-			.anim({top:"-=200"},function(el){
-				 el.parentNode.removeChild(el);
+			.anim({top:"-=200"},function(){
+				 this.parentNode.removeChild(this);
 			})
-			
+
 		}
 		
 		function QueueTrueTest() {
@@ -271,5 +268,6 @@
 		function StopFalseTest() {
 			$(target).stop();
 		}
+		
 	</script>
 </html>
