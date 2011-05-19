@@ -125,7 +125,7 @@
 					t: 0,
 					d: cfg.duration,	
 					args: cfg.args,
-					callback: cfg.callback,
+					callback: cfg.callback
 				};
 				
 				if(cfg.prop) {
@@ -546,7 +546,7 @@
 						isQueue: true,
 						
 						// arguments of callback funtion
-						args: null
+						args: []
 					},
 					len = arguments.length,
 					i   = 1,
@@ -572,8 +572,8 @@
 							break;	
 						
 						case "object":
-						    // assert param is array
 							if(param.length) {
+								 // assert param is array
 								cfg.args = param;
 							}			
 					}
@@ -606,16 +606,19 @@
 			 */
 			delay: function(t) {
 				joFx.add(this.elements, {
-					args: [joFx, t],
+					args: [t, joFx, joFx.animEls],
 					isQueue: true,
-					callback: function(joFx, t) {
-						var data = joFx.getElData(this);
+					callback: function(t, joFx, aEls) {
+						var 
+							data = joFx.getElData(this),
+							el   = this;
 						data.isDelay = true;
                         window.setTimeout(function() {
                             if (!data.isAnim) {
                                 aEls.push(el);
                                 data.isAnim = true;
                             }
+							data.isDelay = false;
 							joFx.start();
                         }, t);
 					}
