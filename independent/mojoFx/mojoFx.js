@@ -17,7 +17,7 @@
 		/**
 		 * Animation object inculde HTMLElements and animation API
 		 * 
-		 * @param {Array/NodeList/HTMLElement} arg
+		 * @param {Array | NodeList | HTMLElement} arg
 		 */
 		moFx = function(arg) {
 			this.elements = arg.length ? arg : [arg];
@@ -25,7 +25,6 @@
 
 		joFx = {
 			
-			// easing algorithm
 			easing: {
 			   /**
 		 	    * @param {Number} t	current time   
@@ -45,18 +44,51 @@
 			animEls: [],
 			
 			/**
-			 * Add elements into global animation array
-			 * Add elements animation step
+			 * Get the animation data on element
 			 * 
-			 * @param {Array}  els  Array of HTMLElement
-			 * @param {Object/Undefined} cfg  Animation configuration object
+			 * @param {HTMLElement} el HLTMLElement
+			 * @return {Object}        Animation data
+			 */
+			getElData: function(el) {
+				var x;
+				if(!(x = el.mojoData)) {
+					x = el.mojoData = {};
+				}
+				
+				if (!x.mojoFx) {
+					x.mojoFx = {
+						// animation queue
+						queue: [],
+						
+						// current animation steps
+						current: [],
+						
+						// current animation queue step
+						curStep: [],
+						
+						// whether delay animation queue
+						isDelay: false,
+						
+						// whether the element in animation array
+						isAnim: false
+					};
+				}
+				
+				return x.mojoFx;				
+			},			
+			
+			/**
+			 * Add elements into global animation array
+			 * And elements animation step
+			 * 
+			 * @param {Array}              els  Array of HTMLElement
+			 * @param {Object | Undefined} cfg  Animation configuration object
 			 * @return {Object} joFx
 			 */
 			add: function(els, cfg) {
 				var 
 					aEls  = this.animEls,
 					len   = els.length,
-					n     = arguments.length,
 					i     = 0,
 					el, data;
 					
@@ -70,87 +102,60 @@
 						data.isAnim = true;
 					} 
 					
-					if(n === 2) {
-						cfg.queue ? data.queue.push(cfg) : data.current.push(this.getElStep(el, cfg));
-					}
+					cfg.isQueue ? data.queue.push(cfg) : data.current.push(this.getElStep(el, cfg));
 				}					
 				
 				return this;
 			},			
-			
-			/**
-			 * Add elements animation queue callback step
-			 * 
-			 * @param {Array}  els  Array of HTMLElements
-			 * @param {Object} cfg  Callback function configuration object
-			 * @return {Object} joFx
-			 */
-			addCallback: function(els, cfg) {
-				var
-					obj  = {
-						queue: true,
-						arguments: [],
-						context: window,
-						callback: null
-					}, p;
-				
-				for(p in cfg) {
-					obj[p] = cfg[p];
-				}	
-				
-				return this.add(els, obj);
-			},
 
 			/**
 			 * Get animation step array
 			 * 
 			 * @param {HTMLElement} el  HTMLElement
 			 * @param {Object}      cfg Animation configuration object
-			 * @return {Array}      step
+			 * @return {Array}          Animation queue step
 			 */
 			getElStep: function(el, cfg) {
 				var 
 					step = [],
-					eachEasing, easing, prop, fxs,
+					easing, prop, fxs,
 					p, val, fx;
 				
 				step.cfg = {
 					t: 0,
 					d: cfg.duration,	
-					ctx: cfg.context,
-					args: cfg.arguments,
+					args: cfg.args,
 					callback: cfg.callback,
 				};
 				
 				if(cfg.prop) {
 					fxs = cfg.fxs;
 				} else {
-					// only has callback function	
+					// step only has callback function	
 					return step;					
 				}
 				
 				if (!fxs) {
-					fxs = [];
+					fxs    = [];
 					prop   = cfg.prop;
 					easing = cfg.easing;
-					eachEasing = cfg.eachEasing;
 					
 					for (p in prop) {
-						// each property animation object
+						// each property animation bind to object
 						fx  = {};
 						
 						// property name
 						fx.name = p;
 						// easing type
-						fx.easing = eachEasing[p] || easing;
+						fx.easing = easing;
 						// property value
 						val = prop[p]; 
 						
 						switch (typeof val) {
 							case "number":
 								fx.symbol = "";
-								fx.val = val;
-								fx.unit = "px";
+								fx.val    = val;
+								fx.unit   = "px";
 								break;
 								
 							// Property value is an array
@@ -166,8 +171,8 @@
 								if (p.toLowerCase().indexOf("color") === -1) {
 									val = /(\+=|-=)?(-?\d+)(\D*)/.exec(val);
 									fx.symbol = val[1];
-									fx.val = val[2];
-									fx.unit = val[3] || "px";
+									fx.val    = val[2];
+									fx.unit   = val[3] || "px";
 									
 								// color property					
 								} else {
@@ -190,8 +195,8 @@
 			 * Set animation step begin and change value
 			 * 
 			 * @param  {HTMLElement} el    HTMLElement
-			 * @param  {Array}       fxs   Animation configuration 
-			 * @return {Array}       step  Animation step
+			 * @param  {Array}       fxs   Property animation configuration 
+			 * @return {Array}             Animation step
 			 */
 			setBc : function(el, fxs, step) {
 				var 
@@ -269,7 +274,7 @@
 			/**
 			 * Start global animation executor
 			 */
-			animStart : function() {
+			start: function() {
 				var 
 				    self, start;	
 				
@@ -290,7 +295,7 @@
 			 * 
 			 * @param {Number} stepTime  Each step interval 
 			 */
-			updateEl : function(stepTime) {
+			updateEl: function(stepTime) {
 				var 
 					aEls = this.animEls,
 					len  = aEls.length,
@@ -307,8 +312,8 @@
 					// current animation steps
 					cur = data.current;
 					
-					// element current animation queue step
-					if(!(curStep = data.curStep).length && !data.stopQueue && que.length) {
+					// current step of element animation queue 
+					if(!(curStep = data.curStep).length && que.length && !data.isDelay) {
 						curStep = data.curStep = this.getElStep(el, que.shift());
 						cur.push(curStep);
 					}
@@ -331,10 +336,10 @@
 			},
 			
 			/**
-			 * Animation step
+			 * Update each current animation step's value
 			 * 
 			 * @param {HTMLElement} el     HTMLElement
-			 * @param {Array}       steps  Animation steps array
+			 * @param {Array}       steps  Current animation steps array
 			 */
 			step: function(el, steps, stepTime) {
 				var 
@@ -363,7 +368,7 @@
 					}
 					
 					// aniamtion property already complete 
-					// or current step only just has callback function					
+					// or current step just only has callback function					
 					steps.splice(i--, 1);
 					len--;
 					step.length = 0;
@@ -376,7 +381,7 @@
 					cfg = cfgs[i];
 					if(cfg.callback) {
 						// execute callback function
-						cfg.callback.apply(cfg.ctx, cfg.args.concat(el));
+						cfg.callback.apply(el, cfg.args);
 					}					
 				}
 			},
@@ -431,65 +436,6 @@
 			},
 			
 			/**
-			 * Get the animation data on element
-			 * 
-			 * @param {HTMLElement} el HLTMLElement
-			 * @return {Object}        mojoFx element animation data
-			 */
-			getElData: function(el) {
-				var x;
-				if(!(x = el.mojoData)) {
-					x = el.mojoData = {};
-				}
-				
-				if (!x.mojoFx) {
-					x.mojoFx = {
-						// animation queue
-						queue: [],
-						
-						// current animation steps
-						current: [],
-						
-						// current animation queue step
-						curStep: [],
-						
-						// whether stop animation queue
-						stopQueue: false,
-						
-						// whether the element in animation array
-						isAnim: false
-					};
-				}
-				
-				return x.mojoFx;				
-			},
-			
-			/**
-			 * Set elements data 
-			 * 
-			 * @param {Array}   els   HTMLElement array
-			 * @param {Object}  obj   Data object
-			 * @return {Object} joFx
-			 */
-			setElsData: function(els, obj) {
-				var
-					len = els.length,
-					i = 0,
-					el, data, p;
-				
-				for(; i < len; i++) {
-					el = els[i];
-					data = this.getElData(el);
-					
-					for(p in obj) {
-						data[p] = obj[p];
-					}
-				}	
-				
-				return this;
-			},
-			
-			/**
 			 * Stop elements animation
 			 * 
 			 * @param {Object}  els         HTMLElement array
@@ -503,7 +449,7 @@
 					el, data;
 				
 				for(; i < len; i++) {
-					el = els[i];
+					el   = els[i];
 					data = this.getElData(el);
 					
 					data.curStep.length = 0;
@@ -516,7 +462,7 @@
 				
 				return this;				
 			},
-			
+
 			/**
 			 * Get property value of element css style
 			 * 
@@ -524,22 +470,17 @@
 			 * @param  {String}      p	Css property name
 			 * @return {String} 	    Css property value			
 			 */
-			getElStyle: function(el, p) { 
-				var 
-					elSty = el.style,
-					curElSty;
-				
-				if(window.getComputedStyle)	{
-					curElSty = window.getComputedStyle(el, null);
-				} else {
-					curElSty = el.currentStyle;
+			getElStyle: window.getComputedStyle ? 
+				function(el, p) {
+					return	el.style[p] || window.getComputedStyle(el, null)[p];
+				} : 
+				function(el, p) {
 					if(p === "opacity") {
 						return (el.filters.alpha ? el.filters.alpha.opacity : 100) / 100;
 					}
-				}
-
-				return elSty[p] || curElSty[p];
-			},
+					
+					return el.style[p] || el.currentStyle[p];
+				},
 			
 			/**
 			 * Get color property value to decimal RGB array
@@ -551,7 +492,7 @@
 				var 
 					rgb, i;
 				
-				if(color.indexOf("#") === 0) {
+				if(color.charAt(0) === "#") {
 					// #000
 					if(color.length === 4) {
 						color = color.replace(/\w/g, "$&$&");
@@ -586,7 +527,7 @@
 			/**
 			 * Custom animation property and fire it
 			 * 
-			 * @param  {Object} prop	Element style configuration object
+			 * @param  {Object} prop  HTMLElement style configuration object
 			 * @return {Object} moFx
 			 */
 			anim: function(prop) {
@@ -601,20 +542,15 @@
 						
 						easing: "swing",
 						
-						eachEasing: {},
-						
-						// whether current animation enter animation queue 
-						queue: true,
-						
-						// context of callback function
-						context: window,
+						// whether current animation enter queue 
+						isQueue: true,
 						
 						// arguments of callback funtion
-						arguments: []
+						args: null
 					},
 					len = arguments.length,
 					i   = 1,
-					p, param;
+					param;
 
 				for(; i < len; i++) {
 					param = arguments[i];
@@ -632,13 +568,13 @@
 							break;
 						
 						case "boolean":
-							cfg.queue = param;
+							cfg.isQueue = param;
 							break;	
 						
-						// optional object configuration
 						case "object":
-							for(p in param) {
-								cfg[p] = param[p];
+						    // assert param is array
+							if(param.length) {
+								cfg.args = param;
 							}			
 					}
 				}
@@ -646,7 +582,7 @@
 				// bind configuration object to element
 				// set element into global animation array
 				// start animation
-				joFx.add(this.elements, cfg).animStart();
+				joFx.add(this.elements, cfg).start();
 				
 				return this;				
 			},
@@ -669,21 +605,19 @@
 			 * @return{Object} moFx
 			 */
 			delay: function(t) {
-				var 
-				 	els = this.elements,
-					count = 0;
-				
-				joFx.addCallback(els, {
-					arguments: [els, els.length, t],
-					context: joFx,
-					callback: function(els, len, t) {
-						if (++count === len) {
-							var self = this;
-							self.setElsData(els, {stopQueue: true});
-							window.setTimeout(function(){
-								self.setElsData(els, {stopQueue: false}).add(els).animStart();
-							}, t);
-						}
+				joFx.add(this.elements, {
+					args: [joFx, t],
+					isQueue: true,
+					callback: function(joFx, t) {
+						var data = joFx.getElData(this);
+						data.isDelay = true;
+                        window.setTimeout(function() {
+                            if (!data.isAnim) {
+                                aEls.push(el);
+                                data.isAnim = true;
+                            }
+							joFx.start();
+                        }, t);
 					}
 				});
 				
@@ -691,6 +625,9 @@
 			}							
 		};
 		
+		/**
+		 * Extend public API
+		 */
 		mojoFx.extend = function(o) {
 		 	var p;
 			for(p in o) {
@@ -707,14 +644,12 @@
 				version: "1.2.0"
 			},
 			
-			easing: joFx.easing,
-			
 			/**
 			 * Add easing algorithm
 			 */
 			addEasing: function() {
 				var 
-					easing = this.easing,
+					easing = joFx.easing,
 					p, o; 
 				
 				switch(arguments.length) {
