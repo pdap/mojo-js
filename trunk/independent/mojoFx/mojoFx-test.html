@@ -185,8 +185,8 @@
 			document.body.appendChild(el);
 			
 			$(el).anim({
-				top:["+=550px", "easeOutBounce"],
-				left:["+=550", "easeOutQuad"]
+				top:["+=550px", "bounceOut"],
+				left:["+=550", "quadOut"]
 			}, 2000, function() {
 					this.parentNode.removeChild(this);
 		    })
