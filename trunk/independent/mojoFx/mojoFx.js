@@ -647,12 +647,14 @@
 				version: "1.2.0"
 			},
 			
+			easing: joFx.easing,
+			
 			/**
 			 * Add easing algorithm
 			 */
 			addEasing: function() {
 				var 
-					easing = joFx.easing,
+					easing = this.easing,
 					p, o; 
 				
 				switch(arguments.length) {
