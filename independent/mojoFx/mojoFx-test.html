@@ -195,7 +195,7 @@
 		function backTest() {
 			$(target).anim({
 				left:"+=600"
-			}, 1000, "easeInOutBack",function(){
+			}, 1000, "elasticBoth",function(){
 				$(target).anim({left:"-=600"},2000, "elasticBoth")
 			})
 		}
