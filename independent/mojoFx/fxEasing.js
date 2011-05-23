@@ -208,7 +208,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 		
 		/*Bounce*/
 		bounceIn: function(t, b, c, d){
-			return c - E.easeOutBounce(d - t, 0, c, d) + b;
+			return c - E.bounceOut(d - t, 0, c, d) + b;
 		},
 		bounceOut: function(t, b, c, d){
 			if ((t /= d) < (1 / 2.75)) {
@@ -223,9 +223,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 		},
 		bounceBoth: function(t, b, c, d){
 			if (t < d/2) {
-				return E.easeInBounce (t * 2, 0, c, d) * 0.5 + b;
+				return E.bounceIn(t * 2, 0, c, d) * 0.5 + b;
 			}
-			return E.easeOutBounce (t * 2 - d, 0, c, d) * 0.5 + c * 0.5 + b;
+			return E.bounceOut(t * 2 - d, 0, c, d) * 0.5 + c * 0.5 + b;
 		}
 	});
 })(mojoFx || mojo);
