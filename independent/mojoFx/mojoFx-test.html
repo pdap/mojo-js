@@ -108,12 +108,10 @@
 		</div>
 		
 		<div class="test-control" id="test-control">
-			<button  onclick="runTest()">Run test</button>
+			<button  onclick="baseTest()">Base test</button>
 			<button  onclick="easingTest()">Easing test</button>
-			<button onclick="backTest()">Back test</button>
 			<button onclick="colorTest()">Color test</button>
 			<button onclick="delayTest()">Delay test</button>
-			<button onclick="QueueTrueTest()">Queue (true) test</button>
 			<button onclick="QueueFalseTest()">Queue (false) test</button>
 			<button onclick="StopTrueTest()">Stop (true) test</button>
 			<button onclick="StopFalseTest()">Stop (false) test</button>
@@ -122,22 +120,24 @@
 	</body>
 	
 	<script type="text/javascript">
-		var $ = mojoFx;
 		var target = document.getElementById("test-target");
 		
-		function runTest() {
-			$(target)
+		function baseTest() {
+			mojoFx(target)
 
 			 .anim({
 			 	height:100,
 				width: "100"
 			 })
+			 
 			 .anim({
 			 	borderTopWidth:3,
 				borderRightWidth:3,
 				borderLeftWidth:3,
 				borderBottomWidth:3
 			 }, 1000)
+			 
+			 
 			 .anim({
 			 	backgroundColor:"#999999"
 			 }, 1000)
@@ -160,8 +160,8 @@
 			 .anim({
 			 	opacity:0
 			 }, function(a) {
-					this.innerHTML = "param = " + a + "<br> this = " + this;
-				}, ["test"], 1000)
+					this.innerHTML = a + "<br>" + this;
+			 }, ["arguments"], 1000)
 				
 			 .anim({
 			 	opacity:"1"
@@ -184,89 +184,113 @@
 			
 			document.body.appendChild(el);
 			
-			$(el).anim({
-				top:["+=550px", "bounceOut"],
-				left:["+=550", "quadOut"]
-			}, 2000, function() {
-					this.parentNode.removeChild(this);
-		    })
-		}
-		
-		function backTest() {
-			$(target).anim({
-				left:"+=600"
-			}, 1000, "elasticBoth",function(){
-				$(target).anim({left:"-=600"},2000, "elasticBoth")
+			mojoFx(el)
+			
+			.anim({
+				top:["+=500px", "bounceOut"],
+				left:["+=500",  "quadOut"]
+			}, 2000)
+			
+			.anim({left:"+=600"}, 1500, "elasticIn")
+			
+			.anim({
+				borderTopWidth:0,
+				borderRightWidth:0,
+				borderLeftWidth:0,
+				borderBottomWidth:0,
+				top:"+=12",
+				left: "+=12"
+			}, "cubicOut", function(){
+				this.parentNode.removeChild(this);
 			})
 		}
-		
+
 		function colorTest() {
-			$(target).anim({
+			mojoFx(target)
+			
+			.anim({
 				width:"100",
 				height:"100"
 			}, 600)
 			.anim({
-				backgroundColor:"#CCCCFF"
-			}, 1000)		
+				backgroundColor:"#669933",
+				borderTopColor:"#ffffff",
+				borderRightColor:"#ffffff",
+				borderLeftColor:"#ffffff",
+				borderBottomColor:"#ffffff"
+			}, 1200)		
 			.anim({
-				backgroundColor:"rgb(99,99,255)"
-			}, 1000)	
+				backgroundColor:"rgb(199, 199, 255)"				
+			}, 1200)	
 			.anim({
 				width:0,
-				height:0				
+				height:0
+			})			
+			.anim({
+				borderBottomColor:"#999900"
+			})
+			.anim({
+				borderLeftColor:"#CC3399"
+			})
+			.anim({
+				borderTopColor:"#FF9933"
+			})
+			.anim({
+				borderRightColor:"#339999"
 			})			
 		}
 		
 		
 		function delayTest() {
 			
-			var arr = [], top = 150;
+			var arr = [];
 			
 			for(var i = 0; i < 2; i++) {
 				var el = target.cloneNode(false);
 				el.mojoData = null;
 				
-				el.style.top = top + "px";
-				top += 100;
-				
 				document.body.appendChild(el);
 				arr.push(el);
 			}
 			
-			$(arr[0]).anim({left: "+=500"}, 5000)
-			$(arr[1]).anim({left: "+=500"}, 1000)	
+			mojoFx(arr[0]).anim({left: "+=500"}, 5000)
+			mojoFx(arr[1]).anim({left: "+=500"}, 1000)	
 			
-			$(arr)
-//			.anim({left: "+=500"}, 1000)
+			mojoFx(arr)
 			.delay(500)
-			.anim({left:"-=500"}, 1000)
+			.anim({top:"+=500"}, 1000)
 			.delay(500)
-			.anim({top:"+=200"})
+			.anim({left:"-=500"})
 			.delay(500)
-			.anim({top:"-=200"},function(){
+			.anim({top:"-=500"},function(){
 				 this.parentNode.removeChild(this);
 			})
 
 		}
-		
-		function QueueTrueTest() {
-			$(target).anim({left: "+=500"}, 2000)
+
+		function QueueFalseTest() {
+			mojoFx(target)
+				     .anim({
+					 	height: "+=100", 
+						width: "+=100", 
+						borderTopWidth:1,
+						borderRightWidth:1,
+						borderLeftWidth:1,
+						borderBottomWidth:1
+						}, false, 8000)
+			         .anim({left: "+=500"}, 2000)
 					 .anim({top: "+=300"}, 2000)
 					 .anim({left: "-=500"}, 2000)
 					 .anim({top: "-=300"}, 2000)
-					 .anim({height: 0, width: 0})
-		}
-		
-		function QueueFalseTest() {
-			$(target).anim({height: "+=100", width: "+=100"}, false, 5000);
+					 .anim({height: 0, width: 0, borderWidth: 25})				
 		}
 		
 		function StopTrueTest() {
-			$(target).stop(true);
+			mojoFx(target).stop(true);
 		}
 		
 		function StopFalseTest() {
-			$(target).stop();
+			mojoFx(target).stop();
 		}
 		
 	</script>
