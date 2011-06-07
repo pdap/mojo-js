@@ -12,7 +12,7 @@ mojoFx(target)     return  moFx
 }}}
 
 
-
+== anim ==
 {{{
 moFx.anim(props, [duration, easing, callback, arguments, queue])   return moFx
 
@@ -26,8 +26,6 @@ moFx.anim(props, [duration, easing, callback, arguments, queue])   return moFx
       - {width: "+=50px"}, {width: "-=50"}  relative add or sub value
   3. Array:
       - [property value, easing value]
-
-
 
 @param [duration, easing, callback, arguments, queue]
 - This 5 args all are optional and no fix order
@@ -45,7 +43,7 @@ moFx.anim(props, [duration, easing, callback, arguments, queue])   return moFx
 }}}
 
 
-
+== delay ==
 {{{
 moFx.delay(times)  return moFx
 
@@ -56,7 +54,7 @@ moFx.delay(times)  return moFx
 }}}
 
 
-
+== stop ==
 {{{
 moFx.stop(clearqueue)  return moFx
 
