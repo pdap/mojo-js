@@ -1044,7 +1044,9 @@
 
 		
 		window.mojo.extend({
-			query: joQuery.query
+			query: function(selector, context){
+				return joQuery.query(selector, context);
+			}
 		});
 		
 })(window);	
