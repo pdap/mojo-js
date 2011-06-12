@@ -5,7 +5,7 @@
  * http://mojo-js.appspot.com
  * under MIT License
  */
-(function(window, mojo){
+(function(window){
 	var 
 		document = window.document,
 		
@@ -19,7 +19,7 @@
 			 * @param  {HTMLElement} el       HTMLElement
 			 * @param  {String}      evtType  Event type
 			 * @param  {String}      initType Event init type
-			 * @return {Boolean} Event fire successfully or canceled 
+			 * @return {Boolean}              Event fire successfully or canceled 
 			 */
 			fireEvent: function(el, evtType, evtVal, initType) {
 				var 
@@ -218,12 +218,12 @@
 			 * @param {Object} elData Data object of element
 			 * @return Cache object
 			 */
-			getMevent: function(elData) {
+			getELData: function(elData) {
 				return elData.mEvent || (elData.mEvent = {});
 			}							
 		};
 		
-		mojo.fn.extend({
+		window.mojo.fn.extend({
 			
 			/**
 			 * Fire event
@@ -250,7 +250,7 @@
 					argsCode = this.getArgsCode(arguments),
 					guid     = joEvent.guid++,
 					// cache element event function
-					mEvent   = joEvent.getMevent(this.elData),
+					mEvent   = joEvent.getELData(this.elData),
 					type, fn, args, undefined;
 				
 				if (argsCode === "1O") {
@@ -261,7 +261,7 @@
 				}
 				
 				if (!(type = mEvent[x])) {
-					// cache element one type event
+					// cache events of one type on element
 					type = mEvent[x] = {};
 				}
 				
@@ -312,7 +312,7 @@
 				var		
 					el       = this.el,
 					argsCode = this.getArgsCode(arguments),
-					mEvent   = joEvent.getMevent(this.elData),
+					mEvent   = joEvent.getELData(this.elData),
 					type, fns, guid;
 					
 				if (argsCode === "0") {
@@ -349,4 +349,4 @@
 			
 		}, true);
 	
-})(window, mojo);
+})(window);
