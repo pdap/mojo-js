@@ -18,6 +18,6 @@ window.frameworks = [
 
 ["MooTools-1.4.5", "https://ajax.googleapis.com/ajax/libs/mootools/1.4.5/mootools-yui-compressed.js", "$$"],
 
-["dojo-1.9.1", "https://ajax.googleapis.com/ajax/libs/dojo/1.9.1/dojo/dojo.xd.js", "dojo.query"]
+["dojo-1.9.1", "https://ajax.googleapis.com/ajax/libs/dojo/1.9.1/dojo/dojo.js", "dojo.query"]
 
 ];
