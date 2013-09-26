@@ -14,7 +14,7 @@ log = {
 	},
 	
 	render: function(e, append, split) {
-		append ? e.innerHTML += this.msg.join(split || "") :　e.innerHTML = this.msg.join(split || "");
+		append ? e.innerHTML += this.msg.join(split || "") : e.innerHTML = this.msg.join(split || "");
 		this.msg.length = 0;
 		
 		return this;
