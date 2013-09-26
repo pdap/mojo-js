@@ -10,7 +10,7 @@ window.frameworks = [
 
 ["jquery-2.0.3", "https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js", "$"],
 
-["sizzle1.0", "frameworks/sizzle.js", "Sizzle"],
+["sizzle", "frameworks/sizzle.js", "Sizzle"],
 
 ["Ext-core-3.1.0", "https://ajax.googleapis.com/ajax/libs/ext-core/3.1.0/ext-core.js", "Ext.query"],
 
